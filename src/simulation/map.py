@@ -4,22 +4,23 @@ import csv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
+SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
 
 class Map:
     def __init__(self, file_name = "underground.txt") -> None:
         self._file_name = file_name
         self._map = self.read_map_file(file_name)
-
+        self.read_sub_coords(file='uboat.txt')
 
     def print_map(self):
         for row in self._map:
-            print(f'{row}')
+            print(' '.join(map(str, row)))
 
 
     def convert_digits(self, value):
-        if value.isdigit():  # Check if the value is a digit
-            return int(value)  # Convert to integer
-        return value  # Return the original value if it's not a digit
+        if value.isdigit():
+            return int(value)
+        return value
 
 
     def valid_map(self, map):
@@ -48,6 +49,7 @@ class Map:
                 for row in reader:
                     converted_row = [self.convert_digits(item) for item in row]
                     map.append(converted_row)
+                    
             if self.valid_map(map):
                 return map
             else:
@@ -57,6 +59,35 @@ class Map:
             print(f'{e}')
             return []
 
+    def read_sub_coords(self, file: str):
+        SUB_FILE = os.path.join(SUB_DIR, file)
+        sub_coords = []
 
-new_map = Map(file_name='undergroundempty.txt')
+        if not os.path.exists(SUB_FILE):
+            print(f'File {file} not found')
+            # return sub_coords
+        if os.path.getsize(SUB_FILE) == 0:
+            print(f'File {file} is empty')
+            # return sub_coords
+        
+        try:
+            with open(SUB_FILE, newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)
+
+                for row in reader:
+                    print(f'Uboat: {row[0]}:{row[1]}')
+                    if self._map[int(row[0])][int(row[1])] == 0:
+                        self._map[int(row[0])][int(row[1])] = 'U'
+                    
+            # if self.valid_map(map):
+            #     return map
+            # else:
+            #     return []
+
+        except Exception as e:
+            print(f'{e}')
+            # return []
+
+new_map = Map(file_name='underground.txt')
 new_map.print_map()
