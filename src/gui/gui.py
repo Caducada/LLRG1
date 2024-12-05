@@ -6,7 +6,7 @@ class GuiApp:
     """Huvudklass som hanterar hela applikationen"""
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
+        self.screen = pygame.display.set_mode((1600, 1200))
         pygame.display.set_caption("Submarine Simulation")
         self.clock = pygame.time.Clock()
         self.running = True
@@ -16,6 +16,7 @@ class GuiApp:
         self.map_editor = MapEditor(self.screen)
         self.simulation = SimulationGUI(self.screen)
 
+# TODO FIXA MENYN, LÄGG TILL SAKER VID BEHOV
     def main_menu(self):
         font = pygame.font.Font(None, 36)
         menu_items = ["1. Map editor", "2. Simulation", "3. Quit"]
