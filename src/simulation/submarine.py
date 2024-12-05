@@ -87,7 +87,7 @@ class Submarine:
             map_width=self.map_width,
             map=self.map,
         )
-        new_sub.vision == external_vision
+        new_sub.vision = external_vision
         self.sub_list.append(new_sub)
 
     def merge_vision(self):
