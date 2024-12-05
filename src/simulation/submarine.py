@@ -79,7 +79,7 @@ class Submarine:
     def get_vision(self, external_id: int, external_vision: list) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
-                sub.vision == external_vision
+                sub.vision = external_vision
                 return
         new_sub = Submarine(
             id=external_id,
