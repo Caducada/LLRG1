@@ -65,11 +65,10 @@ class Map:
 
         if not os.path.exists(SUB_FILE):
             print(f'File {file} not found')
-            # return sub_coords
+
         if os.path.getsize(SUB_FILE) == 0:
             print(f'File {file} is empty')
-            # return sub_coords
-        
+            
         try:
             with open(SUB_FILE, newline='') as csvfile:
                 reader = csv.reader(csvfile)
@@ -79,15 +78,10 @@ class Map:
                     print(f'Uboat: {row[0]}:{row[1]}')
                     if self._map[int(row[0])][int(row[1])] == 0:
                         self._map[int(row[0])][int(row[1])] = 'U'
-                    
-            # if self.valid_map(map):
-            #     return map
-            # else:
-            #     return []
 
         except Exception as e:
             print(f'{e}')
-            # return []
+
 
 new_map = Map(file_name='underground.txt')
 new_map.print_map()
