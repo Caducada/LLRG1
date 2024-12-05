@@ -1,6 +1,6 @@
 import pygame
-from map_editor_gui import MapEditor
-from simulation_gui import Simulation
+from gui.map_editor_gui import MapEditor
+from gui.simulation_gui import SimulationGUI
 
 class GuiApp:
     """Huvudklass som hanterar hela applikationen"""
@@ -8,13 +8,13 @@ class GuiApp:
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600))
         pygame.display.set_caption("Submarine Simulation")
-        self.clocl = pygame.time.Clock()
+        self.clock = pygame.time.Clock()
         self.running = True
 
         self.active_screen = "menu"
 
         self.map_editor = MapEditor(self.screen)
-        self.simulation = Simulation(self.screen)
+        self.simulation = SimulationGUI(self.screen)
 
     def main_menu(self):
         font = pygame.font.Font(None, 36)
@@ -56,3 +56,7 @@ class GuiApp:
             self.clock.tick(60)
 
         pygame.quit()
+
+if __name__ == "__main__":
+    app = GuiApp()  # Skapa en instans av huvudklassen
+    app.run()    # Kör applikationen
