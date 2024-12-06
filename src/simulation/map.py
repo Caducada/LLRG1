@@ -58,7 +58,15 @@ class Map:
         except Exception as e:
             print(f'{e}')
             return []
+        
+    def create_empty_map(self, width, height, default_value='0'):
+        """Skapar en tom karta med angiven storlek."""
+        self._map = [[default_value for _ in range(width)] for _ in range(height)]
 
+    def generate_random_map(self):
+        """Genererar en slumpmässig karta."""
+        pass
+      
     def read_sub_coords(self, file: str):
         SUB_FILE = os.path.join(SUB_DIR, file)
         sub_coords = []
@@ -81,6 +89,14 @@ class Map:
 
         except Exception as e:
             print(f'{e}')
+            
+
+    def modify_cell(self, x, y, value):
+        """Modifierar en cell på kartan."""
+        if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
+            self._map[y][x] = value
+        else:
+            print("Invalid coordinates")
 
 
 new_map = Map(file_name='underground.txt')
