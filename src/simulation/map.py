@@ -4,22 +4,23 @@ import csv
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
+SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
 
 class Map:
     def __init__(self, file_name = "underground.txt") -> None:
         self._file_name = file_name
         self._map = self.read_map_file(file_name)
-
+        self.read_sub_coords(file='uboat.txt')
 
     def print_map(self):
         for row in self._map:
-            print(f'{row}')
+            print(' '.join(map(str, row)))
 
 
     def convert_digits(self, value):
-        if value.isdigit():  # Check if the value is a digit
-            return int(value)  # Convert to integer
-        return value  # Return the original value if it's not a digit
+        if value.isdigit():
+            return int(value)
+        return value
 
 
     def valid_map(self, map):
@@ -48,6 +49,7 @@ class Map:
                 for row in reader:
                     converted_row = [self.convert_digits(item) for item in row]
                     map.append(converted_row)
+                    
             if self.valid_map(map):
                 return map
             else:
@@ -64,6 +66,30 @@ class Map:
     def generate_random_map(self):
         """Genererar en slumpmässig karta."""
         pass
+      
+    def read_sub_coords(self, file: str):
+        SUB_FILE = os.path.join(SUB_DIR, file)
+        sub_coords = []
+
+        if not os.path.exists(SUB_FILE):
+            print(f'File {file} not found')
+
+        if os.path.getsize(SUB_FILE) == 0:
+            print(f'File {file} is empty')
+            
+        try:
+            with open(SUB_FILE, newline='') as csvfile:
+                reader = csv.reader(csvfile)
+                next(reader)
+
+                for row in reader:
+                    print(f'Uboat: {row[0]}:{row[1]}')
+                    if self._map[int(row[0])][int(row[1])] == 0:
+                        self._map[int(row[0])][int(row[1])] = 'U'
+
+        except Exception as e:
+            print(f'{e}')
+            
 
     def modify_cell(self, x, y, value):
         """Modifierar en cell på kartan."""
@@ -72,5 +98,6 @@ class Map:
         else:
             print("Invalid coordinates")
 
-new_map = Map(file_name='undergroundempty.txt')
+
+new_map = Map(file_name='underground.txt')
 new_map.print_map()
