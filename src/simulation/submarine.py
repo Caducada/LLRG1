@@ -107,6 +107,8 @@ class Submarine:
             if sub.id == external_id:
                 sub.vision == external_vision
                 self.__merge_vision(sub)
+                self.get_new_route()
+                return
         new_sub = Submarine(
             id=external_id,
             map_height=self.map_height,
@@ -116,6 +118,7 @@ class Submarine:
         new_sub.vision = external_vision
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
+        self.get_new_route()
 
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
@@ -221,6 +224,7 @@ class Submarine:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
             ]
+        self.get_new_route()
 
     def get_new_route(self):  
         new_route = []
