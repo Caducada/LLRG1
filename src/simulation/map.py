@@ -25,6 +25,7 @@ class Map:
         for row in self._map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
+        print(self._map[0])
 
 
     def valid_map(self, map):
@@ -100,16 +101,59 @@ class Map:
 
     def modify_cell(self, x, y, value):
         """Modifierar en cell på kartan."""
-        if 0 <= y < len(self._map) and 0 <= x < len(self._map):
+        if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
             self._map[y][x] = value
         else:
             print("Invalid coordinates")
     
+
+    def get_scan_info(self, x, y):
+        scan_info = {'up': '', 'down': '', 'left': '', 'right': ''}
+        if x >= len(self._map[0]) or y >= len(self._map) or x < 0 or y < 0:
+            print("Invalid coordinates")
+            return
+        if x == 0:
+            scan_info['up'] = ''
+            scan_info['down'] = self._map[x+1][y]
+        if x == len(self._map[0])-1:
+            scan_info['down'] = ''
+            scan_info['up'] = self._map[x][y-1]
+        if y == 0:
+            scan_info['left'] = ''
+            scan_info['right'] = self._map[x][y+1]
+        if y == len(self._map)-1:
+            scan_info['left'] = self._map[x][y-1]
+            scan_info['right'] = ''
+
+        if 0 < y and y < len(self._map[0])-1:
+            scan_info['left'] = self._map[x][y-1]
+            scan_info['right'] = self._map[x][y+1]
+
+        if 0 < x and x < len(self._map)-1:
+            scan_info['up'] = self._map[x-1][y]
+            scan_info['down'] = self._map[x+1][y]
+
+        return scan_info
+
 # Exempel
 
 # Läser in kartfil
 # new_map = Map(file_name='underground.txt')
 # new_map.print_map()
+# print(new_map._map[1][1])
+# print(new_map.get_scan_info(1, 1))
+# print('----------------------')
+# print(new_map._map[3][6])
+# print(new_map.get_scan_info(3, 6))
+# print('----------------------')
+# print(new_map._map[3][1])
+# print(new_map.get_scan_info(3, 1))
+# print('----------------------')
+# print(new_map._map[3][0])
+# print(new_map.get_scan_info(3, 0))
+# print('----------------------')
+# print(new_map._map[9][0])
+# print(new_map.get_scan_info(9, 0))
 
 # Skapar tom karta med angiven storlek
 # new_map = Map(x=20, y=20)
