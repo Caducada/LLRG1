@@ -1,26 +1,30 @@
 import os
 import csv
-
+import itertools
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
 SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
 
 class Map:
-    def __init__(self, file_name = "underground.txt") -> None:
-        self._file_name = file_name
-        self._map = self.read_map_file(file_name)
-        self.read_sub_coords(file='uboat.txt')
+    def __init__(self, file_name='', x=10, y=10) -> None:
+        '''
+            Skapar en karta efter kartfil och lägger till ubåtar, 
+            om ingen kartfil anges skapas en tom karta
+        '''
+        if file_name == '':
+            self.create_empty_map(x, y)
+            # self.read_sub_coords(file='uboat.txt')
+        else:
+            self._file_name = file_name
+            self._map = self.read_map_file(file_name)
+            self.read_sub_coords(file='uboat.txt')
+
 
     def print_map(self):
         for row in self._map:
             print(' '.join(map(str, row)))
-
-
-    def convert_digits(self, value):
-        if value.isdigit():
-            return int(value)
-        return value
+            # print(f'{row}')
 
 
     def valid_map(self, map):
@@ -33,6 +37,7 @@ class Map:
 
 
     def read_map_file(self, file: str):
+        '''Läser in en kartfil och kontrollerar att bara giltiga tecken finns med'''
         MAP_FILE = os.path.join(MAP_DIR, file)
         map = [[]]
 
@@ -45,10 +50,10 @@ class Map:
         
         try:
             with open(MAP_FILE, newline='') as csvfile:
-                reader = csv.reader(csvfile)
+                reader = csv.reader(csvfile, delimiter=',')
+                map = []
                 for row in reader:
-                    converted_row = [self.convert_digits(item) for item in row]
-                    map.append(converted_row)
+                    map.append([int(char) if char.isdigit() else char for char in row])
                     
             if self.valid_map(map):
                 return map
@@ -68,6 +73,7 @@ class Map:
         pass
       
     def read_sub_coords(self, file: str):
+        '''Läser in ubåtarnas koordinater och lägger in i kartan'''
         SUB_FILE = os.path.join(SUB_DIR, file)
         sub_coords = []
 
@@ -84,20 +90,27 @@ class Map:
 
                 for row in reader:
                     print(f'Uboat: {row[0]}:{row[1]}')
-                    if self._map[int(row[0])][int(row[1])] == 0:
-                        self._map[int(row[0])][int(row[1])] = 'U'
-
+                    print(f'Map: {self._map[int(row[0])][int(row[1])]}')
+                    if self._map[int(row[1])][int(row[0])] == 0:
+                        self.modify_cell(int(row[1]), int(row[0]), 'U')
+                    
         except Exception as e:
             print(f'{e}')
             
 
     def modify_cell(self, x, y, value):
         """Modifierar en cell på kartan."""
-        if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
+        if 0 <= y < len(self._map) and 0 <= x < len(self._map):
             self._map[y][x] = value
         else:
             print("Invalid coordinates")
+    
+# Exempel
 
+# Läser in kartfil
+# new_map = Map(file_name='underground.txt')
+# new_map.print_map()
 
-new_map = Map(file_name='underground.txt')
-new_map.print_map()
+# Skapar tom karta med angiven storlek
+# new_map = Map(x=20, y=20)
+# new_map.print_map()
