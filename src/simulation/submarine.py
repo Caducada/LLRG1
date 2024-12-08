@@ -206,7 +206,7 @@ class Submarine:
             )
         )
 
-    def get_secret(self, external_id, external_key):
+    def get_secret(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
     def scan_area(self):
@@ -228,7 +228,7 @@ class Submarine:
             ]
         self.get_new_route()
 
-    def get_new_route(self):
+    def get_new_route(self) -> None:
         new_route = []
         temp_x = self.temp_x
         temp_y = self.temp_y
