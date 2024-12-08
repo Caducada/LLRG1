@@ -1,4 +1,5 @@
 import math
+from simulation.point import Point
 
 class Submarine:
     def __init__(
@@ -282,10 +283,3 @@ class Submarine:
             if self.xe == temp_x and self.ye == temp_y:
                 break
         self.planned_route = new_route
-
-class Point:
-    def __init__(self, x, y, direction, e_distance):
-        self.x = x
-        self.y = y
-        self.e_distance = e_distance
-        self.direction = direction
