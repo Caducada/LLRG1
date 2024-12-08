@@ -273,7 +273,7 @@ class Submarine:
             new_points = sorted(
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
-            points_visited = []
+            new_points_visited = []
             for point in new_points:
                 if point.x >= self.map_width:
                     new_points.remove(point)
@@ -285,25 +285,35 @@ class Submarine:
                 ):
                     new_points.remove(point)
                 elif str(point.y) + str(point.x) in time_points:
-                    points_visited.append(point)
+                    new_points_visited.append(point)
                     new_points.remove(point)
             if not len(new_points):
-                points_visited = sorted(
-                    points_visited,
+                new_points_visited = sorted(
+                    new_points_visited,
                     key=lambda point: time_points[str(point.y) + str(point.x)],
                 )
-                new_route.append(points_visited[0])
+                new_route.append(new_points_visited[0])
+                if new_points_visited[0].direction == "up":
+                    temp_y += 1
+                elif new_points_visited[0].direction == "down":
+                    temp_y -= 1
+                elif new_points_visited[0].direction == "right":
+                    temp_x += 1
+                elif new_points_visited[0].direction == "left":
+                    temp_x -= 1
+                if self.xe == temp_x and self.ye == temp_y:
+                    break
             else:
                 time_points.setdefault(str(new_points[0].y)+str(new_points[0].x), counter)
                 new_route.append(new_points[0].direction)
-            if new_points[0].direction == "up":
-                temp_y += 1
-            elif new_points[0].direction == "down":
-                temp_y -= 1
-            elif new_points[0].direction == "right":
-                temp_x += 1
-            elif new_points[0].direction == "left":
-                temp_x -= 1
-            if self.xe == temp_x and self.ye == temp_y:
-                break
+                if new_points[0].direction == "up":
+                    temp_y += 1
+                elif new_points[0].direction == "down":
+                    temp_y -= 1
+                elif new_points[0].direction == "right":
+                    temp_x += 1
+                elif new_points[0].direction == "left":
+                    temp_x -= 1
+                if self.xe == temp_x and self.ye == temp_y:
+                    break
         self.planned_route = new_route
