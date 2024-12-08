@@ -1,6 +1,7 @@
 import math
 from simulation.point import Point
 
+
 class Submarine:
     def __init__(
         self,
@@ -69,17 +70,17 @@ class Submarine:
             raise ValueError("Endpoint reached")
         if direction == "up":
             if self.temp_y != self.map_height:
-                if self.map[self.temp_y - 1][self.temp_x] == "B":
+                if self.map[self.temp_y + 1][self.temp_x] == "B":
                     self.is_alive = False
-                elif self.map[self.temp_y - 1][self.temp_x] == 0:
+                elif self.map[self.temp_y + 1][self.temp_x] == 0:
                     self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
         elif direction == "down":
             if self.temp_y != 0:
-                if self.map[self.temp_y + 1][self.temp_x] == "B":
+                if self.map[self.temp_y - 1][self.temp_x] == "B":
                     self.is_alive = False
-                elif self.map[self.temp_y + 1][self.temp_x] == 0:
-                    self.temp_y += 1
+                elif self.map[self.temp_y - 1][self.temp_x] == 0:
+                    self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
         elif direction == "right":
             if self.temp_x != self.map_width:
@@ -227,40 +228,52 @@ class Submarine:
             ]
         self.get_new_route()
 
-    def get_new_route(self):  
+    def get_new_route(self):
         new_route = []
         temp_x = self.temp_x
         temp_y = self.temp_y
+        counter = 0
+        time_points = {str(temp_y) + str(temp_x): counter}
         while True:
+            counter += 1
             new_points = [
-                Point(
-                    y=temp_y - 1,
-                    x=temp_x,
-                    direction="up",
-                    e_distance=math.sqrt((self.ye - (temp_y + 1)) ** 2 + (self.xe - temp_x) ** 2),
-                ),
                 Point(
                     y=temp_y + 1,
                     x=temp_x,
+                    direction="up",
+                    e_distance=math.sqrt(
+                        (self.ye - (temp_y + 1)) ** 2 + (self.xe - temp_x) ** 2
+                    ),
+                ),
+                Point(
+                    y=temp_y - 1,
+                    x=temp_x,
                     direction="down",
-                    e_distance=math.sqrt((self.ye - (temp_y - 1)) ** 2 + (self.xe - temp_x) ** 2),
+                    e_distance=math.sqrt(
+                        (self.ye - (temp_y - 1)) ** 2 + (self.xe - temp_x) ** 2
+                    ),
                 ),
                 Point(
                     y=temp_y,
                     x=temp_x + 1,
                     direction="right",
-                    e_distance=math.sqrt((self.ye - temp_y) ** 2 + (self.xe - (temp_x + 1)) ** 2),
+                    e_distance=math.sqrt(
+                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x + 1)) ** 2
+                    ),
                 ),
                 Point(
                     y=temp_y,
                     x=temp_x - 1,
                     direction="left",
-                    e_distance=math.sqrt((self.ye - temp_y) ** 2 + (self.xe - (temp_x - 1)) ** 2),
+                    e_distance=math.sqrt(
+                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x - 1)) ** 2
+                    ),
                 ),
             ]
             new_points = sorted(
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
+            points_visited = []
             for point in new_points:
                 if point.x >= self.map_width:
                     new_points.remove(point)
@@ -271,11 +284,22 @@ class Submarine:
                     and self.vision[point.y][point.x] != "?"
                 ):
                     new_points.remove(point)
-            new_route.append(new_points[0].direction)
+                elif str(point.y) + str(point.x) in time_points:
+                    points_visited.append(point)
+                    new_points.remove(point)
+            if not len(new_points):
+                points_visited = sorted(
+                    points_visited,
+                    key=lambda point: time_points[str(point.y) + str(point.x)],
+                )
+                new_route.append(points_visited[0])
+            else:
+                time_points.setdefault(str(new_points[0].y)+str(new_points[0].x), counter)
+                new_route.append(new_points[0].direction)
             if new_points[0].direction == "up":
-                temp_y -= 1
-            elif new_points[0].direction == "down":
                 temp_y += 1
+            elif new_points[0].direction == "down":
+                temp_y -= 1
             elif new_points[0].direction == "right":
                 temp_x += 1
             elif new_points[0].direction == "left":

@@ -11,7 +11,7 @@ def main():
         if not len(line):
             my_map.remove(line)
     my_sub = Submarine(
-        id=1, map_width=10, map_height=10, map=my_map, y0=1, x0=1, ye=1, xe=3, m_count=5
+        id=1, map_width=10, map_height=10, map=my_map, y0=8, x0=1, ye=1, xe=1, m_count=5
     )
     my_sub.get_new_route()
     print(my_sub.planned_route)
