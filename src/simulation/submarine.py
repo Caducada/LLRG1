@@ -17,7 +17,7 @@ class Submarine:
         y0=None,
         xe=None,
         ye=None,
-        m_count=None,
+        m_count=0,
         endpoint_status=None,
         is_alive=True,
     ) -> None:
