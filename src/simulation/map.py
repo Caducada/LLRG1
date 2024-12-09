@@ -25,7 +25,6 @@ class Map:
         for row in self._map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
-        print(self._map[0])
 
 
     def valid_map(self, map):
@@ -104,7 +103,35 @@ class Map:
             self._map[y][x] = value
         else:
             print("Invalid coordinates")
-    
+
+
+    def get_scan_info(self, x, y):
+        scan_info = {'up': '', 'down': '', 'left': '', 'right': ''}
+        if x >= len(self._map[0]) or y >= len(self._map) or x < 0 or y < 0:
+            print("Invalid coordinates")
+            return
+        if x == 0:
+            scan_info['left'] = ''
+            scan_info['right'] = self._map[y][x+1]
+        if x == len(self._map[0])-1:
+            scan_info['right'] = ''
+            scan_info['left'] = self._map[y][x-1]
+        if y == 0:
+            scan_info['up'] = ''
+            scan_info['down'] = self._map[y+1][x]
+        if y == len(self._map)-1:
+            scan_info['up'] = self._map[y-1][x]
+            scan_info['down'] = ''
+
+        if 0 < y and y < len(self._map[0])-1:
+            scan_info['up'] = self._map[y-1][x]
+            scan_info['down'] = self._map[y+1][x]
+
+        if 0 < x and x < len(self._map)-1:
+            scan_info['left'] = self._map[y][x-1]
+            scan_info['right'] = self._map[y][x+1]
+
+        return scan_info
 
 
 # Exempel
@@ -115,8 +142,8 @@ new_map.print_map()
 # print(new_map._map[1][1])
 # print(new_map.get_scan_info(1, 1))
 # print('----------------------')
-print(new_map._map[3][6])
-print(new_map.get_scan_info(3, 6))
+# print(new_map._map[6][9])
+# print(new_map.get_scan_info(10, 1))
 # print('----------------------')
 # print(new_map._map[3][1])
 # print(new_map.get_scan_info(3, 1))
