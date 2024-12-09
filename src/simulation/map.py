@@ -91,9 +91,8 @@ class Map:
 
                 for row in reader:
                     print(f'Uboat: {row[0]}:{row[1]}')
-                    print(f'Map: {self._map[int(row[0])][int(row[1])]}')
-                    if self._map[int(row[1])][int(row[0])] == 0:
-                        self.modify_cell(int(row[1]), int(row[0]), 'U')
+                    if self._map[int(row[0])][int(row[1])] == 0:
+                        self.modify_cell(int(row[0]), int(row[1]), 'U')
                     
         except Exception as e:
             print(f'{e}')
@@ -107,44 +106,17 @@ class Map:
             print("Invalid coordinates")
     
 
-    def get_scan_info(self, x, y):
-        scan_info = {'up': '', 'down': '', 'left': '', 'right': ''}
-        if x >= len(self._map[0]) or y >= len(self._map) or x < 0 or y < 0:
-            print("Invalid coordinates")
-            return
-        if x == 0:
-            scan_info['up'] = ''
-            scan_info['down'] = self._map[x+1][y]
-        if x == len(self._map[0])-1:
-            scan_info['down'] = ''
-            scan_info['up'] = self._map[x][y-1]
-        if y == 0:
-            scan_info['left'] = ''
-            scan_info['right'] = self._map[x][y+1]
-        if y == len(self._map)-1:
-            scan_info['left'] = self._map[x][y-1]
-            scan_info['right'] = ''
-
-        if 0 < y and y < len(self._map[0])-1:
-            scan_info['left'] = self._map[x][y-1]
-            scan_info['right'] = self._map[x][y+1]
-
-        if 0 < x and x < len(self._map)-1:
-            scan_info['up'] = self._map[x-1][y]
-            scan_info['down'] = self._map[x+1][y]
-
-        return scan_info
 
 # Exempel
 
 # Läser in kartfil
-# new_map = Map(file_name='underground.txt')
-# new_map.print_map()
+new_map = Map(file_name='underground.txt')
+new_map.print_map()
 # print(new_map._map[1][1])
 # print(new_map.get_scan_info(1, 1))
 # print('----------------------')
-# print(new_map._map[3][6])
-# print(new_map.get_scan_info(3, 6))
+print(new_map._map[3][6])
+print(new_map.get_scan_info(3, 6))
 # print('----------------------')
 # print(new_map._map[3][1])
 # print(new_map.get_scan_info(3, 1))
