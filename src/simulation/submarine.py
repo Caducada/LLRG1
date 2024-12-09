@@ -42,6 +42,7 @@ class Submarine:
             self.temp_y = self.y0
         if self.x0 != None:
             self.temp_x = self.x0
+        self.map = list(reversed(self.map))
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -70,16 +71,16 @@ class Submarine:
             raise ValueError("Endpoint reached")
         if direction == "up":
             if self.temp_y != self.map_height:
-                if self.map[self.temp_y + 1][self.temp_x] == "B":
-                    self.is_alive = False
-                elif self.map[self.temp_y + 1][self.temp_x] == 0:
-                    self.temp_y -= 1
-                    self.vision[self.temp_y][self.temp_x] = 0
-        elif direction == "down":
-            if self.temp_y != 0:
                 if self.map[self.temp_y - 1][self.temp_x] == "B":
                     self.is_alive = False
                 elif self.map[self.temp_y - 1][self.temp_x] == 0:
+                    self.temp_y += 1
+                    self.vision[self.temp_y][self.temp_x] = 0
+        elif direction == "down":
+            if self.temp_y != 0:
+                if self.map[self.temp_y + 1][self.temp_x] == "B":
+                    self.is_alive = False
+                elif self.map[self.temp_y + 1][self.temp_x] == 0:
                     self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
         elif direction == "right":
