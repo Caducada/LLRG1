@@ -31,18 +31,18 @@ class Submarine:
         self.m_count = m_count
         self.map_height = map_height
         self.map_width = map_width
-        self.map = map
+        # self.map = map
         self.planned_route = planned_route
         self.secret_keys = secret_keys
         self.sub_list = []
         self.vision = self.__get_starting_vision()
         self.endpoint_status = endpoint_status
+        self.map = list(reversed(map))
         self.is_alive = is_alive
         if self.y0 != None:
             self.temp_y = self.y0
         if self.x0 != None:
             self.temp_x = self.x0
-        self.map = list(reversed(self.map))
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
