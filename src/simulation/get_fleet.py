@@ -10,7 +10,7 @@ def get_fleet(fleet_name: str, map: list) -> str:
     with open(SUB_FILE, "r") as fleet:
         counter = 0
         for line in fleet.readlines():
-            if line[0].isnumeric():
+            if line.split(",")[2].replace(" ", "").isnumeric():
                 try:
                     temp_x0 = int(line.split(",")[0].replace(" ", ""))
                 except IndexError:
