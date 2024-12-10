@@ -91,7 +91,7 @@ class Map:
                 next(reader)
 
                 for row in reader:
-                    # print(f'Uboat: {row[0]}:{row[1]}')
+                    print(f'Uboat: {row[0]}:{row[1]}')
                     # print(f'Cell: {self._map[int(row[0])][int(row[1])]}')
                     if self._map[int(row[0])][int(row[1])] == 0:
                         self.modify_cell(int(row[0]), int(row[1]), 'U')
