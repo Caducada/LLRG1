@@ -6,8 +6,8 @@ from simulation.get_fleet import get_fleet
 
 
 def run_sim(fleet_name:str, map_name:str):
-    sim_map = Map(map_name)._map
-    sub_list = get_fleet(fleet_name, sim_map)
+    sim_map = Map(map_name)
+    sub_list = get_fleet(fleet_name, sim_map._map)
     for sub in sub_list:
         sub.get_new_route()
         print(sub.planned_route)
