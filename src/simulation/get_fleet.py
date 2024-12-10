@@ -21,15 +21,15 @@ def get_fleet(fleet_name: str, map: list) -> str:
                     temp_y0 = 1
                 try:
                     temp_xe = int(line.split(",")[2].replace(" ", ""))
-                except:
+                except IndexError:
                     temp_xe = 1
                 try:
                     temp_ye = int(line.split(",")[3].replace(" ", ""))
-                except:
+                except IndexError:
                     temp_ye = 1
                 try:
                     temp_missiles = int(line.split(",")[4].replace(" ", ""))
-                except:
+                except IndexError:
                     temp_missiles = 1
                 sub_list.append(
                     Submarine(
