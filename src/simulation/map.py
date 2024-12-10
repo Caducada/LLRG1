@@ -18,11 +18,13 @@ class Map:
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
+            self._map = self._map[::-1]
             self.read_sub_coords(file='uboat.txt')
 
 
     def print_map(self):
-        for row in self._map:
+        temp_map = self._map[::-1]
+        for row in temp_map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
 
@@ -90,6 +92,7 @@ class Map:
 
                 for row in reader:
                     print(f'Uboat: {row[0]}:{row[1]}')
+                    # print(f'Cell: {self._map[int(row[0])][int(row[1])]}')
                     if self._map[int(row[0])][int(row[1])] == 0:
                         self.modify_cell(int(row[0]), int(row[1]), 'U')
                     
