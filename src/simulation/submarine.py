@@ -31,7 +31,6 @@ class Submarine:
         self.m_count = m_count
         self.map_height = map_height
         self.map_width = map_width
-        # self.map = map
         self.planned_route = planned_route
         self.secret_keys = secret_keys
         self.sub_list = []
