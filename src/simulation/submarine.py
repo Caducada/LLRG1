@@ -6,8 +6,6 @@ class Submarine:
     def __init__(
         self,
         id: int,
-        map_height: int,
-        map_width: int,
         map: list,
         planned_route: list = [],
         secret_keys: dict = {},
@@ -29,14 +27,14 @@ class Submarine:
         self.xe = xe
         self.ye = ye
         self.m_count = m_count
-        self.map_height = map_height
-        self.map_width = map_width
         self.planned_route = planned_route
         self.secret_keys = secret_keys
+        self.map = list(reversed(map))
         self.sub_list = []
+        self.map_height = len(self.map)
+        self.map_width = len(self.map[0])
         self.vision = self.__get_starting_vision()
         self.endpoint_status = endpoint_status
-        self.map = list(reversed(map))
         self.is_alive = is_alive
         if self.y0 != None:
             self.temp_y = self.y0
@@ -113,8 +111,6 @@ class Submarine:
                 return
         new_sub = Submarine(
             id=external_id,
-            map_height=self.map_height,
-            map_width=self.map_width,
             map=self.map,
         )
         new_sub.vision = external_vision
@@ -170,8 +166,6 @@ class Submarine:
                 xe=external_xe,
                 ye=external_ye,
                 endpoint_status=external_endpoint_status,
-                map_height=self.map_height,
-                map_width=self.map_width,
                 map=self.map,
             )
         )
@@ -184,8 +178,6 @@ class Submarine:
         self.sub_list.append(
             Submarine(
                 id=external_id,
-                map_height=self.map_height,
-                map_width=self.map_width,
                 map=self.map,
                 m_count=external_m_count,
             )
@@ -199,8 +191,6 @@ class Submarine:
         self.sub_list.append(
             Submarine(
                 id=external_id,
-                map_height=self.map_height,
-                map_width=self.map_width,
                 map=self.map,
                 planned_route=external_route,
             )

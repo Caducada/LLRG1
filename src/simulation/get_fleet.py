@@ -40,8 +40,6 @@ def get_fleet(fleet_name: str, map: list) -> str:
                         ye=temp_ye,
                         m_count=temp_missiles,
                         map=map,
-                        map_height=len(map),
-                        map_width=len(map[0])
                     )
                 )
                 counter += 1
