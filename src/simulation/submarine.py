@@ -219,15 +219,29 @@ class Submarine:
                 self.temp_x - 1
             ]
         self.get_new_route()
+        
+    def __get_last_point(self, directrion:str, new_point:Point) -> Point:
+        last_point = new_point
+        if directrion == "up":
+            last_point.y -= 1
+        elif directrion == "down":
+            last_point.y += 1
+        elif directrion == "right":
+            last_point.x -= 1
+        elif directrion == "left":
+            last_point.x += 1
+        else:
+            raise ValueError("INvalid direction")
+        return last_point
 
     def get_new_route(self) -> None:
+        new_route = []
         banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
-        time_points = {str(temp_y) + str(temp_x):0}
+        time_points = {str(temp_x) + str(temp_y):0}
+        breaker = True
         while True:
-            breaker = True
-            new_route = []
             new_points_visited = []
             new_points = [
                 Point(
@@ -278,13 +292,13 @@ class Submarine:
                     new_points.remove(point)
                 elif point in banned_squares:
                     new_points.remove(point)
-                elif str(point.y) + str(point.x) in time_points:
+                elif str(point.x) + str(point.y) in time_points:
                     new_points_visited.append(point)
                     new_points.remove(point)
             if not len(new_points):
                 new_points_visited = sorted(
                     new_points_visited,
-                    key=lambda point: time_points[str(point.y) + str(point.x)],
+                    key=lambda point: time_points[str(point.x) + str(point.y)],
                 )
                 banned_squares.append(point)
                 breaker = False
@@ -297,21 +311,45 @@ class Submarine:
                     temp_x += 1
                 elif new_points_visited[0].direction == "left":
                     temp_x -= 1
+                new_route.append(new_points_visited[0].direction)
+                if self.xe == temp_x and self.ye == temp_y:
+                    new_route = []
+                    temp_x = self.temp_x
+                    temp_y = self.temp_y
+                    time_points = {str(temp_x) + str(temp_y):0}  
+                    breaker = True         
             else:
-                if point in banned_squares:
-                    banned_squares.remove(point)
-                time_points.setdefault(
-                    str(new_points[0].y) + str(new_points[0].x), len(new_route)
-                )
                 new_route.append(new_points[0].direction)
+                time_points.setdefault(
+                    str(new_points[0].x) + str(new_points[0].y), len(new_route)
+                )
                 if new_points[0].direction == "up":
+                    last_point = self.__get_last_point("up", point)
+                    if last_point in banned_squares:
+                        banned_squares.remove(point)
                     temp_y += 1
                 elif new_points[0].direction == "down":
+                    last_point = self.__get_last_point("down", point)
+                    if last_point in banned_squares:
+                        banned_squares.remove(point)
                     temp_y -= 1
                 elif new_points[0].direction == "right":
+                    last_point = self.__get_last_point("right", point)
+                    if last_point in banned_squares:
+                        banned_squares.remove(point)
                     temp_x += 1
                 elif new_points[0].direction == "left":
+                    last_point = self.__get_last_point("left", point)
+                    if last_point in banned_squares:
+                        banned_squares.remove(point)
                     temp_x -= 1
-                if self.xe == temp_x and self.ye == temp_y and breaker:
-                    break
+                if self.xe == temp_x and self.ye == temp_y:
+                    if breaker:
+                        break
+                    else:
+                        new_route = []
+                        temp_x = self.temp_x
+                        temp_y = self.temp_y
+                        time_points = {str(temp_x) + str(temp_y):0} 
+                        breaker = True
         self.planned_route = new_route
