@@ -29,7 +29,7 @@ class Submarine:
         self.m_count = m_count
         self.planned_route = planned_route
         self.secret_keys = secret_keys
-        self.map = list(reversed(map))
+        self.map = map
         self.sub_list = []
         self.map_height = len(self.map)
         self.map_width = len(self.map[0])
@@ -68,16 +68,18 @@ class Submarine:
             raise ValueError("Endpoint reached")
         if direction == "up":
             if self.temp_y != self.map_height:
-                if self.map[self.temp_y - 1][self.temp_x] == "B":
+                if self.map[self.temp_y + 1][self.temp_x] == "B":
+                    self.temp_y += 1
                     self.is_alive = False
-                elif self.map[self.temp_y - 1][self.temp_x] == 0:
+                elif self.map[self.temp_y + 1][self.temp_x] == 0:
                     self.temp_y += 1
                     self.vision[self.temp_y][self.temp_x] = 0
         elif direction == "down":
             if self.temp_y != 0:
-                if self.map[self.temp_y + 1][self.temp_x] == "B":
+                if self.map[self.temp_y - 1][self.temp_x] == "B":
+                    self.temp_y -= 1
                     self.is_alive = False
-                elif self.map[self.temp_y + 1][self.temp_x] == 0:
+                elif self.map[self.temp_y - 1][self.temp_x] == 0:
                     self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
         elif direction == "right":
