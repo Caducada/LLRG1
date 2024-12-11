@@ -219,13 +219,14 @@ class Submarine:
         self.get_new_route()
 
     def get_new_route(self) -> None:
-        new_route = []
+        banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
-        counter = 0
-        time_points = {str(temp_y) + str(temp_x): counter}
+        time_points = {str(temp_y) + str(temp_x):0}
         while True:
-            counter += 1
+            breaker = True
+            new_route = []
+            new_points_visited = []
             new_points = [
                 Point(
                     y=temp_y + 1,
@@ -263,7 +264,6 @@ class Submarine:
             new_points = sorted(
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
-            new_points_visited = []
             for point in new_points:
                 if point.x >= self.map_width:
                     new_points.remove(point)
@@ -274,6 +274,8 @@ class Submarine:
                     and self.vision[point.y][point.x] != "?"
                 ):
                     new_points.remove(point)
+                elif point in banned_squares:
+                    new_points.remove(point)
                 elif str(point.y) + str(point.x) in time_points:
                     new_points_visited.append(point)
                     new_points.remove(point)
@@ -282,6 +284,8 @@ class Submarine:
                     new_points_visited,
                     key=lambda point: time_points[str(point.y) + str(point.x)],
                 )
+                banned_squares.append(point)
+                breaker = False
                 new_route.append(new_points_visited[0])
                 if new_points_visited[0].direction == "up":
                     temp_y += 1
@@ -291,10 +295,12 @@ class Submarine:
                     temp_x += 1
                 elif new_points_visited[0].direction == "left":
                     temp_x -= 1
-                if self.xe == temp_x and self.ye == temp_y:
-                    break
             else:
-                time_points.setdefault(str(new_points[0].y)+str(new_points[0].x), counter)
+                if point in banned_squares:
+                    banned_squares.remove(point)
+                time_points.setdefault(
+                    str(new_points[0].y) + str(new_points[0].x), len(new_route)
+                )
                 new_route.append(new_points[0].direction)
                 if new_points[0].direction == "up":
                     temp_y += 1
@@ -304,6 +310,6 @@ class Submarine:
                     temp_x += 1
                 elif new_points[0].direction == "left":
                     temp_x -= 1
-                if self.xe == temp_x and self.ye == temp_y:
+                if self.xe == temp_x and self.ye == temp_y and breaker:
                     break
         self.planned_route = new_route
