@@ -136,12 +136,21 @@ class Map:
 
         return scan_info
 
+    def save_map_to_file(self, file):
+        MAP_FILE = os.path.join(MAP_DIR, file)
+        # temp_map = self._map[::-1]
+        self.print_map()
+        with open(MAP_FILE, 'w', newline='') as file:
+            csvwriter = csv.writer(file)
+            csvwriter.writerows(self._map)
+
+
 
 # Exempel
 
 # Läser in kartfil
-new_map = Map(file_name='underground.txt')
-new_map.print_map()
+# new_map = Map(file_name='underground.txt')
+# new_map.print_map()
 # print(new_map._map[1][1])
 # print(new_map.get_scan_info(1, 1))
 # print('----------------------')
