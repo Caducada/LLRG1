@@ -59,7 +59,7 @@ class MapEditor:
 
     def save_map(self):
         """Sparar kartan till underground.txt."""
-        self.map_obj.save_map_to_file("data/maps/underground.txt")
+        self.map_obj.save_map_to_file("underground.txt")
         print("Map saved to underground.txt.")
 
     def go_to_main_menu(self):
