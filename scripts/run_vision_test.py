@@ -11,6 +11,7 @@ def run_sim(fleet_name:str, map_name:str):
     for sub in sub_list:
         sub.get_new_route()
         print(sub.planned_route)
+        sub.display_vision()
     
 if __name__ == "__main__":
     run_sim(fleet_name="simple.txt", map_name="underground.txt")

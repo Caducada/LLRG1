@@ -9,8 +9,8 @@ class Submarine:
         map: list,
         planned_route: list = [],
         secret_keys: dict = {},
-        temp_x: int = -1,
-        temp_y: int = -1,
+        temp_x= None,
+        temp_y= None,
         x0=None,
         y0=None,
         xe=None,
@@ -22,10 +22,16 @@ class Submarine:
         self.id = id
         self.x0 = x0
         self.y0 = y0
-        self.temp_x = temp_x
-        self.temp_y = temp_y
         self.xe = xe
         self.ye = ye
+        if self.y0 == None:
+            self.temp_y = -1
+        else:
+            self.temp_y = self.y0
+        if self.x0 == None:
+            self.temp_x = -1
+        else:
+            self.temp_x = self.x0
         self.m_count = m_count
         self.planned_route = planned_route
         self.secret_keys = secret_keys
@@ -36,10 +42,7 @@ class Submarine:
         self.vision = self.__get_starting_vision()
         self.endpoint_status = endpoint_status
         self.is_alive = is_alive
-        if self.y0 != None:
-            self.temp_y = self.y0
-        if self.x0 != None:
-            self.temp_x = self.x0
+
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -47,7 +50,9 @@ class Submarine:
             inner_list = []
             for j in range(self.map_width):
                 if j == self.temp_x and i == self.temp_y:
-                    inner_list.append("0")
+                    inner_list.append("S")
+                elif j == self.xe and i == self.ye:
+                    inner_list.append("E")
                 else:
                     inner_list.append("?")
             wrapper_list.append(inner_list)
@@ -119,6 +124,10 @@ class Submarine:
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
         self.get_new_route()
+        
+    def display_vision(self):
+        for row in self.vision[::-1]:
+            print(" ".join(map(str, row))) 
 
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
@@ -201,7 +210,7 @@ class Submarine:
     def get_secret(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
-    def scan_area(self):
+    def basic_scan(self):
         if self.temp_y != self.map_height:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
@@ -231,7 +240,7 @@ class Submarine:
         elif directrion == "left":
             last_point.x += 1
         else:
-            raise ValueError("INvalid direction")
+            raise ValueError("Invalid direction")
         return last_point
 
     def get_new_route(self) -> None:
@@ -288,6 +297,7 @@ class Submarine:
                 elif (
                     self.vision[point.y][point.x] != 0
                     and self.vision[point.y][point.x] != "?"
+                    and self.vision[point.y][point.x] != "E"
                 ):
                     new_points.remove(point)
                 elif point in banned_squares:
