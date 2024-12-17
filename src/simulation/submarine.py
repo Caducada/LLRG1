@@ -9,8 +9,6 @@ class Submarine:
         map: list,
         planned_route: list = [],
         secret_keys: dict = {},
-        temp_x= None,
-        temp_y= None,
         x0=None,
         y0=None,
         xe=None,
@@ -128,6 +126,7 @@ class Submarine:
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row))) 
+
 
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
