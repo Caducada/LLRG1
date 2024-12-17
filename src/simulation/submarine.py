@@ -75,30 +75,34 @@ class Submarine:
                     self.temp_y += 1
                     self.is_alive = False
                 elif self.map[self.temp_y + 1][self.temp_x] == 0:
-                    self.temp_y += 1
                     self.vision[self.temp_y][self.temp_x] = 0
+                    self.temp_y += 1
+                    self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
                 if self.map[self.temp_y - 1][self.temp_x] == "B":
                     self.temp_y -= 1
                     self.is_alive = False
                 elif self.map[self.temp_y - 1][self.temp_x] == 0:
-                    self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
+                    self.temp_y -= 1
+                    self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
             if self.temp_x != self.map_width:
                 if self.map[self.temp_y][self.temp_x + 1] == "B":
                     self.is_alive = False
                 elif self.map[self.temp_y][self.temp_x + 1] == 0:
-                    self.temp_x += 1
                     self.vision[self.temp_y][self.temp_x] = 0
+                    self.temp_x += 1
+                    self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
                 if self.map[self.temp_y][self.temp_x - 1] == "B":
                     self.is_alive = False
                 elif self.map[self.temp_y][self.temp_x - 1] == 0:
-                    self.temp_x -= 1
                     self.vision[self.temp_y][self.temp_x] = 0
+                    self.temp_x -= 1
+                    self.vision[self.temp_y][self.temp_x] = "S"
         else:
             raise ValueError("Invalid direction")
 
