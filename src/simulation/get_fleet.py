@@ -1,5 +1,5 @@
 import os
-from simulation.submarine import Submarine
+from .submarine import Submarine
 
 
 def get_fleet(fleet_name: str, map: list) -> str:

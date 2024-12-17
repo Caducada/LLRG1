@@ -1,5 +1,6 @@
 import sys
 import os
+from scripts.run_vision_test import run_sim
 
 # Lägg till 'src' i sys.path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
