@@ -17,6 +17,7 @@ class Submarine:
         endpoint_status=None,
         is_alive=True,
     ) -> None:
+        """Map attribute needs to be updated each cycle"""
         self.id = id
         self.x0 = x0
         self.y0 = y0
@@ -40,7 +41,6 @@ class Submarine:
         self.vision = self.__get_starting_vision()
         self.endpoint_status = endpoint_status
         self.is_alive = is_alive
-
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -126,11 +126,10 @@ class Submarine:
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
         self.get_new_route()
-        
+
     def display_vision(self):
         for row in self.vision[::-1]:
-            print(" ".join(map(str, row))) 
-
+            print(" ".join(map(str, row)))
 
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
@@ -213,26 +212,48 @@ class Submarine:
     def get_secret(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
-    def basic_scan(self):
-        if self.temp_y != self.map_height:
+    def basic_scan(self, plan_route=True):
+        """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        if self.temp_y != self.map_height-1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
             ]
-        if self.temp_y != 0:
-            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y + 1][
+        if self.temp_y  != 0:
+            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
             ]
-        if self.temp_x != self.map_width:
+        if self.temp_x != self.map_width-1:
             self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
             ]
-        if self.temp_x != 0:
+        if self.temp_x  != 0:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
             ]
+        if plan_route:
+            self.get_new_route()
+
+    def advanced_scan(self):
+        self.basic_scan(False)
+        if self.temp_y  + 2 < self.map_height :
+            self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
+                self.temp_x
+            ]
+        if self.temp_y - 1 != 0:
+            self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
+                self.temp_x
+            ]
+        if self.temp_x  + 2 < self.map_width:
+            self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
+                self.temp_x + 2
+            ]
+        if self.temp_x - 1 != 0:
+            self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
+                self.temp_x - 2
+            ]
         self.get_new_route()
-        
-    def __get_last_point(self, directrion:str, new_point:Point) -> Point:
+
+    def __get_last_point(self, directrion: str, new_point: Point) -> Point:
         last_point = new_point
         if directrion == "up":
             last_point.y -= 1
@@ -251,7 +272,7 @@ class Submarine:
         banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
-        time_points = {str(temp_x) + str(temp_y):0}
+        time_points = {str(temp_x) + str(temp_y): 0}
         breaker = True
         while True:
             new_points_visited = []
@@ -329,8 +350,8 @@ class Submarine:
                     new_route = []
                     temp_x = self.temp_x
                     temp_y = self.temp_y
-                    time_points = {str(temp_x) + str(temp_y):0}  
-                    breaker = True         
+                    time_points = {str(temp_x) + str(temp_y): 0}
+                    breaker = True
             else:
                 new_route.append(new_points[0].direction)
                 time_points.setdefault(
@@ -363,6 +384,6 @@ class Submarine:
                         new_route = []
                         temp_x = self.temp_x
                         temp_y = self.temp_y
-                        time_points = {str(temp_x) + str(temp_y):0} 
+                        time_points = {str(temp_x) + str(temp_y): 0}
                         breaker = True
         self.planned_route = new_route

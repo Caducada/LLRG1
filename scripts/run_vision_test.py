@@ -9,6 +9,7 @@ def run_sim(fleet_name:str, map_name:str):
     sub_list = get_fleet(fleet_name, sim_map._map)
     for sub in sub_list:
         sub.basic_scan()
+        sub.advanced_scan()
         print(sub.planned_route)
         sub.display_vision()
     

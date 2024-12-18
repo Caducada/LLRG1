@@ -2,7 +2,7 @@ import os
 from .submarine import Submarine
 
 
-def get_fleet(fleet_name: str, map: list) -> str:
+def get_fleet(fleet_name: str, map: list) -> list[Submarine]:
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
     SUB_FILE = os.path.join(SUB_DIR, fleet_name)
