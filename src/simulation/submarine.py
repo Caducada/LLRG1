@@ -134,7 +134,7 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
 
-    def get_vision(self, external_id: int, external_vision: list) -> None:
+    def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
                 sub.vision = external_vision
@@ -219,7 +219,7 @@ class Submarine:
             )
         )
 
-    def get_route(self, external_id, external_route) -> None:
+    def get_route_from_sub(self, external_id, external_route) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
                 sub.planned_route = external_route
@@ -232,7 +232,7 @@ class Submarine:
             )
         )
 
-    def get_secret(self, external_id, external_key) -> None:
+    def get_secret_from_sub(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
     def basic_scan(self, plan_route=True):
