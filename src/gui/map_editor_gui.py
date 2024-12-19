@@ -1,20 +1,45 @@
 from simulation.map import Map
 from .widgets import GraphicsLibrary
+from gui.base_gui import BaseGUI
+from gui.sidebar import Sidebar
 import tkinter as tk
 from tkinter.simpledialog import askinteger
 import pygame
 
-class MapEditor:
+class MapEditor(BaseGUI):
     """Hanterar kartredigering i pygame."""
     def __init__(self, screen):
-        self.screen = screen
+        super().__init__(screen)
         self.sidebar_width = 200
         self.cell_size = 20
-        self.map_obj = None 
-        self.running = False
+        self.map_obj = None
         self.selected_value = '0'
         self.graphics = GraphicsLibrary()  # Instansiera grafikbiblioteket
-        self.buttons = []  
+
+        # Sidopanel
+        self.sidebar = Sidebar(self.screen, self.sidebar_width)
+        self.init_sidebar()
+
+    def init_sidebar(self):
+        """Initiera sidopanelens knappar."""
+        self.sidebar.add_button("Wall (x)", lambda: self.set_selected_value("x"), self.graphics.get_resource('x')["color"])
+        self.sidebar.add_button("Mine (B)", lambda: self.set_selected_value("B"), self.graphics.get_resource('B')["color"])
+        self.sidebar.add_button("Empty (0)", lambda: self.set_selected_value("0"), self.graphics.get_resource('0')["color"])
+        self.sidebar.add_button("Save Map", self.save_map, (200, 200, 200))
+        self.sidebar.add_button("Main Menu", self.go_to_main_menu, (200, 200, 200))
+
+    def set_selected_value(self, value):
+        """Ställer in det valda värdet för redigering."""
+        self.selected_value = value
+
+    def save_map(self):
+        """Sparar kartan till en fil."""
+        self.map_obj.save_map_to_file("underground.txt")
+        print("Map saved to underground.txt.")
+
+    def go_to_main_menu(self):
+        """Avslutar editorn och återgår till huvudmenyn."""
+        self.running = False
 
     def ask_map_size(self):
         """Visa val för att välja kartstorlek."""
@@ -47,25 +72,6 @@ class MapEditor:
                             self.map_obj.create_empty_map(*button["size"])
                             return
 
-    def init_buttons(self):
-        """Initiera knappar för sidopanelen."""
-        self.buttons = [
-            {"rect": pygame.Rect(10, 10, 180, 30), "text": "Wall (x)", "value": "x", "color": self.graphics.get_resource('x')["color"]},
-            {"rect": pygame.Rect(10, 50, 180, 30), "text": "Mine (B)", "value": "B", "color": self.graphics.get_resource('B')["color"]},
-            {"rect": pygame.Rect(10, 90, 180, 30), "text": "Empty (0)", "value": "0", "color": self.graphics.get_resource('0')["color"]},
-            {"rect": pygame.Rect(10, 140, 180, 30), "text": "Save Map", "action": self.save_map, "color": (200, 200, 200)},
-            {"rect": pygame.Rect(10, 180, 180, 30), "text": "Main Menu", "action": self.go_to_main_menu, "color": (200, 200, 200)},
-        ]
-
-    def save_map(self):
-        """Sparar kartan till underground.txt."""
-        self.map_obj.save_map_to_file("underground.txt")
-        print("Map saved to underground.txt.")
-
-    def go_to_main_menu(self):
-        """Avslutar redigeraren och går tillbaka till huvudmenyn."""
-        self.running = False  # Stäng ner editorn
-
     def calculate_cell_size(self):
         """Anpassar cellstorleken så att kartan fyller tillgängligt utrymme."""
         map_width = len(self.map_obj._map[0])
@@ -78,35 +84,29 @@ class MapEditor:
         cell_height = available_height // map_height
         self.cell_size = min(cell_width, cell_height)
 
-    def draw_sidebar(self):
-        """Ritar sidopanelen."""
-        font = pygame.font.Font(None, 24)
+    def handle_events(self):
+        """Hantera event-hantering."""
+        super().handle_events()  # Hanterar generella events
         mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if mouse_pos[0] < self.sidebar_width:  # Klick på sidopanelen
+                    self.sidebar.handle_click(mouse_pos)
+                else:  # Klick på kartan
+                    cell_coords = self.get_cell_under_mouse()
+                    if cell_coords:
+                        cell_x, cell_y = cell_coords
+                        self.map_obj.modify_cell(cell_x, cell_y, self.selected_value)
 
-        pygame.draw.rect(self.screen, (220, 220, 220), (0, 0, self.sidebar_width, self.screen.get_height()))
-        for button in self.buttons:
-            rect = button["rect"]
-            color = button.get("color", (150, 150, 150))
-            text_color = (0, 0, 0)
-            if rect.collidepoint(mouse_pos):
-                color = (255, 255, 0)  # Hover-effekt
-
-            pygame.draw.rect(self.screen, color, rect)
-            pygame.draw.rect(self.screen, (0, 0, 0), rect, 2)
-            text = font.render(button["text"], True, text_color)
-            self.screen.blit(text, (rect.x + 10, rect.y + 5))
-
-    def handle_button_click(self, mouse_pos):
-        """Hantera klick på knappar."""
-        for button in self.buttons:
-            if button["rect"].collidepoint(mouse_pos):
-                if "value" in button:
-                    self.selected_value = button["value"]
-                elif "action" in button:
-                    button["action"]()
+    def render(self):
+        """Rendera skärmen."""
+        self.calculate_cell_size()
+        self.screen.fill((0, 0, 0))
+        self.sidebar.render()
+        self.draw_map()
 
     def draw_map(self):
-        """Ritar kartan på skärmen med färger och symboler."""
+        """Ritar kartan på skärmen."""
         font = pygame.font.Font(None, self.cell_size - 4)
         for y, row in enumerate(self.map_obj._map):
             for x, cell in enumerate(row):
@@ -141,30 +141,3 @@ class MapEditor:
         if 0 <= cell_y < len(self.map_obj._map) and 0 <= cell_x < len(self.map_obj._map[0]):
             return cell_x, cell_y
         return None
-
-    def run(self):
-        """Kör karteditorn."""
-        self.ask_map_size()  
-        self.init_buttons() 
-        self.running = True
-        while self.running:
-            self.calculate_cell_size()
-            self.screen.fill((0, 0, 0))
-            self.draw_sidebar()
-            self.draw_map()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:  # Vänsterklick
-                        mouse_pos = pygame.mouse.get_pos()
-                        if mouse_pos[0] < self.sidebar_width:
-                            self.handle_button_click(mouse_pos)
-                        else:
-                            cell_coords = self.get_cell_under_mouse()
-                            if cell_coords:
-                                cell_x, cell_y = cell_coords
-                                self.map_obj.modify_cell(cell_x, cell_y, self.selected_value)
-
-            pygame.display.flip()
