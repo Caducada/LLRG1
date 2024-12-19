@@ -14,9 +14,11 @@ class Submarine:
         xe=None,
         ye=None,
         m_count=0,
-        endpoint_status=None,
         is_alive=True,
     ) -> None:
+        """Map attribute needs to be updated each cycle"""
+        super().__setattr__("is_alive", True)
+        super().__setattr__("endpoint_reached", False)
         self.id = id
         self.x0 = x0
         self.y0 = y0
@@ -38,9 +40,26 @@ class Submarine:
         self.map_height = len(self.map)
         self.map_width = len(self.map[0])
         self.vision = self.__get_starting_vision()
-        self.endpoint_status = endpoint_status
-        self.is_alive = is_alive
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            self.endpoint_reached = True
+        if self.map[self.temp_y][self.temp_x] != 0:
+            self.is_alive = False
 
+    def __getattribute__(self, name):
+        if (
+            name == "is_alive"
+            or name == "id"
+        ):
+            return object.__getattribute__(self, name)
+        if not object.__getattribute__(self, "is_alive"):
+            return object.__getattribute__(self, "print_death_message")
+        return object.__getattribute__(self, name)
+
+    def print_death_message(self) -> None:
+        print(f"Submarine {self.id} is dead and can't perform this action")
+
+    def display_planned_route(self) -> None:
+        print(self.planned_route)
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -64,17 +83,15 @@ class Submarine:
             return False
 
     def move_sub(self, direction: str) -> None:
-        self.set_endpoint_status()
-        if not self.is_alive:
-            raise ValueError("Can't move terminated sub")
-        elif self.endpoint_reached:
-            raise ValueError("Endpoint reached")
         if direction == "up":
-            if self.temp_y != self.map_height:
+            if self.temp_y != self.map_height - 1:
                 if self.map[self.temp_y + 1][self.temp_x] == "B":
                     self.temp_y += 1
                     self.is_alive = False
-                elif self.map[self.temp_y + 1][self.temp_x] == 0:
+                elif (
+                    self.map[self.temp_y + 1][self.temp_x] == 0
+                    or self.map[self.temp_y + 1][self.temp_x] == "E"
+                ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y += 1
                     self.vision[self.temp_y][self.temp_x] = "S"
@@ -83,33 +100,39 @@ class Submarine:
                 if self.map[self.temp_y - 1][self.temp_x] == "B":
                     self.temp_y -= 1
                     self.is_alive = False
-                elif self.map[self.temp_y - 1][self.temp_x] == 0:
+                elif (
+                    self.map[self.temp_y - 1][self.temp_x] == 0
+                    or self.map[self.temp_y - 1][self.temp_x] == "E"
+                ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y -= 1
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
-            if self.temp_x != self.map_width:
-                if self.map[self.temp_y][self.temp_x + 1] == "B":
-                    self.is_alive = False
-                elif self.map[self.temp_y][self.temp_x + 1] == 0:
-                    self.vision[self.temp_y][self.temp_x] = 0
-                    self.temp_x += 1
-                    self.vision[self.temp_y][self.temp_x] = "S"
+            if self.temp_x != self.map_width - 1:
+                if self.temp_x != self.map_width:
+                    if self.map[self.temp_y][self.temp_x + 1] == "B":
+                        self.is_alive = False
+                    elif (
+                        self.map[self.temp_y][self.temp_x + 1] == 0
+                        or self.map[self.temp_y][self.temp_x + 1] == "E"
+                    ):
+                        self.vision[self.temp_y][self.temp_x] = 0
+                        self.temp_x += 1
+                        self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
                 if self.map[self.temp_y][self.temp_x - 1] == "B":
                     self.is_alive = False
-                elif self.map[self.temp_y][self.temp_x - 1] == 0:
+                elif (
+                    self.map[self.temp_y][self.temp_x - 1] == 0
+                    or self.map[self.temp_y][self.temp_x - 1] == "e"
+                ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_x -= 1
                     self.vision[self.temp_y][self.temp_x] = "S"
-        else:
-            raise ValueError("Invalid direction")
-
-    def set_endpoint_status(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-        self.endpoint_reached = False
+            self.vision[self.temp_y][self.temp_x] = "S"
 
     def get_vision(self, external_id: int, external_vision: list) -> None:
         for sub in self.sub_list:
@@ -126,11 +149,10 @@ class Submarine:
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
         self.get_new_route()
-        
+
     def display_vision(self):
         for row in self.vision[::-1]:
-            print(" ".join(map(str, row))) 
-
+            print(" ".join(map(str, row)))
 
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
@@ -172,14 +194,14 @@ class Submarine:
             if sub.id == external_id:
                 sub.xe = external_xe
                 sub.ye = external_ye
-                sub.endpoint_status = external_endpoint_status
+                sub.endpoint_reached = external_endpoint_status
                 return
         self.sub_list.append(
             Submarine(
                 id=external_id,
                 xe=external_xe,
                 ye=external_ye,
-                endpoint_status=external_endpoint_status,
+                endpoint_reached=external_endpoint_status,
                 map=self.map,
             )
         )
@@ -213,16 +235,17 @@ class Submarine:
     def get_secret(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
-    def basic_scan(self):
-        if self.temp_y != self.map_height:
+    def basic_scan(self, plan_route=True):
+        """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
             ]
         if self.temp_y != 0:
-            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y + 1][
+            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
             ]
-        if self.temp_x != self.map_width:
+        if self.temp_x != self.map_width - 1:
             self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
             ]
@@ -230,9 +253,44 @@ class Submarine:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
             ]
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if i == self.ye and j == self.xe:
+                    self.vision[i][j] = "E"
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            self.endpoint_reached = True
+            self.vision[self.temp_y][self.temp_x] = "S"
+        if plan_route:
+            self.get_new_route()
+
+    def advanced_scan(self):
+        self.basic_scan(False)
+        if self.temp_y + 2 < self.map_height:
+            self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
+                self.temp_x
+            ]
+        if self.temp_y - 1 != 0:
+            self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
+                self.temp_x
+            ]
+        if self.temp_x + 2 < self.map_width:
+            self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
+                self.temp_x + 2
+            ]
+        if self.temp_x - 1 != 0:
+            self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
+                self.temp_x - 2
+            ]
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if i == self.ye and j == self.xe:
+                    self.vision[i][j] = "E"
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            self.endpoint_reached = True
+            self.vision[self.temp_y][self.temp_x] = "S"
         self.get_new_route()
-        
-    def __get_last_point(self, directrion:str, new_point:Point) -> Point:
+
+    def __get_last_point(self, directrion: str, new_point: Point) -> Point:
         last_point = new_point
         if directrion == "up":
             last_point.y -= 1
@@ -247,11 +305,14 @@ class Submarine:
         return last_point
 
     def get_new_route(self) -> None:
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            self.planned_route = []
+            return
         new_route = []
         banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
-        time_points = {str(temp_x) + str(temp_y):0}
+        time_points = {str(temp_x) + str(temp_y): 0}
         breaker = True
         while True:
             new_points_visited = []
@@ -329,8 +390,8 @@ class Submarine:
                     new_route = []
                     temp_x = self.temp_x
                     temp_y = self.temp_y
-                    time_points = {str(temp_x) + str(temp_y):0}  
-                    breaker = True         
+                    time_points = {str(temp_x) + str(temp_y): 0}
+                    breaker = True
             else:
                 new_route.append(new_points[0].direction)
                 time_points.setdefault(
@@ -363,6 +424,6 @@ class Submarine:
                         new_route = []
                         temp_x = self.temp_x
                         temp_y = self.temp_y
-                        time_points = {str(temp_x) + str(temp_y):0} 
+                        time_points = {str(temp_x) + str(temp_y): 0}
                         breaker = True
         self.planned_route = new_route
