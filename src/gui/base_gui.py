@@ -16,15 +16,15 @@ class BaseGUI:
             pygame.display.flip()
 
     def handle_events(self):
-        """Hantera händelser (kan överskrivas i subklasser)."""
+        """Hantera händelser."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
 
     def update(self):
-        """Uppdatera tillstånd (överskrid i subklasser)."""
+        """Uppdatera tillstånd."""
         pass
 
     def render(self):
-        """Rendera grafik (överskrid i subklasser)."""
+        """Rendera grafik."""
         pass

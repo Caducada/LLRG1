@@ -1,10 +1,9 @@
-from simulation.map import Map
-from .widgets import GraphicsLibrary
 from gui.base_gui import BaseGUI
 from gui.sidebar import Sidebar
-import tkinter as tk
-from tkinter.simpledialog import askinteger
+from simulation.map import Map
+from .widgets import GraphicsLibrary
 import pygame
+
 
 class MapEditor(BaseGUI):
     """Hanterar kartredigering i pygame."""
@@ -14,7 +13,7 @@ class MapEditor(BaseGUI):
         self.cell_size = 20
         self.map_obj = None
         self.selected_value = '0'
-        self.graphics = GraphicsLibrary()  # Instansiera grafikbiblioteket
+        self.graphics = GraphicsLibrary()
 
         # Sidopanel
         self.sidebar = Sidebar(self.screen, self.sidebar_width)
@@ -34,8 +33,11 @@ class MapEditor(BaseGUI):
 
     def save_map(self):
         """Sparar kartan till en fil."""
-        self.map_obj.save_map_to_file("underground.txt")
-        print("Map saved to underground.txt.")
+        if self.map_obj:
+            self.map_obj.save_map_to_file("underground.txt")
+            print("Map saved to underground.txt.")
+        else:
+            print("No map to save.")
 
     def go_to_main_menu(self):
         """Avslutar editorn och återgår till huvudmenyn."""
@@ -72,38 +74,46 @@ class MapEditor(BaseGUI):
                             self.map_obj.create_empty_map(*button["size"])
                             return
 
-    def calculate_cell_size(self):
-        """Anpassar cellstorleken så att kartan fyller tillgängligt utrymme."""
-        map_width = len(self.map_obj._map[0])
-        map_height = len(self.map_obj._map)
-        available_width = self.screen.get_width() - self.sidebar_width
-        available_height = self.screen.get_height()
-
-        # Anpassa cellstorlek baserat på tillgängligt utrymme
-        cell_width = available_width // map_width
-        cell_height = available_height // map_height
-        self.cell_size = min(cell_width, cell_height)
-
     def handle_events(self):
-        """Hantera event-hantering."""
-        super().handle_events()  # Hanterar generella events
+        """Handle event handling."""
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if mouse_pos[0] < self.sidebar_width:  # Klick på sidopanelen
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.MOUSEMOTION:
+                self.sidebar.handle_hover(mouse_pos)  
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if mouse_pos[0] < self.sidebar_width: 
                     self.sidebar.handle_click(mouse_pos)
-                else:  # Klick på kartan
+                else:  
                     cell_coords = self.get_cell_under_mouse()
                     if cell_coords:
                         cell_x, cell_y = cell_coords
                         self.map_obj.modify_cell(cell_x, cell_y, self.selected_value)
 
+    def update(self):
+        """Uppdatera tillstånd."""
+        pass  # Placeholder för dynamiska uppdateringar
+
     def render(self):
-        """Rendera skärmen."""
+        """Rendera kartan och sidopanelen."""
+        if not self.map_obj or not self.map_obj._map:
+            self.ask_map_size() 
+
         self.calculate_cell_size()
         self.screen.fill((0, 0, 0))
         self.sidebar.render()
         self.draw_map()
+
+    def calculate_cell_size(self):
+        """Anpassar cellstorleken så att kartan fyller tillgängligt utrymme."""
+        if not self.map_obj or not self.map_obj._map:
+            return
+        map_width = len(self.map_obj._map[0])
+        map_height = len(self.map_obj._map)
+        available_width = self.screen.get_width() - self.sidebar_width
+        available_height = self.screen.get_height()
+        self.cell_size = min(available_width // map_width, available_height // map_height)
 
     def draw_map(self):
         """Ritar kartan på skärmen."""
@@ -112,30 +122,22 @@ class MapEditor(BaseGUI):
             for x, cell in enumerate(row):
                 cell_x = self.sidebar_width + x * self.cell_size
                 cell_y = y * self.cell_size
-
-                # Hämta grafisk resurs
                 resource = self.graphics.get_resource(cell)
                 color = resource["color"]
                 symbol = resource["symbol"]
-
-                # Rita cellens bakgrundsfärg
                 if color:
                     pygame.draw.rect(self.screen, color, (cell_x, cell_y, self.cell_size, self.cell_size))
-
-                # Rita symbol om den finns
                 if symbol:
                     text = font.render(symbol, True, (0, 0, 0))
                     text_rect = text.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
                     self.screen.blit(text, text_rect)
-
-                # Rita cellens gränser
                 pygame.draw.rect(self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1)
 
     def get_cell_under_mouse(self):
         """Hämtar kartcellen under muspekaren."""
         mouse_x, mouse_y = pygame.mouse.get_pos()
         if mouse_x < self.sidebar_width:
-            return None  # Musen är över sidopanelen
+            return None  
         cell_x = (mouse_x - self.sidebar_width) // self.cell_size
         cell_y = mouse_y // self.cell_size
         if 0 <= cell_y < len(self.map_obj._map) and 0 <= cell_x < len(self.map_obj._map[0]):

@@ -13,7 +13,7 @@ from simulation.simulation import runsim
 from gui.gui import GuiApp
 
 if __name__ == "__main__":
-    # app = GuiApp()
-    # app.run()
+    app = GuiApp()
+    app.run()
 
-    runsim(fleet_name="simple.txt", map_name="underground.txt")
+    # runsim(fleet_name="simple.txt", map_name="underground.txt")
