@@ -85,9 +85,10 @@ class Submarine:
     def move_sub(self, direction: str) -> None:
         if direction == "up":
             if self.temp_y != self.map_height - 1:
-                if self.map[self.temp_y + 1][self.temp_x] == "B":
+                if self.map[self.temp_y + 1][self.temp_x] == "B" or self.map[self.temp_y + 1][self.temp_x] == "U":
                     self.temp_y += 1
                     self.is_alive = False
+                    return
                 elif (
                     self.map[self.temp_y + 1][self.temp_x] == 0
                     or self.map[self.temp_y + 1][self.temp_x] == "E"
@@ -97,9 +98,10 @@ class Submarine:
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
-                if self.map[self.temp_y - 1][self.temp_x] == "B":
+                if self.map[self.temp_y - 1][self.temp_x] == "B" or self.map[self.temp_y - 1][self.temp_x] == "U":
                     self.temp_y -= 1
                     self.is_alive = False
+                    return
                 elif (
                     self.map[self.temp_y - 1][self.temp_x] == 0
                     or self.map[self.temp_y - 1][self.temp_x] == "E"
@@ -110,8 +112,10 @@ class Submarine:
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
                 if self.temp_x != self.map_width:
-                    if self.map[self.temp_y][self.temp_x + 1] == "B":
+                    if self.map[self.temp_y][self.temp_x + 1] == "B" or self.map[self.temp_y][self.temp_x + 1] == "U":
+                        self.temp_x += 1
                         self.is_alive = False
+                        return
                     elif (
                         self.map[self.temp_y][self.temp_x + 1] == 0
                         or self.map[self.temp_y][self.temp_x + 1] == "E"
@@ -121,8 +125,10 @@ class Submarine:
                         self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
-                if self.map[self.temp_y][self.temp_x - 1] == "B":
+                if self.map[self.temp_y][self.temp_x - 1] == "B" or self.map[self.temp_y][self.temp_x - 1] == "U":
+                    self.temp_x -= 1
                     self.is_alive = False
+                    return
                 elif (
                     self.map[self.temp_y][self.temp_x - 1] == 0
                     or self.map[self.temp_y][self.temp_x - 1] == "e"
