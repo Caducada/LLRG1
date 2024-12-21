@@ -46,10 +46,7 @@ class Submarine:
             self.is_alive = False
 
     def __getattribute__(self, name):
-        if (
-            name == "is_alive"
-            or name == "id"
-        ):
+        if name == "is_alive" or name == "id":
             return object.__getattribute__(self, name)
         if not object.__getattribute__(self, "is_alive"):
             return object.__getattribute__(self, "print_death_message")
@@ -85,7 +82,10 @@ class Submarine:
     def move_sub(self, direction: str) -> None:
         if direction == "up":
             if self.temp_y != self.map_height - 1:
-                if self.map[self.temp_y + 1][self.temp_x] == "B" or self.map[self.temp_y + 1][self.temp_x] == "U":
+                if (
+                    self.map[self.temp_y + 1][self.temp_x] == "B"
+                    or self.map[self.temp_y + 1][self.temp_x] == "U"
+                ):
                     self.temp_y += 1
                     self.is_alive = False
                     return
@@ -98,7 +98,10 @@ class Submarine:
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
-                if self.map[self.temp_y - 1][self.temp_x] == "B" or self.map[self.temp_y - 1][self.temp_x] == "U":
+                if (
+                    self.map[self.temp_y - 1][self.temp_x] == "B"
+                    or self.map[self.temp_y - 1][self.temp_x] == "U"
+                ):
                     self.temp_y -= 1
                     self.is_alive = False
                     return
@@ -112,7 +115,10 @@ class Submarine:
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
                 if self.temp_x != self.map_width:
-                    if self.map[self.temp_y][self.temp_x + 1] == "B" or self.map[self.temp_y][self.temp_x + 1] == "U":
+                    if (
+                        self.map[self.temp_y][self.temp_x + 1] == "B"
+                        or self.map[self.temp_y][self.temp_x + 1] == "U"
+                    ):
                         self.temp_x += 1
                         self.is_alive = False
                         return
@@ -125,7 +131,10 @@ class Submarine:
                         self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
-                if self.map[self.temp_y][self.temp_x - 1] == "B" or self.map[self.temp_y][self.temp_x - 1] == "U":
+                if (
+                    self.map[self.temp_y][self.temp_x - 1] == "B"
+                    or self.map[self.temp_y][self.temp_x - 1] == "U"
+                ):
                     self.temp_x -= 1
                     self.is_alive = False
                     return
@@ -140,7 +149,7 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
 
-    def get_vision(self, external_id: int, external_vision: list) -> None:
+    def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
                 sub.vision = external_vision
@@ -189,7 +198,7 @@ class Submarine:
             raise ValueError("Can't trade w/o missiles")
         self.m_count += m_change
 
-    def get_endpoint_data(
+    def get_endpoint_data_from_sub(
         self,
         external_id: int,
         external_xe: int,
@@ -212,7 +221,9 @@ class Submarine:
             )
         )
 
-    def get_missile_data(self, external_id: int, external_m_count: int) -> None:
+    def get_missile_data_from_sub(
+        self, external_id: int, external_m_count: int
+    ) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
                 sub.m_count = external_m_count
@@ -225,7 +236,7 @@ class Submarine:
             )
         )
 
-    def get_route(self, external_id, external_route) -> None:
+    def get_route_from_sub(self, external_id, external_route) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
                 sub.planned_route = external_route
@@ -238,7 +249,7 @@ class Submarine:
             )
         )
 
-    def get_secret(self, external_id, external_key) -> None:
+    def get_secret_from_sub(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
 
     def basic_scan(self, plan_route=True):
@@ -315,6 +326,7 @@ class Submarine:
             self.planned_route = []
             return
         new_route = []
+        missiles_required = 0
         banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
@@ -365,12 +377,12 @@ class Submarine:
                 elif point.y >= self.map_height:
                     new_points.remove(point)
                 elif (
-                    self.vision[point.y][point.x] != 0
+                    not isinstance(self.vision[point.y][point.x], int)
                     and self.vision[point.y][point.x] != "?"
                     and self.vision[point.y][point.x] != "E"
                 ):
                     new_points.remove(point)
-                elif point in banned_squares:
+                elif (point.y, point.x) in banned_squares:
                     new_points.remove(point)
                 elif str(point.x) + str(point.y) in time_points:
                     new_points_visited.append(point)
@@ -380,7 +392,7 @@ class Submarine:
                     new_points_visited,
                     key=lambda point: time_points[str(point.x) + str(point.y)],
                 )
-                banned_squares.append(point)
+                banned_squares.append((point.y, point.x))
                 breaker = False
                 new_route.append(new_points_visited[0])
                 if new_points_visited[0].direction == "up":
@@ -391,6 +403,18 @@ class Submarine:
                     temp_x += 1
                 elif new_points_visited[0].direction == "left":
                     temp_x -= 1
+                if (
+                    isinstance(self.vision[new_points_visited[0].y][
+                        new_points_visited[0].x
+                    ], int)
+                    and self.vision[new_points_visited[0].y][new_points_visited[0].x]
+                    != 0
+                ):
+                    missiles_required = (
+                        missiles_required
+                        + self.vision[new_points_visited[0].y][new_points_visited[0].x]
+                    )
+
                 new_route.append(new_points_visited[0].direction)
                 if self.xe == temp_x and self.ye == temp_y:
                     new_route = []
@@ -399,6 +423,17 @@ class Submarine:
                     time_points = {str(temp_x) + str(temp_y): 0}
                     breaker = True
             else:
+                if (
+                    isinstance(self.vision[new_points[0].y][
+                        new_points[0].x
+                    ], int)
+                    and self.vision[new_points[0].y][new_points[0].x]
+                    != 0
+                ):
+                    missiles_required = (
+                        missiles_required
+                        + self.vision[new_points_visited[0].y][new_points_visited[0].x]
+                    )
                 new_route.append(new_points[0].direction)
                 time_points.setdefault(
                     str(new_points[0].x) + str(new_points[0].y), len(new_route)
@@ -406,24 +441,29 @@ class Submarine:
                 if new_points[0].direction == "up":
                     last_point = self.__get_last_point("up", point)
                     if last_point in banned_squares:
-                        banned_squares.remove(point)
+                        banned_squares.remove((point.y, point.x))
                     temp_y += 1
                 elif new_points[0].direction == "down":
                     last_point = self.__get_last_point("down", point)
                     if last_point in banned_squares:
-                        banned_squares.remove(point)
+                        banned_squares.remove((point.y, point.x))
                     temp_y -= 1
                 elif new_points[0].direction == "right":
                     last_point = self.__get_last_point("right", point)
                     if last_point in banned_squares:
-                        banned_squares.remove(point)
+                        banned_squares.remove((point.y, point.x))
                     temp_x += 1
                 elif new_points[0].direction == "left":
                     last_point = self.__get_last_point("left", point)
                     if last_point in banned_squares:
-                        banned_squares.remove(point)
+                        banned_squares.remove((point.y, point.x))
                     temp_x -= 1
                 if self.xe == temp_x and self.ye == temp_y:
+                    if self.m_count < missiles_required:
+                        breaker = False
+                        for i in range(self.vision):
+                            for j in range(self.vision[i]):
+                                banned_squares.append((i, j))
                     if breaker:
                         break
                     else:
