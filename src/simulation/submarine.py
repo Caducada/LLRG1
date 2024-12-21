@@ -463,7 +463,8 @@ class Submarine:
                         breaker = False
                         for i in range(self.vision):
                             for j in range(self.vision[i]):
-                                banned_squares.append((i, j))
+                                if isinstance(self.display_vision[i][j], int) and self.display_vision[i][j] != 0:
+                                    banned_squares.append((i, j))
                     if breaker:
                         break
                     else:
