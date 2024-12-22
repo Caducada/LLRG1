@@ -7,7 +7,7 @@ MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
 SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
 
 class Map:
-    def __init__(self, file_name='', x=10, y=10) -> None:
+    def __init__(self, file_name='', sub_file_name='', x=10, y=10) -> None:
         '''
             Skapar en karta efter kartfil och lägger till ubåtar, 
             om ingen kartfil anges skapas en tom karta
@@ -19,7 +19,7 @@ class Map:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
-            self.read_sub_coords(file='uboat.txt')
+            # self.read_sub_coords(file=sub_file_name)
 
 
     def print_map(self):
@@ -99,6 +99,13 @@ class Map:
         except Exception as e:
             print(f'{e}')
             
+
+    def reduce_rubble(self, x, y):
+        print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
+        if int(self._map[y][x]) in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            sten_ros = int(self._map[y][x]) - 1
+            self.modify_cell(x, y, sten_ros)
+
 
     def modify_cell(self, x, y, value):
         """Modifierar en cell på kartan."""
