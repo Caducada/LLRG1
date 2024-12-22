@@ -44,6 +44,7 @@ class Submarine:
             self.endpoint_reached = True
         if self.map[self.temp_y][self.temp_x] != 0:
             self.is_alive = False
+        self.visited_squares = [(self.temp_y, self.temp_x)]
 
     def __getattribute__(self, name):
         if name == "is_alive" or name == "id":
@@ -87,6 +88,7 @@ class Submarine:
                     or self.map[self.temp_y + 1][self.temp_x] == "U"
                 ):
                     self.temp_y += 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.is_alive = False
                     return
                 elif (
@@ -95,6 +97,7 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y += 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
@@ -103,6 +106,7 @@ class Submarine:
                     or self.map[self.temp_y - 1][self.temp_x] == "U"
                 ):
                     self.temp_y -= 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.is_alive = False
                     return
                 elif (
@@ -111,6 +115,7 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y -= 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
@@ -120,6 +125,7 @@ class Submarine:
                         or self.map[self.temp_y][self.temp_x + 1] == "U"
                     ):
                         self.temp_x += 1
+                        self.visited_squares.append((self.temp_y, self.temp_x))
                         self.is_alive = False
                         return
                     elif (
@@ -128,6 +134,7 @@ class Submarine:
                     ):
                         self.vision[self.temp_y][self.temp_x] = 0
                         self.temp_x += 1
+                        self.visited_squares.append((self.temp_y, self.temp_x))
                         self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
@@ -136,6 +143,7 @@ class Submarine:
                     or self.map[self.temp_y][self.temp_x - 1] == "U"
                 ):
                     self.temp_x -= 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.is_alive = False
                     return
                 elif (
@@ -144,6 +152,7 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_x -= 1
+                    self.visited_squares.append((self.temp_y, self.temp_x))
                     self.vision[self.temp_y][self.temp_x] = "S"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
@@ -330,8 +339,10 @@ class Submarine:
         banned_squares = []
         temp_x = self.temp_x
         temp_y = self.temp_y
-        time_points = {str(temp_x) + str(temp_y): 0}
+        time_points = {str(temp_y) + str(temp_x): 0}
         breaker = True
+        for square in self.visited_squares:
+            banned_squares.append(square)
         while True:
             new_points_visited = []
             new_points = [
@@ -371,28 +382,26 @@ class Submarine:
             new_points = sorted(
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
+            temp_banned_points = []
             for point in new_points:
                 if point.x >= self.map_width:
-                    new_points.remove(point)
+                    temp_banned_points.append(point)
                 elif point.y >= self.map_height:
-                    new_points.remove(point)
-                elif (
-                    not isinstance(self.vision[point.y][point.x], int)
-                    and self.vision[point.y][point.x] != "?"
-                    and self.vision[point.y][point.x] != "E"
-                ):
-                    new_points.remove(point)
+                    temp_banned_points.append(point)
+                elif self.vision[point.y][point.x] in {"U", "B", "x", "X"}:
+                    temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
-                    new_points.remove(point)
-                elif str(point.x) + str(point.y) in time_points:
+                    temp_banned_points.append(point)
+                elif str(point.y) + str(point.x) in time_points.keys():
                     new_points_visited.append(point)
-                    new_points.remove(point)
-            if not len(new_points):
+                    temp_banned_points.append(point)
+            for point in temp_banned_points:
+                new_points.remove(point)
+            if not len(new_points) and len(new_points_visited):
                 new_points_visited = sorted(
                     new_points_visited,
-                    key=lambda point: time_points[str(point.x) + str(point.y)],
+                    key=lambda point: time_points[str(point.y) + str(point.x)],
                 )
-                banned_squares.append((point.y, point.x))
                 breaker = False
                 new_route.append(new_points_visited[0])
                 if new_points_visited[0].direction == "up":
@@ -404,39 +413,34 @@ class Submarine:
                 elif new_points_visited[0].direction == "left":
                     temp_x -= 1
                 if (
-                    isinstance(self.vision[new_points_visited[0].y][
-                        new_points_visited[0].x
-                    ], int)
-                    and self.vision[new_points_visited[0].y][new_points_visited[0].x]
-                    != 0
+                    isinstance(
+                        self.vision[new_points_visited[0].y][new_points_visited[0].x],
+                        int,
+                    )
                 ):
                     missiles_required = (
                         missiles_required
                         + self.vision[new_points_visited[0].y][new_points_visited[0].x]
                     )
-
                 new_route.append(new_points_visited[0].direction)
                 if self.xe == temp_x and self.ye == temp_y:
                     new_route = []
+                    time_points = {str(self.temp_y) + str(self.temp_x): 0}
                     temp_x = self.temp_x
                     temp_y = self.temp_y
-                    time_points = {str(temp_x) + str(temp_y): 0}
                     breaker = True
-            else:
+            elif len(new_points):
                 if (
-                    isinstance(self.vision[new_points[0].y][
-                        new_points[0].x
-                    ], int)
-                    and self.vision[new_points[0].y][new_points[0].x]
-                    != 0
+                    isinstance(self.vision[new_points[0].y][new_points[0].x], int)
                 ):
                     missiles_required = (
                         missiles_required
-                        + self.vision[new_points_visited[0].y][new_points_visited[0].x]
+                        + self.vision[new_points[0].y][new_points[0].x]
                     )
                 new_route.append(new_points[0].direction)
                 time_points.setdefault(
-                    str(new_points[0].x) + str(new_points[0].y), len(new_route)
+                    str(new_points[0].y) + str(new_points[0].x),
+                    len(new_route),
                 )
                 if new_points[0].direction == "up":
                     last_point = self.__get_last_point("up", point)
@@ -463,14 +467,20 @@ class Submarine:
                         breaker = False
                         for i in range(self.vision):
                             for j in range(self.vision[i]):
-                                if isinstance(self.display_vision[i][j], int) and self.display_vision[i][j] != 0:
+                                if (
+                                    isinstance(self.display_vision[i][j], int)
+                                    and self.display_vision[i][j] != 0
+                                ):
                                     banned_squares.append((i, j))
                     if breaker:
                         break
                     else:
                         new_route = []
+                        time_points = {str(self.temp_y) + str(self.temp_x): 0}
                         temp_x = self.temp_x
                         temp_y = self.temp_y
-                        time_points = {str(temp_x) + str(temp_y): 0}
                         breaker = True
+            else:
+                print(f"Unable to find a viable route for sub {self.id}")
+                return
         self.planned_route = new_route
