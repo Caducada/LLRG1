@@ -336,20 +336,6 @@ class Submarine:
             self.vision[self.temp_y][self.temp_x] = "S"
         self.get_new_route()
 
-    def __get_last_point(self, directrion: str, new_point: Point) -> Point:
-        last_point = new_point
-        if directrion == "up":
-            last_point.y -= 1
-        elif directrion == "down":
-            last_point.y += 1
-        elif directrion == "right":
-            last_point.x -= 1
-        elif directrion == "left":
-            last_point.x += 1
-        else:
-            raise ValueError("Invalid direction")
-        return last_point
-
     def get_new_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.planned_route = []
