@@ -1,3 +1,4 @@
+import copy
 import math
 from simulation.point import Point
 
@@ -43,7 +44,7 @@ class Submarine:
         self.map_height = len(self.map)
         self.map_width = len(self.map[0])
         self.vision = self.__get_starting_vision()
-        self.visited_squares_counter = {(self.temp_y, self.temp_x):0}
+        self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
 
     def print_death_message(self) -> None:
         print(f"Submarine {self.id} is dead and can't perform this action")
@@ -83,9 +84,12 @@ class Submarine:
                     or self.map[self.temp_y + 1][self.temp_x] == "U"
                 ):
                     self.temp_y += 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.is_alive = False
                     return
@@ -95,9 +99,12 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y += 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
@@ -107,9 +114,12 @@ class Submarine:
                     or self.map[self.temp_y - 1][self.temp_x] == "U"
                 ):
                     self.temp_y -= 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.is_alive = False
                     return
@@ -119,9 +129,12 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y -= 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
@@ -132,9 +145,14 @@ class Submarine:
                         or self.map[self.temp_y][self.temp_x + 1] == "U"
                     ):
                         self.temp_x += 1
-                        if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                            self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                        else:   
+                        if (
+                            self.temp_y,
+                            self.temp_x,
+                        ) in self.visited_squares_counter.keys():
+                            self.visited_squares_counter[
+                                (self.temp_y, self.temp_x)
+                            ] += 1
+                        else:
                             self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                         self.is_alive = False
                         return
@@ -144,9 +162,14 @@ class Submarine:
                     ):
                         self.vision[self.temp_y][self.temp_x] = 0
                         self.temp_x += 1
-                        if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                            self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                        else:   
+                        if (
+                            self.temp_y,
+                            self.temp_x,
+                        ) in self.visited_squares_counter.keys():
+                            self.visited_squares_counter[
+                                (self.temp_y, self.temp_x)
+                            ] += 1
+                        else:
                             self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                         self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
@@ -156,9 +179,12 @@ class Submarine:
                     or self.map[self.temp_y][self.temp_x - 1] == "U"
                 ):
                     self.temp_x -= 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.is_alive = False
                     return
@@ -168,9 +194,12 @@ class Submarine:
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_x -= 1
-                    if (self.temp_y, self.temp_x) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
-                    else:   
+                    if (
+                        self.temp_y,
+                        self.temp_x,
+                    ) in self.visited_squares_counter.keys():
+                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                    else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.vision[self.temp_y][self.temp_x] = "S"
         if self.temp_x == self.xe and self.temp_y == self.ye:
@@ -309,7 +338,7 @@ class Submarine:
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
             self.get_new_route()
-            
+
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
         for i in range(len(self.vision)):
@@ -317,8 +346,6 @@ class Submarine:
                 if isinstance(self.vision[i][j], int) and self.vision[i][j] != 0:
                     gravel_squares.append((i, j))
         return gravel_squares
-                    
-       
 
     def advanced_scan(self):
         self.basic_scan(False)
@@ -356,7 +383,7 @@ class Submarine:
         missiles_required = 0
         temp_x = self.temp_x
         temp_y = self.temp_y
-        visited_squares_counter_copy = self.visited_squares_counter
+        visited_squares_counter_copy = copy.copy(self.visited_squares_counter)
         loop_counter = 0
         while True:
             loop_counter += 1
@@ -399,7 +426,7 @@ class Submarine:
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
             temp_banned_points = []
-            if temp_x == 2 and temp_y == 2:
+            if self.temp_x == 2 and self.temp_y == 2:
                 pass
             for point in new_points:
                 if point.x >= self.map_width or 0 > point.x:
@@ -416,12 +443,18 @@ class Submarine:
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
-                if isinstance(self.vision[new_points[0].y][new_points[0].x], int):
+                if (
+                    isinstance(self.vision[new_points[0].y][new_points[0].x], int)
+                    and self.vision[new_points[0].y][new_points[0].x] != 0
+                ):
                     missiles_required = (
                         missiles_required
                         + self.vision[new_points[0].y][new_points[0].x]
                     )
-                new_route.append(new_points[0].direction)
+                    for i in range(self.vision[new_points[0].y][new_points[0].x]):
+                        new_route.append(f"Shoot {new_points[0].direction}")
+                else:
+                    new_route.append(new_points[0].direction)
                 if new_points[0].direction == "up":
                     temp_y += 1
                 elif new_points[0].direction == "down":
@@ -439,7 +472,7 @@ class Submarine:
                         loop_counter = 0
                         temp_x = self.temp_x
                         temp_y = self.temp_y
-                    else:      
+                    else:
                         break
                 elif loop_counter > 9999:
                     return
@@ -447,19 +480,31 @@ class Submarine:
             elif len(new_points_visited):
                 least_visited = 9999
                 for point in new_points_visited:
-                    if visited_squares_counter_copy[(point.y, point.x)] <= least_visited:
-                        least_visited = visited_squares_counter_copy[(point.y, point.x)] 
-                final_point = new_points_visited[0]  
+                    if (
+                        visited_squares_counter_copy[(point.y, point.x)]
+                        <= least_visited
+                    ):
+                        least_visited = visited_squares_counter_copy[(point.y, point.x)]
+                final_point = new_points_visited[0]
                 for point in new_points_visited:
-                    if visited_squares_counter_copy[(point.y, point.x)] == least_visited:
+                    if (
+                        visited_squares_counter_copy[(point.y, point.x)]
+                        == least_visited
+                    ):
                         final_point = point
                         break
                 visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
-                if isinstance(self.vision[final_point.y][final_point.x], int):
+                if (
+                    isinstance(self.vision[final_point.y][final_point.x], int)
+                    and self.vision[final_point.y][final_point.x] != 0
+                ):
                     missiles_required = (
                         missiles_required + self.vision[final_point.y][final_point.x]
                     )
-                new_route.append(final_point.direction)
+                    for i in range(self.vision[final_point.y][final_point.x]):
+                        new_route.append(f"Shoot {final_point.direction}")
+                else:
+                    new_route.append(final_point.direction)
                 if final_point.direction == "up":
                     temp_y += 1
                 elif final_point.direction == "down":
@@ -477,12 +522,12 @@ class Submarine:
                         loop_counter = 0
                         temp_x = self.temp_x
                         temp_y = self.temp_y
-                    else:      
+                    else:
                         break
                 elif loop_counter > 9999:
                     return
             else:
-                visited_squares_counter_copy = {(self.temp_y, self.temp_x):0}
+                visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
                 temp_x = self.temp_x
                 temp_y = self.temp_y
                 missiles_required = 0
