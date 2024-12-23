@@ -14,7 +14,6 @@ class Submarine:
         xe=None,
         ye=None,
         m_count=0,
-        is_alive=True,
     ) -> None:
         """Map attribute needs to be updated each cycle"""
         self.id = id
@@ -74,6 +73,9 @@ class Submarine:
             return False
 
     def move_sub(self, direction: str) -> None:
+        if not self.is_alive:
+            print("Can't move terminated sub")
+            return
         if direction == "up":
             if self.temp_y != self.map_height - 1:
                 if (
@@ -97,7 +99,6 @@ class Submarine:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
                     else:   
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.is_alive = False
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
@@ -111,7 +112,6 @@ class Submarine:
                     else:   
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.is_alive = False
-                    self.is_alive = False
                     return
                 elif (
                     self.map[self.temp_y - 1][self.temp_x] == 0
@@ -123,7 +123,6 @@ class Submarine:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] +=1
                     else:   
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.is_alive = False
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
@@ -301,13 +300,25 @@ class Submarine:
             ]
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
+
                 if i == self.ye and j == self.xe:
+
                     self.vision[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
             self.get_new_route()
+            
+    def __get_gravel_squares(self) -> list:
+        gravel_squares = []
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if isinstance(self.vision[i][j], int) and self.vision[i][j] != 0:
+                    gravel_squares.append((i, j))
+        return gravel_squares
+                    
+       
 
     def advanced_scan(self):
         self.basic_scan(False)
@@ -341,6 +352,7 @@ class Submarine:
             self.planned_route = []
             return
         new_route = []
+        banned_squares = []
         missiles_required = 0
         temp_x = self.temp_x
         temp_y = self.temp_y
@@ -387,12 +399,16 @@ class Submarine:
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
             temp_banned_points = []
+            if temp_x == 2 and temp_y == 2:
+                pass
             for point in new_points:
                 if point.x >= self.map_width or 0 > point.x:
                     temp_banned_points.append(point)
                 elif point.y >= self.map_height or 0 > point.y:
                     temp_banned_points.append(point)
                 elif self.vision[point.y][point.x] in {"U", "B", "x"}:
+                    temp_banned_points.append(point)
+                elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in visited_squares_counter_copy.keys():
                     temp_banned_points.append(point)
@@ -415,7 +431,16 @@ class Submarine:
                 elif new_points[0].direction == "left":
                     temp_x -= 1
                 if self.xe == temp_x and self.ye == temp_y:
-                    break
+                    if missiles_required > self.m_count:
+                        for square in self.__get_gravel_squares():
+                            banned_squares.append(square)
+                        new_route = []
+                        missiles_required = 0
+                        loop_counter = 0
+                        temp_x = self.temp_x
+                        temp_y = self.temp_y
+                    else:      
+                        break
                 elif loop_counter > 9999:
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
@@ -444,6 +469,15 @@ class Submarine:
                 elif final_point.direction == "left":
                     temp_x -= 1
                 if self.xe == temp_x and self.ye == temp_y:
+                    if missiles_required > self.m_count:
+                        for square in self.__get_gravel_squares():
+                            banned_squares.append(square)
+                        new_route = []
+                        missiles_required = 0
+                        loop_counter = 0
+                        temp_x = self.temp_x
+                        temp_y = self.temp_y
+                    else:      
                         break
                 elif loop_counter > 9999:
                     return
