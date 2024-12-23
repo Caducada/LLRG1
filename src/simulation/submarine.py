@@ -23,6 +23,9 @@ class Submarine:
         self.xe = xe
         self.ye = ye
         self.map = map
+        for i in range(len(self.map)-1):
+            if not len(self.map[i]):
+                self.map.remove(self.map[i])
         if self.y0 == None:
             self.temp_y = -1
         else:
