@@ -15,13 +15,13 @@ def run_sim(fleet_name:str, map_name:str):
                 time.sleep(3)
                 sub.basic_scan()
                 sub.display_vision()
-                sub.display_planned_route()
+                print(sub.planned_route)
                 has_run = True
             time.sleep(3)
             sub.move_sub(sub.planned_route[0])
             sub.basic_scan()
             sub.display_vision()
-            sub.display_planned_route()
+            print(sub.planned_route)
             if sub.endpoint_reached:
                 print(f"Endpoint reached for sub {sub.id}!")
                 break

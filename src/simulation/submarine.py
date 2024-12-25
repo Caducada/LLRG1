@@ -17,15 +17,15 @@ class Submarine:
         m_count=0,
     ) -> None:
         """Map attribute needs to be updated each cycle"""
+        super().__setattr__("is_alive", True)
+        super().__setattr__("endpoint_reached", False)
         self.id = id
         self.x0 = x0
         self.y0 = y0
         self.xe = xe
         self.ye = ye
         self.map = map
-        for i in range(len(self.map)-1):
-            if not len(self.map[i]):
-                self.map.remove(self.map[i])
+        self.map = [row for row in map if len(row) != 0]
         if self.y0 == None:
             self.temp_y = -1
         else:
@@ -35,7 +35,6 @@ class Submarine:
         else:
             self.temp_x = self.x0
         self.endpoint_reached = False
-        self.is_alive = True
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
         if self.map[self.temp_y][self.temp_x] != 0:
@@ -49,11 +48,15 @@ class Submarine:
         self.vision = self.__get_starting_vision()
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
 
-    def print_death_message(self) -> None:
-        print(f"Submarine {self.id} is dead and can't perform this action")
+    def __getattribute__(self, name):
+        if name == "is_alive" or name == "id":
+            return object.__getattribute__(self, name)
+        if not object.__getattribute__(self, name):
+            return object.__getattribute__(self, name)
+        return object.__getattribute__(self, name)
 
-    def display_planned_route(self) -> None:
-        print(self.planned_route)
+    def print_death_message(self, name: str) -> None:
+        print(f"Submarine {self.id} is dead and can't perform {name}")
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -77,9 +80,6 @@ class Submarine:
             return False
 
     def move_sub(self, direction: str) -> None:
-        if not self.is_alive:
-            print("Can't move terminated sub")
-            return
         if direction == "up":
             if self.temp_y != self.map_height - 1:
                 if (
