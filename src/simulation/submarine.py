@@ -2,6 +2,13 @@ import copy
 import math
 from simulation.point import Point
 
+def require_alive(method):
+    def wrapper(self, *args, **kwargs):
+        if not self.is_alive:
+            self.print_death_message(method.__name__)
+            return
+        return method(self, *args, **kwargs)
+    return wrapper
 
 class Submarine:
     def __init__(
@@ -17,8 +24,7 @@ class Submarine:
         m_count=0,
     ) -> None:
         """Map attribute needs to be updated each cycle"""
-        super().__setattr__("is_alive", True)
-        super().__setattr__("endpoint_reached", False)
+        self.is_alive = True
         self.id = id
         self.x0 = x0
         self.y0 = y0
@@ -48,16 +54,10 @@ class Submarine:
         self.vision = self.__get_starting_vision()
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
 
-    def __getattribute__(self, name):
-        if name == "is_alive" or name == "id":
-            return object.__getattribute__(self, name)
-        if not object.__getattribute__(self, name):
-            return object.__getattribute__(self, name)
-        return object.__getattribute__(self, name)
-
     def print_death_message(self, name: str) -> None:
-        print(f"Submarine {self.id} is dead and can't perform {name}")
+            print(f"Submarine {self.id} is dead and can't {name}")
 
+    @require_alive
     def __get_starting_vision(self) -> list:
         wrapper_list = []
         for i in range(self.map_height):
@@ -71,14 +71,16 @@ class Submarine:
                     inner_list.append("?")
             wrapper_list.append(inner_list)
         return wrapper_list
-
+    
+    @require_alive
     def missile_shoot(self) -> bool:
         if self.m_count >= 1:
             self.m_count -= 1
             return True
         else:
             return False
-
+        
+    @require_alive
     def move_sub(self, direction: str) -> None:
         if direction == "up":
             if self.temp_y != self.map_height - 1:
@@ -209,6 +211,7 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
 
+    @require_alive
     def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
@@ -224,11 +227,13 @@ class Submarine:
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
         self.get_new_route()
-
+        
+    @require_alive
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
-
+            
+    @require_alive
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
             for j in range(self.map_width):
@@ -250,14 +255,16 @@ class Submarine:
                     and self.id > external_sub.id
                 ):
                     self.vision[i][j] = external_sub.vision[i][j]
-
+                    
+    @require_alive
     def trade_missiles(self, m_change: int) -> None:
         if (m_change * -1) > self.m_count:
             raise ValueError("Not enough missiles to perform trade")
         elif m_change == 0:
             raise ValueError("Can't trade w/o missiles")
         self.m_count += m_change
-
+        
+    @require_alive
     def get_endpoint_data_from_sub(
         self,
         external_id: int,
@@ -280,7 +287,8 @@ class Submarine:
                 map=self.map,
             )
         )
-
+        
+    @require_alive
     def get_missile_data_from_sub(
         self, external_id: int, external_m_count: int
     ) -> None:
@@ -295,7 +303,8 @@ class Submarine:
                 m_count=external_m_count,
             )
         )
-
+        
+    @require_alive
     def get_route_from_sub(self, external_id, external_route) -> None:
         for sub in self.sub_list:
             if sub.id == external_id:
@@ -308,10 +317,12 @@ class Submarine:
                 planned_route=external_route,
             )
         )
-
+        
+    @require_alive
     def get_secret_from_sub(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
-
+        
+    @require_alive
     def basic_scan(self, plan_route=True):
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
         if self.temp_y != self.map_height - 1:
@@ -376,7 +387,8 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         self.get_new_route()
-
+        
+    @require_alive
     def get_new_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.planned_route = []
