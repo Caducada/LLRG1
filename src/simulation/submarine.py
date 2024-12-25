@@ -8,7 +8,7 @@ def status_control(method):
             self.print_death_message(method.__name__)
             return
         if self.endpoint_reached:
-            self.print_death_message(method.__name__)
+            self.print_winner_message(method.__name__)
             return
         return method(self, *args, **kwargs)
     return wrapper
