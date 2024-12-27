@@ -475,7 +475,7 @@ class Submarine:
                         + self.vision[new_points[0].y][new_points[0].x]
                     )
                     for i in range(self.vision[new_points[0].y][new_points[0].x]):
-                        new_route.append(f"Shoot {new_points[0].direction}")
+                        new_route.append(f"shoot {new_points[0].direction}")
                 else:
                     new_route.append(new_points[0].direction)
                 if new_points[0].direction == "up":
@@ -525,7 +525,7 @@ class Submarine:
                         missiles_required + self.vision[final_point.y][final_point.x]
                     )
                     for i in range(self.vision[final_point.y][final_point.x]):
-                        new_route.append(f"Shoot {final_point.direction}")
+                        new_route.append(f"shoot {final_point.direction}")
                 else:
                     new_route.append(final_point.direction)
                 if final_point.direction == "up":
