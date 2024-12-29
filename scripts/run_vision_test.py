@@ -3,13 +3,11 @@ import sys
 import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
 from simulation.map import Map
-from simulation.get_fleet import get_fleet
 
 def run_sim(fleet_name:str, map_name:str):    
-    sim_map = Map(map_name)
-    sub_list = get_fleet(fleet_name, sim_map._map)
+    sim_map = Map(map_name, fleet_name)
     has_run = False
-    for sub in sub_list:
+    for sub in sim_map.fleet:
         while True:
             if not has_run:
                 time.sleep(3)
