@@ -2,6 +2,7 @@ import os
 import csv
 import itertools
 from .submarine import Submarine
+from .get_fleet import get_fleet
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
@@ -21,7 +22,7 @@ class Map:
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
             self.read_sub_coords(file=sub_file_name)
-            self.fleet = self.__get_fleet(sub_file_name)
+            self.fleet = get_fleet(sub_file_name, self._map)
 
 
     def print_map(self):
@@ -152,51 +153,6 @@ class Map:
         with open(MAP_FILE, 'w', newline='') as file:
             csvwriter = csv.writer(file)
             csvwriter.writerows(self._map)
-        
-    def __get_fleet(self, fleet_name: str) -> list[Submarine]:
-        BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
-        SUB_FILE = os.path.join(SUB_DIR, fleet_name)
-        sub_list = []
-        with open(SUB_FILE, "r") as fleet:
-            counter = 0
-            for line in fleet.readlines():
-                if line.split(",")[2].replace(" ", "").isnumeric():
-                    try:
-                        temp_x0 = int(line.split(",")[0].replace(" ", ""))
-                    except IndexError:
-                        temp_x0 = 1
-                    try:
-                        temp_y0 = int(line.split(",")[1].replace(" ", ""))
-                    except IndexError:
-                        temp_y0 = 1
-                    try:
-                        temp_xe = int(line.split(",")[2].replace(" ", ""))
-                    except IndexError:
-                        temp_xe = 1
-                    try:
-                        temp_ye = int(line.split(",")[3].replace(" ", ""))
-                    except IndexError:
-                        temp_ye = 1
-                    try:
-                        temp_missiles = int(line.split(",")[4].replace(" ", ""))
-                    except IndexError:
-                        temp_missiles = 1
-                    sub_list.append(
-                        Submarine(
-                            id = counter,
-                            x0=temp_x0,
-                            y0=temp_y0,
-                            xe=temp_xe,
-                            ye=temp_ye,
-                            m_count=temp_missiles,
-                            map=self._map,
-                        )
-                    )
-                    counter += 1
-        return sub_list
-
-
 
 # Exempel
 
