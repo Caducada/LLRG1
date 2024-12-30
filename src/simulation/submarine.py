@@ -331,33 +331,36 @@ class Submarine:
     @status_control
     def basic_scan(self, plan_route=True):
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        vision_copy = copy.deepcopy(self.vision)
         if self.temp_y != self.map_height - 1:
-            self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
+            vision_copy[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
             ]
         if self.temp_y != 0:
-            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
+            vision_copy[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
             ]
         if self.temp_x != self.map_width - 1:
-            self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
+            vision_copy[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
             ]
         if self.temp_x != 0:
-            self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
+            vision_copy[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
             ]
-        for i in range(len(self.vision)):
-            for j in range(len(self.vision[i])):
+        for i in range(len(vision_copy)):
+            for j in range(len(vision_copy[i])):
 
                 if i == self.ye and j == self.xe:
 
-                    self.vision[i][j] = "E"
+                    vision_copy[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-            self.vision[self.temp_y][self.temp_x] = "S"
-        if plan_route:
-            self.get_new_route()
+            vision_copy[self.temp_y][self.temp_x] = "S"
+        if vision_copy != self.vision or len(self.planned_route) == 0:
+            self.vision = vision_copy
+            if plan_route:
+                self.get_new_route()
 
     @status_control
     def __get_gravel_squares(self) -> list:
@@ -371,30 +374,35 @@ class Submarine:
     @status_control
     def advanced_scan(self):
         self.basic_scan(False)
+        vision_copy = copy.deepcopy(self.vision)
         if self.temp_y + 2 < self.map_height:
-            self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
+            vision_copy[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
                 self.temp_x
             ]
         if self.temp_y - 1 != 0:
-            self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
+            vision_copy[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
             ]
         if self.temp_x + 2 < self.map_width:
-            self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
+            vision_copy[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
             ]
         if self.temp_x - 1 != 0:
-            self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
+            vision_copy[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
             ]
-        for i in range(len(self.vision)):
-            for j in range(len(self.vision[i])):
+        for i in range(len(vision_copy)):
+            for j in range(len(vision_copy[i])):
                 if i == self.ye and j == self.xe:
-                    self.vision[i][j] = "E"
+                    vision_copy[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-            self.vision[self.temp_y][self.temp_x] = "S"
-        self.get_new_route()
+            vision_copy[self.temp_y][self.temp_x] = "S"
+        if self.vision != vision_copy:
+            self.vision = vision_copy  
+            self.get_new_route()
+        else:
+            self.vision = vision_copy
         
     @status_control
     def get_new_route(self) -> None:
