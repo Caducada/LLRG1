@@ -556,6 +556,7 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > 9999:
+                    self.planned_route = []
                     return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
