@@ -418,7 +418,7 @@ class Submarine:
         temp_x = self.temp_x
         temp_y = self.temp_y
         visited_squares_counter_copy = copy.copy(self.visited_squares_counter)
-        loop_counter = 0
+        loop_counter = -1
         while True:
             loop_counter += 1
             new_points_visited = []
