@@ -2,6 +2,7 @@ import copy
 import math
 from simulation.point import Point
 
+
 def status_control(method):
     def wrapper(self, *args, **kwargs):
         if not self.is_alive:
@@ -11,7 +12,9 @@ def status_control(method):
             self.print_winner_message(method.__name__)
             return
         return method(self, *args, **kwargs)
+
     return wrapper
+
 
 class Submarine:
     def __init__(
@@ -58,10 +61,10 @@ class Submarine:
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
 
     def print_death_message(self, name: str) -> None:
-            print(f"Submarine {self.id} is dead and can't {name}")
+        print(f"Submarine {self.id} is dead and can't {name}")
 
     def print_winner_message(self, name: str) -> None:
-            print(f"Submarine {self.id} is reached its goal and can't {name}")
+        print(f"Submarine {self.id} is reached its goal and can't {name}")
 
     @status_control
     def __get_starting_vision(self) -> list:
@@ -77,7 +80,7 @@ class Submarine:
                     inner_list.append("?")
             wrapper_list.append(inner_list)
         return wrapper_list
-    
+
     @status_control
     def missile_shoot(self) -> bool:
         if self.m_count >= 1:
@@ -85,7 +88,7 @@ class Submarine:
             return True
         else:
             return False
-        
+
     @status_control
     def move_sub(self, direction: str) -> None:
         if direction == "up":
@@ -233,12 +236,12 @@ class Submarine:
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
         self.get_new_route()
-        
+
     @status_control
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
-            
+
     @status_control
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
@@ -261,7 +264,7 @@ class Submarine:
                     and self.id > external_sub.id
                 ):
                     self.vision[i][j] = external_sub.vision[i][j]
-                    
+
     @status_control
     def trade_missiles(self, m_change: int) -> None:
         if (m_change * -1) > self.m_count:
@@ -269,7 +272,7 @@ class Submarine:
         elif m_change == 0:
             raise ValueError("Can't trade w/o missiles")
         self.m_count += m_change
-        
+
     @status_control
     def get_endpoint_data_from_sub(
         self,
@@ -293,7 +296,7 @@ class Submarine:
                 map=self.map,
             )
         )
-        
+
     @status_control
     def get_missile_data_from_sub(
         self, external_id: int, external_m_count: int
@@ -309,7 +312,7 @@ class Submarine:
                 m_count=external_m_count,
             )
         )
-        
+
     @status_control
     def get_route_from_sub(self, external_id, external_route) -> None:
         for sub in self.sub_list:
@@ -323,11 +326,11 @@ class Submarine:
                 planned_route=external_route,
             )
         )
-        
+
     @status_control
     def get_secret_from_sub(self, external_id, external_key) -> None:
         self.secret_keys.setdefault(external_id, external_key)
-        
+
     @status_control
     def basic_scan(self, plan_route=True):
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
@@ -399,11 +402,11 @@ class Submarine:
             self.endpoint_reached = True
             vision_copy[self.temp_y][self.temp_x] = "S"
         if self.vision != vision_copy:
-            self.vision = vision_copy  
+            self.vision = vision_copy
             self.get_new_route()
         else:
             self.vision = vision_copy
-        
+
     @status_control
     def get_new_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
@@ -505,7 +508,7 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif loop_counter > self.map_height * self.map_width + self.m_count:
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
@@ -555,7 +558,7 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif loop_counter > self.map_height * self.map_width + self.m_count:
                     self.planned_route = []
                     return
             else:
