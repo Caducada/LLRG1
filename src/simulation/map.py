@@ -1,6 +1,8 @@
 import os
 import csv
 import itertools
+from .submarine import Submarine
+from .get_fleet import get_fleet
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
@@ -19,7 +21,8 @@ class Map:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
-            # self.read_sub_coords(file=sub_file_name)
+            self.read_sub_coords(file=sub_file_name)
+            self.fleet = get_fleet(sub_file_name, self._map)
 
 
     def print_map(self):
@@ -150,8 +153,6 @@ class Map:
         with open(MAP_FILE, 'w', newline='') as file:
             csvwriter = csv.writer(file)
             csvwriter.writerows(self._map)
-
-
 
 # Exempel
 

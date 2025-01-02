@@ -6,7 +6,7 @@ import random
 
 def runsim(fleet_name:str, map_name:str):
     running = True
-    sim_map = Map(map_name)
+    sim_map = Map(map_name, fleet_name)
     print(f'fleet_name: {fleet_name}')
     print(f'map_name  : {map_name}')
     sub_list = get_fleet(fleet_name, sim_map._map)
