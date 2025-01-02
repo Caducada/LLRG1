@@ -11,7 +11,7 @@ class MainMenu(BaseGUI):
         self.on_option_selected = on_option_selected
 
         # Rubrik
-        self.title_font = pygame.font.Font(None, 80)  # Större font för rubrik
+        self.title_font = pygame.font.Font(None, 80)  
         self.title_text = "Lindas Lustfyllda Rederi"
 
         # Initial window dimensions
@@ -25,8 +25,8 @@ class MainMenu(BaseGUI):
 
     def draw_title(self):
         """Ritar rubriken 'Lindas Lustfyllda Rederi'."""
-        text = self.title_font.render(self.title_text, True, (0, 255, 0))  # Matrix-grön
-        text_rect = text.get_rect(center=(self.width // 2, self.height // 6))  # Dynamisk placering
+        text = self.title_font.render(self.title_text, True, (0, 255, 0))  
+        text_rect = text.get_rect(center=(self.width // 2, self.height // 6)) 
         self.screen.blit(text, text_rect)
 
     def draw_menu_buttons(self):
@@ -37,7 +37,7 @@ class MainMenu(BaseGUI):
         center_x = self.width // 2
         start_y = self.height // 2
 
-        mouse_x, mouse_y = pygame.mouse.get_pos()  # Hämta musposition
+        mouse_x, mouse_y = pygame.mouse.get_pos() 
 
         for i, option in enumerate(self.options):
             x = center_x - button_width // 2
@@ -46,12 +46,12 @@ class MainMenu(BaseGUI):
 
             # Kontrollera om musen är över knappen
             if rect.collidepoint(mouse_x, mouse_y):
-                button_color = (100, 255, 100)  # Ljusstark grön vid hover
-                self.selected_index = i  # Uppdatera det markerade valet
+                button_color = (100, 255, 100)  
+                self.selected_index = i  
             elif i == self.selected_index:
-                button_color = (50, 255, 50)  # Ljusstark grön vid tangentbord highlight
+                button_color = (50, 255, 50) 
             else:
-                button_color = (0, 100 + i * 30, 0)  # Dova gröna nyanser
+                button_color = (0, 100 + i * 30, 0) 
 
             # Bakgrund för knapp
             pygame.draw.rect(self.screen, button_color, rect, border_radius=10)
@@ -67,28 +67,28 @@ class MainMenu(BaseGUI):
 
     def handle_events(self):
         """Hantera input för menyval."""
-        mouse_x, mouse_y = pygame.mouse.get_pos()  # Hämta musposition
+        mouse_x, mouse_y = pygame.mouse.get_pos()  
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            elif event.type == pygame.VIDEORESIZE:  # Resizing event
+            elif event.type == pygame.VIDEORESIZE:  
                 self.width, self.height = event.size
                 self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
-                self.matrix_columns = [0] * (self.width // 10)  # Justera Matrix-effekten
+                self.matrix_columns = [0] * (self.width // 10)  
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:  # Upp-pil
+                if event.key == pygame.K_UP:  
                     self.selected_index = (self.selected_index - 1) % len(self.options)
-                elif event.key == pygame.K_DOWN:  # Ner-pil
+                elif event.key == pygame.K_DOWN:  
                     self.selected_index = (self.selected_index + 1) % len(self.options)
-                elif event.key == pygame.K_RETURN:  # Enter
+                elif event.key == pygame.K_RETURN: 
                     if self.options[self.selected_index] == "Exit":
                         pygame.quit()
                         exit()
                     self.on_option_selected(self.selected_index)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Vänster musknapp
+                if event.button == 1: 
                     # Kontrollera om musen klickade på en knapp
                     button_width = self.width // 3
                     button_height = self.height // 12
