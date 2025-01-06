@@ -21,7 +21,6 @@ class Submarine:
         self,
         id: int,
         map: list,
-        planned_route: list = [],
         secret_keys: dict = {},
         x0=None,
         y0=None,
@@ -37,7 +36,6 @@ class Submarine:
         self.xe = xe
         self.ye = ye
         self.map = map
-        self.map = [row for row in map if len(row) != 0]
         if self.y0 == None:
             self.temp_y = -1
         else:
@@ -52,7 +50,7 @@ class Submarine:
         if self.map[self.temp_y][self.temp_x] != 0:
             self.is_alive = False
         self.m_count = m_count
-        self.planned_route = planned_route
+        self.planned_route = [None]
         self.secret_keys = secret_keys
         self.sub_list = []
         self.map_height = len(self.map)
@@ -64,9 +62,8 @@ class Submarine:
         print(f"Submarine {self.id} is dead and can't {name}")
 
     def print_winner_message(self, name: str) -> None:
-        print(f"Submarine {self.id} is reached its goal and can't {name}")
+        print(f"Submarine {self.id} has reached its goal and can't {name}")
 
-    @status_control
     def __get_starting_vision(self) -> list:
         wrapper_list = []
         for i in range(self.map_height):
@@ -95,7 +92,6 @@ class Submarine:
             if self.temp_y != self.map_height - 1:
                 if (
                     self.map[self.temp_y + 1][self.temp_x] == "B"
-                    or self.map[self.temp_y + 1][self.temp_x] == "U"
                 ):
                     self.temp_y += 1
                     if (
@@ -110,6 +106,7 @@ class Submarine:
                 elif (
                     self.map[self.temp_y + 1][self.temp_x] == 0
                     or self.map[self.temp_y + 1][self.temp_x] == "E"
+                    or self.map[self.temp_y + 1][self.temp_x] == "U"
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y += 1
@@ -125,7 +122,6 @@ class Submarine:
             if self.temp_y != 0:
                 if (
                     self.map[self.temp_y - 1][self.temp_x] == "B"
-                    or self.map[self.temp_y - 1][self.temp_x] == "U"
                 ):
                     self.temp_y -= 1
                     if (
@@ -140,6 +136,7 @@ class Submarine:
                 elif (
                     self.map[self.temp_y - 1][self.temp_x] == 0
                     or self.map[self.temp_y - 1][self.temp_x] == "E"
+                    or self.map[self.temp_y - 1][self.temp_x] == "U"
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_y -= 1
@@ -156,7 +153,6 @@ class Submarine:
                 if self.temp_x != self.map_width:
                     if (
                         self.map[self.temp_y][self.temp_x + 1] == "B"
-                        or self.map[self.temp_y][self.temp_x + 1] == "U"
                     ):
                         self.temp_x += 1
                         if (
@@ -171,8 +167,9 @@ class Submarine:
                         self.is_alive = False
                         return
                     elif (
-                        self.map[self.temp_y][self.temp_x + 1] == 0
-                        or self.map[self.temp_y][self.temp_x + 1] == "E"
+                    self.map[self.temp_y][self.temp_x+1] == 0
+                    or self.map[self.temp_y][self.temp_x+1] == "E"
+                    or self.map[self.temp_y][self.temp_x+1] == "U"
                     ):
                         self.vision[self.temp_y][self.temp_x] = 0
                         self.temp_x += 1
@@ -190,7 +187,6 @@ class Submarine:
             if self.temp_x != 0:
                 if (
                     self.map[self.temp_y][self.temp_x - 1] == "B"
-                    or self.map[self.temp_y][self.temp_x - 1] == "U"
                 ):
                     self.temp_x -= 1
                     if (
@@ -203,8 +199,9 @@ class Submarine:
                     self.is_alive = False
                     return
                 elif (
-                    self.map[self.temp_y][self.temp_x - 1] == 0
-                    or self.map[self.temp_y][self.temp_x - 1] == "e"
+                    self.map[self.temp_y][self.temp_x-1] == 0
+                    or self.map[self.temp_y][self.temp_x-1] == "E"
+                    or self.map[self.temp_y][self.temp_x-1] == "U"
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_x -= 1
@@ -242,7 +239,6 @@ class Submarine:
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
 
-    @status_control
     def __merge_vision(self, external_sub) -> None:
         for i in range(self.map_height):
             for j in range(self.map_width):
@@ -353,9 +349,7 @@ class Submarine:
             ]
         for i in range(len(vision_copy)):
             for j in range(len(vision_copy[i])):
-
                 if i == self.ye and j == self.xe:
-
                     vision_copy[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
@@ -365,7 +359,6 @@ class Submarine:
             if plan_route:
                 self.get_new_route()
 
-    @status_control
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
         for i in range(len(self.vision)):
@@ -410,7 +403,7 @@ class Submarine:
     @status_control
     def get_new_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.planned_route = []
+            self.planned_route = [None]
             return
         new_route = []
         banned_squares = []
@@ -559,8 +552,11 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
-                    self.planned_route = []
+                    self.planned_route = [None]
                     return
+            elif loop_counter > self.map_height * self.map_width + self.m_count:
+                self.planned_route = [None]
+                return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
                 temp_x = self.temp_x

@@ -12,7 +12,7 @@ class SimulationGUI:
             self.screen.fill((0, 0, 0))
             # Här lägger du till rendering av simuleringen
             pygame.display.flip()
-
+                                
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
