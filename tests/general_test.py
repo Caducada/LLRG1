@@ -15,17 +15,16 @@ def run_test(fleet_name: str, map_name: str):
                 sub.basic_scan()
                 sub.get_new_route()
                 sub.move_sub(sub.planned_route[0])
-                sim_map.update_map()
-                sub.map = sim_map._map
                 sub.basic_scan()   
-                sub.display_vision()
-                print(sub.planned_route)
-                if sub.endpoint_reached:
-                    print(f"Endpoint reached for sub {sub.id}!")
-                    goal_counter += 1
-                elif not sub.is_alive:
-                    death_counter += 1
-                sim_map.print_map()
+        sim_map.update_map()
+        for sub in sim_map.fleet:
+            sub.map = sim_map._map
+            if sub.endpoint_reached:
+                print(f"Endpoint reached for sub {sub.id}!")
+                goal_counter += 1
+            elif not sub.is_alive:
+                death_counter += 1
+        sim_map.print_map()
             
 
 

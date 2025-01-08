@@ -170,7 +170,6 @@ class Map:
                             repeated.setdefault(str(i)+ " "+ str(j), 0)
                         else:
                             repeated[str(i)+ " " + str(j)] += 1
-        print(repeated.keys())
         for key in repeated.keys():
             if repeated[key] >= 1:
                 for sub in self.fleet:
