@@ -7,24 +7,23 @@ from simulation.map import Map
 
 def run_test(fleet_name: str, map_name: str):
     sim_map = Map(map_name, fleet_name)
-    goal_counter = 0
-    death_counter = 0
-    while goal_counter <= len(sim_map.fleet) and death_counter <= len(sim_map.fleet):
+    cleared = 0
+    while cleared <= len(sim_map.fleet):
         for sub in sim_map.fleet:
-                time.sleep(3)
                 sub.basic_scan()
-                sub.get_new_route()
-                sub.move_sub(sub.planned_route[0])
-                sub.basic_scan()   
+                sub.move_sub(sub.planned_route[0])  
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
             if sub.endpoint_reached:
                 print(f"Endpoint reached for sub {sub.id}!")
-                goal_counter += 1
+                cleared += 1
             elif not sub.is_alive:
-                death_counter += 1
+                print(f"Sub {sub.id} has been terminated.")
+                cleared += 1
+        time.sleep(3)
         sim_map.print_map()
+        print("<------------------->")
             
 
 

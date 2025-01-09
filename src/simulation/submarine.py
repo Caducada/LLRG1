@@ -216,6 +216,7 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
+        self.basic_scan()
 
     @status_control
     def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
@@ -358,6 +359,7 @@ class Submarine:
             self.vision = vision_copy
             if plan_route:
                 self.get_new_route()
+        
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
