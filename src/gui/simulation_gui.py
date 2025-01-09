@@ -15,37 +15,57 @@ class SimulationGUI:
         sim_map = Map("underground.txt", "simple.txt")
 
         for sub in sim_map.fleet:
-            time.sleep(3)
-            sub.basic_scan()
-            sub.get_new_route()
-            sub.move_sub(sub.planned_route[0])
-            sim_map.update_map()
+                sub.basic_scan()
+                if sub.planned_route[0].split()[0] == "Move":
+                    sub.move_sub(sub.planned_route[0].split()[1]) 
+                elif sub.planned_route[0].split()[0] == "Shoot":
+                    sub.missile_shoot()
+                elif sub.planned_route[0].split()[0] == "Share":
+                    #Har inte skapat klassen som hanterar interaktioner mellan ubåtar än :(
+                    pass
+        sim_map.update_map()
+        for sub in sim_map.fleet:
             sub.map = sim_map._map
-            sub.basic_scan()   
-            sub.display_vision()
-
-            action = random.random()
-            if action > 0.2:
-                sim_map.reduce_rubble(1, 3)
-                sim_map.update_map()
-                sub.map = sim_map._map
-                
-            action = random.random()
-            if action > 0.8:
-                sub.missile_shoot()
-
             if sub.endpoint_reached:
-                goal_counter += 1
+                cleared += 1
             elif not sub.is_alive:
-                death_counter += 1
-            sim_map.print_map()
+                cleared += 1
+        time.sleep(3)
+        sim_map.print_map()
+        print("<------------------->")
+
+        # for sub in sim_map.fleet:
+        #     time.sleep(3)
+        #     sub.basic_scan()
+        #     sub.get_new_route()
+        #     sub.move_sub(sub.planned_route[0])
+        #     sim_map.update_map()
+        #     sub.map = sim_map._map
+        #     sub.basic_scan()   
+        #     sub.display_vision()
+
+        #     action = random.random()
+        #     if action > 0.2:
+        #         sim_map.reduce_rubble(1, 3)
+        #         sim_map.update_map()
+        #         sub.map = sim_map._map
+                
+        #     action = random.random()
+        #     if action > 0.8:
+        #         sub.missile_shoot()
+
+        #     if sub.endpoint_reached:
+        #         goal_counter += 1
+        #     elif not sub.is_alive:
+        #         death_counter += 1
+        #     sim_map.print_map()
 
             # handle_events()
             # update()
             # render()
-            pygame.display.flip()
+        pygame.display.flip()
         
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
