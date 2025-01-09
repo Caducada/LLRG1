@@ -8,16 +8,28 @@ from simulation.map import Map
 def run_test(sim_map:Map) -> None:
     """Funktion för att testa olika kartor"""
     cleared = 0
+    loop_counter = 0
     while cleared <= len(sim_map.fleet):
-        for sub in sim_map.fleet:
-                sub.basic_scan()
-                if sub.planned_route[0].split()[0] == "Move":
-                    sub.move_sub(sub.planned_route[0].split()[1]) 
-                elif sub.planned_route[0].split()[0] == "Shoot":
-                    sub.missile_shoot()
-                elif sub.planned_route[0].split()[0] == "Share":
-                    #Har inte skapat klassen som hanterar interaktioner mellan ubåtar än :(
-                    pass
+        if loop_counter % 2:
+            for sub in sim_map.fleet:
+                    sub.basic_scan()
+                    if sub.planned_route[0].split()[0] == "Move":
+                        sub.move_sub(sub.planned_route[0].split()[1]) 
+                    elif sub.planned_route[0].split()[0] == "Shoot":
+                        sub.missile_shoot()
+                    elif sub.planned_route[0].split()[0] == "Share":
+                        #Har inte skapat klassen som hanterar interaktioner mellan ubåtar än :(
+                        pass
+                    sub.display_vision()
+                    print(sub.planned_route)
+                    print("<------------------->")
+        else:
+            for sub in sim_map.fleet:
+                sub.advanced_scan()
+                sub.display_vision()
+                print(sub.planned_route)
+                print("<------------------->")
+        loop_counter += 1
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
@@ -28,6 +40,8 @@ def run_test(sim_map:Map) -> None:
         time.sleep(3)
         sim_map.print_map()
         print("<------------------->")
+        if loop_counter == 99:
+            loop_counter = 0
             
 
 

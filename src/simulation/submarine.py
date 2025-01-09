@@ -216,7 +216,6 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        self.basic_scan()
 
     @status_control
     def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
@@ -377,7 +376,7 @@ class Submarine:
             vision_copy[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
                 self.temp_x
             ]
-        if self.temp_y - 1 != 0:
+        if self.temp_y - 2 >= 0:
             vision_copy[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
             ]
@@ -385,9 +384,25 @@ class Submarine:
             vision_copy[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
             ]
-        if self.temp_x - 1 != 0:
+        if self.temp_x - 2 >= 0:
             vision_copy[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
+            ]
+        if self.temp_x + 1 < self.map_width and self.temp_y + 1 < self.map_height:
+            vision_copy[self.temp_y+1][self.temp_x +1] = self.map[self.temp_y+1][
+                self.temp_x +1
+            ]
+        if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
+            vision_copy[self.temp_y+1][self.temp_x -1] = self.map[self.temp_y+1][
+                self.temp_x - 1
+            ]
+        if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
+            vision_copy[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y-1][
+                self.temp_x + 1
+            ]
+        if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
+            vision_copy[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y-1][
+                self.temp_x - 1
             ]
         for i in range(len(vision_copy)):
             for j in range(len(vision_copy[i])):
@@ -469,6 +484,18 @@ class Submarine:
                 elif (point.y, point.x) in visited_squares_counter_copy.keys():
                     temp_banned_points.append(point)
                     new_points_visited.append(point)
+                elif point.direction == "up" and point.y < len(self.vision)-1:
+                    if self.vision[point.y+1][point.x] == "U":
+                        temp_banned_points.append(point)
+                elif point.direction == "down" and point.y > 1:
+                    if self.vision[point.y-1][point.x] == "U":
+                        temp_banned_points.append(point)
+                elif point.direction == "right" and point.x < len(self.vision[0])-1:
+                    if self.vision[point.y][point.x+1] == "U":
+                        temp_banned_points.append(point)
+                elif point.direction == "left" and point.x > 1:
+                    if self.vision[point.y][point.x-1] == "U":
+                        temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
