@@ -5,8 +5,8 @@ import time
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
 
-def run_test(fleet_name: str, map_name: str):
-    sim_map = Map(map_name, fleet_name)
+def run_test(sim_map:Map) -> None:
+    """Funktion för att testa olika kartor"""
     cleared = 0
     while cleared <= len(sim_map.fleet):
         for sub in sim_map.fleet:
@@ -28,6 +28,6 @@ def run_test(fleet_name: str, map_name: str):
 
 
 if __name__ == "__main__":
-    run_test(fleet_name="collision.txt", map_name="collision.txt")
-    # run_test(fleet_name="simple.txt", map_name="underground.txt")
+    run_test(Map("collision.txt", "collision.txt"))
+    # run_test(Map("simple.txt", "underground.txt"))
     
