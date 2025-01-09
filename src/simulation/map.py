@@ -156,6 +156,8 @@ class Map:
             csvwriter.writerows(self._map)
             
     def update_map(self):
+        """Hanterar eventuella konflikter som uppstår efter 
+        att alla U-båter gjort någonting"""
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
                 if self._map[i][j] == "U":
