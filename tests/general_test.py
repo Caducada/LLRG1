@@ -22,10 +22,8 @@ def run_test(sim_map:Map) -> None:
         for sub in sim_map.fleet:
             sub.map = sim_map._map
             if sub.endpoint_reached:
-                print(f"Endpoint reached for sub {sub.id}!")
                 cleared += 1
             elif not sub.is_alive:
-                print(f"Sub {sub.id} has been terminated.")
                 cleared += 1
         time.sleep(3)
         sim_map.print_map()
