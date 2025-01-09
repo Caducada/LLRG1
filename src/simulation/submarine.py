@@ -50,7 +50,7 @@ class Submarine:
         if self.map[self.temp_y][self.temp_x] != 0:
             self.is_alive = False
         self.m_count = m_count
-        self.planned_route = [None]
+        self.planned_route = ["Share position"]
         self.secret_keys = secret_keys
         self.sub_list = []
         self.map_height = len(self.map)
@@ -405,7 +405,7 @@ class Submarine:
     @status_control
     def get_new_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.planned_route = [None]
+            self.planned_route = ["Share position"]
             return
         new_route = []
         banned_squares = []
@@ -481,9 +481,9 @@ class Submarine:
                         + self.vision[new_points[0].y][new_points[0].x]
                     )
                     for i in range(self.vision[new_points[0].y][new_points[0].x]):
-                        new_route.append(f"shoot {new_points[0].direction}")
+                        new_route.append(f"Shoot {new_points[0].direction}")
                 else:
-                    new_route.append(new_points[0].direction)
+                    new_route.append(f"Move {new_points[0].direction}")
                 if new_points[0].direction == "up":
                     temp_y += 1
                 elif new_points[0].direction == "down":
@@ -531,9 +531,9 @@ class Submarine:
                         missiles_required + self.vision[final_point.y][final_point.x]
                     )
                     for i in range(self.vision[final_point.y][final_point.x]):
-                        new_route.append(f"shoot {final_point.direction}")
+                        new_route.append(f"Shoot {final_point.direction}")
                 else:
-                    new_route.append(final_point.direction)
+                    new_route.append(f"Move {final_point.direction}")
                 if final_point.direction == "up":
                     temp_y += 1
                 elif final_point.direction == "down":
@@ -554,10 +554,10 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
-                    self.planned_route = [None]
+                    self.planned_route = ["Share position"]
                     return
             elif loop_counter > self.map_height * self.map_width + self.m_count:
-                self.planned_route = [None]
+                self.planned_route = ["Share position"]
                 return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}

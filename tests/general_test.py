@@ -11,7 +11,13 @@ def run_test(sim_map:Map) -> None:
     while cleared <= len(sim_map.fleet):
         for sub in sim_map.fleet:
                 sub.basic_scan()
-                sub.move_sub(sub.planned_route[0])  
+                if sub.planned_route[0].split()[0] == "Move":
+                    sub.move_sub(sub.planned_route[0].split()[1]) 
+                elif sub.planned_route[0].split()[0] == "Shoot":
+                    sub.missile_shoot()
+                elif sub.planned_route[0].split()[0] == "Share":
+                    #Har inte skapat klassen som hanterar interaktioner mellan ubåtar än :(
+                    pass
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
@@ -28,6 +34,7 @@ def run_test(sim_map:Map) -> None:
 
 
 if __name__ == "__main__":
-    run_test(Map("collision.txt", "collision.txt"))
-    # run_test(Map("simple.txt", "underground.txt"))
+    os.system('cls' if os.name == 'nt' else 'clear')
+    run_test(Map(file_name="underground.txt", sub_file_name="collision.txt"))
+    # run_test(Map(file_name="underground.txt", sub_file_name="simple.txt"))
     
