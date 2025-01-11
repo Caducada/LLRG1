@@ -9,8 +9,13 @@ def status_control(method):
             self.print_death_message(method.__name__)
             return
         if self.endpoint_reached:
-            self.print_winner_message(method.__name__)
-            return
+            if (
+                method.__name__ != "advanced_scan"
+                and method.__name__ != "basic_scan"
+                and method.__name__ != "get_endpoint_route"
+            ):
+                self.print_winner_message(method.__name__)
+                return
         return method(self, *args, **kwargs)
 
     return wrapper
@@ -91,9 +96,7 @@ class Submarine:
     def move_sub(self, direction: str) -> None:
         if direction == "up":
             if self.temp_y != self.map_height - 1:
-                if (
-                    self.map[self.temp_y + 1][self.temp_x] == "B"
-                ):
+                if self.map[self.temp_y + 1][self.temp_x] == "B":
                     self.temp_y += 1
                     if (
                         self.temp_y,
@@ -121,9 +124,7 @@ class Submarine:
                     self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
-                if (
-                    self.map[self.temp_y - 1][self.temp_x] == "B"
-                ):
+                if self.map[self.temp_y - 1][self.temp_x] == "B":
                     self.temp_y -= 1
                     if (
                         self.temp_y,
@@ -152,9 +153,7 @@ class Submarine:
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
                 if self.temp_x != self.map_width:
-                    if (
-                        self.map[self.temp_y][self.temp_x + 1] == "B"
-                    ):
+                    if self.map[self.temp_y][self.temp_x + 1] == "B":
                         self.temp_x += 1
                         if (
                             self.temp_y,
@@ -168,9 +167,9 @@ class Submarine:
                         self.is_alive = False
                         return
                     elif (
-                    self.map[self.temp_y][self.temp_x+1] == 0
-                    or self.map[self.temp_y][self.temp_x+1] == "E"
-                    or self.map[self.temp_y][self.temp_x+1] == "U"
+                        self.map[self.temp_y][self.temp_x + 1] == 0
+                        or self.map[self.temp_y][self.temp_x + 1] == "E"
+                        or self.map[self.temp_y][self.temp_x + 1] == "U"
                     ):
                         self.vision[self.temp_y][self.temp_x] = 0
                         self.temp_x += 1
@@ -186,9 +185,7 @@ class Submarine:
                         self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "left":
             if self.temp_x != 0:
-                if (
-                    self.map[self.temp_y][self.temp_x - 1] == "B"
-                ):
+                if self.map[self.temp_y][self.temp_x - 1] == "B":
                     self.temp_x -= 1
                     if (
                         self.temp_y,
@@ -200,9 +197,9 @@ class Submarine:
                     self.is_alive = False
                     return
                 elif (
-                    self.map[self.temp_y][self.temp_x-1] == 0
-                    or self.map[self.temp_y][self.temp_x-1] == "E"
-                    or self.map[self.temp_y][self.temp_x-1] == "U"
+                    self.map[self.temp_y][self.temp_x - 1] == 0
+                    or self.map[self.temp_y][self.temp_x - 1] == "E"
+                    or self.map[self.temp_y][self.temp_x - 1] == "U"
                 ):
                     self.vision[self.temp_y][self.temp_x] = 0
                     self.temp_x -= 1
@@ -331,34 +328,47 @@ class Submarine:
     @status_control
     def basic_scan(self, plan_route=True):
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
-        vision_copy = copy.deepcopy(self.vision)
         if self.temp_y != self.map_height - 1:
-            vision_copy[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
+            self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
             ]
+            if str(self.vision[self.temp_y + 1][self.temp_x])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x])[1])
+                safe_point = str(self.temp_y + 1) + str(self.temp_x)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y != 0:
-            vision_copy[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
+            self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
             ]
+            if str(self.vision[self.temp_y - 1][self.temp_x])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x])[1])
+                safe_point = str(self.temp_y - 1) + str(self.temp_x)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != self.map_width - 1:
-            vision_copy[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
+            self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
             ]
+            if str(self.vision[self.temp_y][self.temp_x + 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y][self.temp_x + 1])[1])
+                safe_point = str(self.temp_y) + str(self.temp_x + 1)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != 0:
-            vision_copy[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
+            self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
             ]
-        for i in range(len(vision_copy)):
-            for j in range(len(vision_copy[i])):
+            if str(self.vision[self.temp_y][self.temp_x - 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y][self.temp_x - 1])[1])
+                safe_point = str(self.temp_y) + str(self.temp_x - 1)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
                 if i == self.ye and j == self.xe:
-                    vision_copy[i][j] = "E"
+                    self.vision[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-            vision_copy[self.temp_y][self.temp_x] = "S"
-        self.vision = vision_copy
+            self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
             self.get_endpoint_route()
-        
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
@@ -368,52 +378,90 @@ class Submarine:
                     gravel_squares.append((i, j))
         return gravel_squares
 
+    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if (
+                    self.vision[i][j] == "U" + str(sub_index)
+                ):
+                    self.vision[i][j] = 0
+                if int(safe_point[0]) == i and int(safe_point[1]) == j:
+                    self.vision[i][j] = "U" + str(sub_index)
+
     @status_control
     def advanced_scan(self):
         self.basic_scan(False)
-        vision_copy = copy.deepcopy(self.vision)
         if self.temp_y + 2 < self.map_height:
-            vision_copy[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
+            self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
                 self.temp_x
             ]
+            if str(self.vision[self.temp_y + 2][self.temp_x])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y + 2][self.temp_x])[1])
+                safe_point = str(self.temp_y + 2) + str(self.temp_x)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y - 2 >= 0:
-            vision_copy[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
+            self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
             ]
+            if str(self.vision[self.temp_y - 2][self.temp_x])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y - 2][self.temp_x])[1])
+                safe_point = str(self.temp_y - 2) + str(self.temp_x)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 2 < self.map_width:
-            vision_copy[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
+            self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
             ]
+            if str(self.vision[self.temp_y][self.temp_x + 2])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y][self.temp_x + 2])[1])
+                safe_point = str(self.temp_y) + str(self.temp_x + 2)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 2 >= 0:
-            vision_copy[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
+            self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
             ]
+            if str(self.vision[self.temp_y][self.temp_x - 2])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y][self.temp_x - 2])[1])
+                safe_point = str(self.temp_y) + str(self.temp_x - 2)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y + 1 < self.map_height:
-            vision_copy[self.temp_y+1][self.temp_x +1] = self.map[self.temp_y+1][
-                self.temp_x +1
-            ]
-        if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
-            vision_copy[self.temp_y+1][self.temp_x -1] = self.map[self.temp_y+1][
-                self.temp_x - 1
-            ]
-        if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
-            vision_copy[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y-1][
+            self.vision[self.temp_y + 1][self.temp_x + 1] = self.map[self.temp_y + 1][
                 self.temp_x + 1
             ]
-        if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
-            vision_copy[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y-1][
+            if str(self.vision[self.temp_y + 1][self.temp_x + 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x + 1])[1])
+                safe_point = str(self.temp_y + 1) + str(self.temp_x + 1)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+        if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
+            self.vision[self.temp_y + 1][self.temp_x - 1] = self.map[self.temp_y + 1][
                 self.temp_x - 1
             ]
-        for i in range(len(vision_copy)):
-            for j in range(len(vision_copy[i])):
+            if str(self.vision[self.temp_y + 1][self.temp_x - 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x - 1])[1])
+                safe_point = str(self.temp_y + 1) + str(self.temp_x - 1)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+        if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
+            self.vision[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y - 1][
+                self.temp_x + 1
+            ]
+            if str(self.vision[self.temp_y - 1][self.temp_x + 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x + 1])[1])
+                safe_point = str(self.temp_y - 1) + str(self.temp_x + 1)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+        if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
+            self.vision[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y - 1][
+                self.temp_x - 1
+            ]
+            if str(self.vision[self.temp_y - 1][self.temp_x - 1])[0] == "U":
+                sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x - 1])[1])
+                safe_point = str(self.temp_y - 1) + str(self.temp_x - 1)
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
                 if i == self.ye and j == self.xe:
-                    vision_copy[i][j] = "E"
+                    self.vision[i][j] = "E"
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-            vision_copy[self.temp_y][self.temp_x] = "S"
-        self.vision = vision_copy
+            self.vision[self.temp_y][self.temp_x] = "S"
         self.get_endpoint_route()
-
 
     @status_control
     def get_endpoint_route(self) -> None:
@@ -475,24 +523,26 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif point.y >= self.map_height or 0 > point.y:
                     temp_banned_points.append(point)
-                elif self.vision[point.y][point.x] in {"U", "B", "x"}:
+                elif self.vision[point.y][point.x] in {"B", "x"}:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in visited_squares_counter_copy.keys():
                     temp_banned_points.append(point)
                     new_points_visited.append(point)
-                elif point.direction == "up" and point.y < len(self.vision)-1:
-                    if self.vision[point.y+1][point.x] == "U":
+                elif str(self.vision[point.y][point.x])[0] == "U":
+                    temp_banned_points.append(point)
+                elif point.direction == "up" and point.y < len(self.vision) - 1:
+                    if str(self.vision[point.y + 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "down" and point.y > 1:
-                    if self.vision[point.y-1][point.x] == "U":
+                    if str(self.vision[point.y - 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
-                elif point.direction == "right" and point.x < len(self.vision[0])-1:
-                    if self.vision[point.y][point.x+1] == "U":
+                elif point.direction == "right" and point.x < len(self.vision[0]) - 1:
+                    if str(self.vision[point.y][point.x + 1])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "left" and point.x > 1:
-                    if self.vision[point.y][point.x-1] == "U":
+                    if str(self.vision[point.y][point.x - 1])[0] == "U":
                         temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)

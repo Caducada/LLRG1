@@ -8,7 +8,7 @@ from simulation.map import Map
 def run_test(sim_map:Map) -> None:
     """Funktion för att testa olika kartor"""
     cleared = set()
-    while len(cleared) <= len(sim_map.fleet):
+    while len(cleared) != len(sim_map.fleet):
         for sub in sim_map.fleet:
             if sub.bool_scan:
                 sub.advanced_scan()
