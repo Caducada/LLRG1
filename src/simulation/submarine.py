@@ -57,6 +57,7 @@ class Submarine:
         self.map_width = len(self.map[0])
         self.vision = self.__get_starting_vision()
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
+        self.bool_scan = True
 
     def print_death_message(self, name: str) -> None:
         print(f"Submarine {self.id} is dead and can't {name}")
@@ -223,7 +224,7 @@ class Submarine:
             if sub.id == external_id:
                 sub.vision = external_vision
                 self.__merge_vision(sub)
-                self.get_new_route()
+                self.get_endpoint_route()
                 return
         new_sub = Submarine(
             id=external_id,
@@ -232,7 +233,7 @@ class Submarine:
         new_sub.vision = external_vision
         self.__merge_vision(new_sub)
         self.sub_list.append(new_sub)
-        self.get_new_route()
+        self.get_endpoint_route()
 
     @status_control
     def display_vision(self):
@@ -354,10 +355,9 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             vision_copy[self.temp_y][self.temp_x] = "S"
-        if vision_copy != self.vision or len(self.planned_route) == 0:
-            self.vision = vision_copy
-            if plan_route:
-                self.get_new_route()
+        self.vision = vision_copy
+        if plan_route:
+            self.get_endpoint_route()
         
 
     def __get_gravel_squares(self) -> list:
@@ -411,14 +411,12 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             vision_copy[self.temp_y][self.temp_x] = "S"
-        if self.vision != vision_copy:
-            self.vision = vision_copy
-            self.get_new_route()
-        else:
-            self.vision = vision_copy
+        self.vision = vision_copy
+        self.get_endpoint_route()
+
 
     @status_control
-    def get_new_route(self) -> None:
+    def get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.planned_route = ["Share position"]
             return
