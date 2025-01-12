@@ -4,6 +4,7 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
+from simulation.communication import share_position
 
 def run_test(sim_map:Map) -> None:
     """Funktion för att testa olika kartor"""
@@ -20,8 +21,8 @@ def run_test(sim_map:Map) -> None:
                 elif sub.planned_route[0].split()[0] == "Shoot":
                     sub.missile_shoot()
                 elif sub.planned_route[0].split()[0] == "Share":
-                    #Har inte skapat klassen som hanterar interaktioner mellan ubåtar än :(
-                    pass
+                    if sub.planned_route[0].split()[1] == "position":
+                        share_position(sub.id, sim_map)
                 sub.bool_scan = True
             # sub.display_vision()
             # print(sub.planned_route)

@@ -335,7 +335,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y != 0:
             self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
@@ -343,7 +343,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != self.map_width - 1:
             self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
@@ -351,7 +351,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != 0:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
@@ -359,7 +359,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if i == self.ye and j == self.xe:
@@ -378,7 +378,7 @@ class Submarine:
                     gravel_squares.append((i, j))
         return gravel_squares
 
-    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
+    def remove_duplicate_subs(self, safe_point: str, sub_index: int):
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if (
@@ -398,7 +398,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 2][self.temp_x])[1])
                 safe_point = str(self.temp_y + 2) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y - 2 >= 0:
             self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
@@ -406,7 +406,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 2][self.temp_x])[1])
                 safe_point = str(self.temp_y - 2) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 2 < self.map_width:
             self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
@@ -414,7 +414,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 2)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 2 >= 0:
             self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
@@ -422,7 +422,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 2)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x + 1] = self.map[self.temp_y + 1][
                 self.temp_x + 1
@@ -430,7 +430,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x - 1] = self.map[self.temp_y + 1][
                 self.temp_x - 1
@@ -438,7 +438,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x - 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y - 1][
                 self.temp_x + 1
@@ -446,7 +446,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y - 1][
                 self.temp_x - 1
