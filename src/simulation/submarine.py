@@ -13,6 +13,7 @@ def status_control(method):
                 method.__name__ != "advanced_scan"
                 and method.__name__ != "basic_scan"
                 and method.__name__ != "get_endpoint_route"
+                and method.__name__ != "get_client_route"
             ):
                 self.print_winner_message(method.__name__)
                 return
@@ -63,6 +64,9 @@ class Submarine:
         self.vision = self.__get_starting_vision()
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
         self.bool_scan = True
+        self.endpoint_missiles_required = 0
+        self.client_missiles_required = 0
+        self.client = None
 
     def print_death_message(self, name: str) -> None:
         print(f"Submarine {self.id} is dead and can't {name}")
@@ -335,7 +339,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y != 0:
             self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
@@ -343,7 +347,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != self.map_width - 1:
             self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
@@ -351,7 +355,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != 0:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
@@ -359,7 +363,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if i == self.ye and j == self.xe:
@@ -368,7 +372,11 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
-            self.get_endpoint_route()
+            if not self.client:
+                self.get_endpoint_route()
+            else:
+                square = self.client.get_adjacent_square()
+                self.get_client_route(square[0], square[1])
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
@@ -378,7 +386,7 @@ class Submarine:
                     gravel_squares.append((i, j))
         return gravel_squares
 
-    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
+    def remove_duplicate_subs(self, safe_point: str, sub_index: int):
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if (
@@ -387,6 +395,7 @@ class Submarine:
                     self.vision[i][j] = 0
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
+        self.get_endpoint_route()
 
     @status_control
     def advanced_scan(self):
@@ -398,7 +407,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 2][self.temp_x])[1])
                 safe_point = str(self.temp_y + 2) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y - 2 >= 0:
             self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
@@ -406,7 +415,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 2][self.temp_x])[1])
                 safe_point = str(self.temp_y - 2) + str(self.temp_x)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 2 < self.map_width:
             self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
@@ -414,7 +423,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 2)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 2 >= 0:
             self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
@@ -422,7 +431,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 2)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x + 1] = self.map[self.temp_y + 1][
                 self.temp_x + 1
@@ -430,7 +439,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x - 1] = self.map[self.temp_y + 1][
                 self.temp_x - 1
@@ -438,7 +447,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x - 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y - 1][
                 self.temp_x + 1
@@ -446,7 +455,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x + 1)
-                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y - 1][
                 self.temp_x - 1
@@ -461,11 +470,16 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        self.get_endpoint_route()
+        if not self.client:
+            self.get_endpoint_route()
+        else:
+            square = self.client.get_adjacent_square()
+            self.get_client_route(square[0], square[1])
 
     @status_control
-    def get_endpoint_route(self) -> None:
+    def get_endpoint_route(self, adjacent_client_y, adjacent_client_x) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
+            missiles_required = 0
             self.planned_route = ["Share position"]
             return
         new_route = []
@@ -484,7 +498,7 @@ class Submarine:
                     x=temp_x,
                     direction="up",
                     e_distance=math.sqrt(
-                        (self.ye - (temp_y + 1)) ** 2 + (self.xe - temp_x) ** 2
+                        (adjacent_client_y - (temp_y + 1)) ** 2 + (adjacent_client_x - temp_x) ** 2
                     ),
                 ),
                 Point(
@@ -492,7 +506,7 @@ class Submarine:
                     x=temp_x,
                     direction="down",
                     e_distance=math.sqrt(
-                        (self.ye - (temp_y - 1)) ** 2 + (self.xe - temp_x) ** 2
+                        (adjacent_client_y - (temp_y - 1)) ** 2 + (adjacent_client_x - temp_x) ** 2
                     ),
                 ),
                 Point(
@@ -500,7 +514,7 @@ class Submarine:
                     x=temp_x + 1,
                     direction="right",
                     e_distance=math.sqrt(
-                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x + 1)) ** 2
+                        (adjacent_client_y - temp_y) ** 2 + (adjacent_client_x - (temp_x + 1)) ** 2
                     ),
                 ),
                 Point(
@@ -508,7 +522,7 @@ class Submarine:
                     x=temp_x - 1,
                     direction="left",
                     e_distance=math.sqrt(
-                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x - 1)) ** 2
+                        (adjacent_client_y - temp_y) ** 2 + (adjacent_client_x - (temp_x - 1)) ** 2
                     ),
                 ),
             ]
@@ -532,13 +546,13 @@ class Submarine:
                     new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
-                elif point.direction == "up" and point.y < len(self.vision) - 1:
+                elif point.direction == "up" and point.y < self.map_height - 1:
                     if str(self.vision[point.y + 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "down" and point.y > 1:
                     if str(self.vision[point.y - 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
-                elif point.direction == "right" and point.x < len(self.vision[0]) - 1:
+                elif point.direction == "right" and point.x < self.map_width - 1:
                     if str(self.vision[point.y][point.x + 1])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "left" and point.x > 1:
@@ -629,9 +643,11 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
+                    self.endpoint_missiles_required = 0
                     self.planned_route = ["Share position"]
                     return
             elif loop_counter > self.map_height * self.map_width + self.m_count:
+                self.endpoint_missiles_required = 0
                 self.planned_route = ["Share position"]
                 return
             else:
@@ -640,4 +656,192 @@ class Submarine:
                 temp_y = self.temp_y
                 missiles_required = 0
                 new_route = []
+        self.endpoint_missiles_required= missiles_required
         self.planned_route = new_route
+        
+    @status_control
+    def get_client_route(self, y_goal:int, x_goal:int) -> None | bool:
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            return False
+        elif self.temp_x == x_goal and self.temp_y == y_goal:
+            if self.vision != self.client.vision:
+                self.planned_route = ["Share vision", "Share missiles"]
+            else:
+                self.planned_route = ["Share missiles"]
+        new_route = []
+        banned_squares = []
+        missiles_required = 0
+        temp_x = self.temp_x
+        temp_y = self.temp_y
+        visited_squares_counter_copy = copy.copy(self.visited_squares_counter)
+        loop_counter = -1
+        while True:
+            loop_counter += 1
+            new_points_visited = []
+            new_points = [
+                Point(
+                    y=temp_y + 1,
+                    x=temp_x,
+                    direction="up",
+                    e_distance=math.sqrt(
+                        (y_goal - (temp_y + 1)) ** 2 + (x_goal - temp_x) ** 2
+                    ),
+                ),
+                Point(
+                    y=temp_y - 1,
+                    x=temp_x,
+                    direction="down",
+                    e_distance=math.sqrt(
+                        (y_goal - (temp_y - 1)) ** 2 + (x_goal - temp_x) ** 2
+                    ),
+                ),
+                Point(
+                    y=temp_y,
+                    x=temp_x + 1,
+                    direction="right",
+                    e_distance=math.sqrt(
+                        (y_goal - temp_y) ** 2 + (x_goal - (temp_x + 1)) ** 2
+                    ),
+                ),
+                Point(
+                    y=temp_y,
+                    x=temp_x - 1,
+                    direction="left",
+                    e_distance=math.sqrt(
+                        (y_goal - temp_y) ** 2 + (x_goal - (temp_x - 1)) ** 2
+                    ),
+                ),
+            ]
+            new_points = sorted(
+                new_points, key=lambda point: point.e_distance, reverse=False
+            )
+            temp_banned_points = []
+            if self.temp_x == 2 and self.temp_y == 2:
+                pass
+            for point in new_points:
+                if point.x >= self.map_width or 0 > point.x:
+                    temp_banned_points.append(point)
+                elif point.y >= self.map_height or 0 > point.y:
+                    temp_banned_points.append(point)
+                elif self.vision[point.y][point.x] in {"B", "x"}:
+                    temp_banned_points.append(point)
+                elif (point.y, point.x) in banned_squares:
+                    temp_banned_points.append(point)
+                elif (point.y, point.x) in visited_squares_counter_copy.keys():
+                    temp_banned_points.append(point)
+                    new_points_visited.append(point)
+                elif str(self.vision[point.y][point.x])[0] == "U":
+                    temp_banned_points.append(point)
+            for point in temp_banned_points:
+                new_points.remove(point)
+            if len(new_points):
+                if (
+                    isinstance(self.vision[new_points[0].y][new_points[0].x], int)
+                    and self.vision[new_points[0].y][new_points[0].x] != 0
+                ):
+                    missiles_required = (
+                        missiles_required
+                        + self.vision[new_points[0].y][new_points[0].x]
+                    )
+                    for i in range(self.vision[new_points[0].y][new_points[0].x]):
+                        new_route.append(f"Shoot {new_points[0].direction}")
+                else:
+                    new_route.append(f"Move {new_points[0].direction}")
+                if new_points[0].direction == "up":
+                    temp_y += 1
+                elif new_points[0].direction == "down":
+                    temp_y -= 1
+                elif new_points[0].direction == "right":
+                    temp_x += 1
+                elif new_points[0].direction == "left":
+                    temp_x -= 1
+                if self.xe == temp_x and self.ye == temp_y:
+                    if missiles_required > self.m_count:
+                        for square in self.__get_gravel_squares():
+                            banned_squares.append(square)
+                        new_route = []
+                        missiles_required = 0
+                        loop_counter = 0
+                        temp_x = self.temp_x
+                        temp_y = self.temp_y
+                    else:
+                        break
+                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                    return
+                visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
+            elif len(new_points_visited):
+                least_visited = 9999
+                for point in new_points_visited:
+                    if (
+                        visited_squares_counter_copy[(point.y, point.x)]
+                        <= least_visited
+                    ):
+                        least_visited = visited_squares_counter_copy[(point.y, point.x)]
+                final_point = new_points_visited[0]
+                for point in new_points_visited:
+                    if (
+                        visited_squares_counter_copy[(point.y, point.x)]
+                        == least_visited
+                    ):
+                        final_point = point
+                        break
+                visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
+                if (
+                    isinstance(self.vision[final_point.y][final_point.x], int)
+                    and self.vision[final_point.y][final_point.x] != 0
+                ):
+                    missiles_required = (
+                        missiles_required + self.vision[final_point.y][final_point.x]
+                    )
+                    for i in range(self.vision[final_point.y][final_point.x]):
+                        new_route.append(f"Shoot {final_point.direction}")
+                else:
+                    new_route.append(f"Move {final_point.direction}")
+                if final_point.direction == "up":
+                    temp_y += 1
+                elif final_point.direction == "down":
+                    temp_y -= 1
+                elif final_point.direction == "right":
+                    temp_x += 1
+                elif final_point.direction == "left":
+                    temp_x -= 1
+                if self.xe == temp_x and self.ye == temp_y:
+                    if missiles_required > self.m_count:
+                        for square in self.__get_gravel_squares():
+                            banned_squares.append(square)
+                        new_route = []
+                        missiles_required = 0
+                        loop_counter = 0
+                        temp_x = self.temp_x
+                        temp_y = self.temp_y
+                    else:
+                        break
+                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                    return False
+            elif loop_counter > self.map_height * self.map_width + self.m_count:
+                return False
+            else:
+                visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
+                temp_x = self.temp_x
+                temp_y = self.temp_y
+                missiles_required = 0
+                new_route = []
+        self.client_missiles_required = missiles_required
+        new_route.append("Share vision")
+        new_route.append("Share missiles")
+        self.planned_route = new_route
+        
+    def get_adjacent_square(self) -> str:
+        if self.temp_y != self.map_height-1:
+            if self.vision[self.temp_y + 1][self.temp_x] == 0:
+                return str(self.temp_y + 1) + str(self.temp_x)
+        if self.temp_y != 0:
+            if self.vision[self.temp_y - 1][self.temp_x] == 0:
+                return str(self.temp_y -1) + str(self.temp_x)
+        if self.temp_x != self.map_width-1:
+            if self.vision[self.temp_y][self.temp_x + 1] == 0:
+                return str(self.temp_y) + str(self.temp_x+1)
+        if self.temp_x != 0:
+            if self.vision[self.temp_y][self.temp_x + 1] == 0:
+                return str(self.temp_y) + str(self.temp_x-1)
+        return False
