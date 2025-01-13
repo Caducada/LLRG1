@@ -14,6 +14,8 @@ def run_test(sim_map:Map) -> None:
             if sub.bool_scan:
                 sub.advanced_scan()
                 sub.bool_scan = False
+                if sub.client != None:
+                    print(f"Client: {sub.client.id}")
             else:
                 sub.basic_scan()
                 if sub.planned_route[0].split()[0] == "Move":
@@ -28,9 +30,10 @@ def run_test(sim_map:Map) -> None:
                     elif sub.planned_route[0].split()[1] == "missiles":
                         pass
                 sub.bool_scan = True
-            # sub.display_vision()
-            # print(sub.planned_route)
-            # print("<------------------->")
+                if sub.client != None:
+                    print(sub.client.id)
+            sub.display_vision()
+            print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map

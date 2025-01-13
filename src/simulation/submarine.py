@@ -14,6 +14,7 @@ def status_control(method):
                 and method.__name__ != "basic_scan"
                 and method.__name__ != "get_endpoint_route"
                 and method.__name__ != "get_client_route"
+                and method.__name__ != "display_vision"
             ):
                 self.print_winner_message(method.__name__)
                 return
@@ -477,9 +478,8 @@ class Submarine:
             self.get_client_route(square[0], square[1])
 
     @status_control
-    def get_endpoint_route(self, adjacent_client_y, adjacent_client_x) -> None:
+    def get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
-            missiles_required = 0
             self.planned_route = ["Share position"]
             return
         new_route = []
@@ -498,7 +498,7 @@ class Submarine:
                     x=temp_x,
                     direction="up",
                     e_distance=math.sqrt(
-                        (adjacent_client_y - (temp_y + 1)) ** 2 + (adjacent_client_x - temp_x) ** 2
+                        (self.ye - (temp_y + 1)) ** 2 + (self.xe - temp_x) ** 2
                     ),
                 ),
                 Point(
@@ -506,7 +506,7 @@ class Submarine:
                     x=temp_x,
                     direction="down",
                     e_distance=math.sqrt(
-                        (adjacent_client_y - (temp_y - 1)) ** 2 + (adjacent_client_x - temp_x) ** 2
+                        (self.ye - (temp_y - 1)) ** 2 + (self.xe - temp_x) ** 2
                     ),
                 ),
                 Point(
@@ -514,7 +514,7 @@ class Submarine:
                     x=temp_x + 1,
                     direction="right",
                     e_distance=math.sqrt(
-                        (adjacent_client_y - temp_y) ** 2 + (adjacent_client_x - (temp_x + 1)) ** 2
+                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x + 1)) ** 2
                     ),
                 ),
                 Point(
@@ -522,7 +522,7 @@ class Submarine:
                     x=temp_x - 1,
                     direction="left",
                     e_distance=math.sqrt(
-                        (adjacent_client_y - temp_y) ** 2 + (adjacent_client_x - (temp_x - 1)) ** 2
+                        (self.ye - temp_y) ** 2 + (self.xe - (temp_x - 1)) ** 2
                     ),
                 ),
             ]
@@ -546,13 +546,13 @@ class Submarine:
                     new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
-                elif point.direction == "up" and point.y < self.map_height - 1:
+                elif point.direction == "up" and point.y < len(self.vision) - 1:
                     if str(self.vision[point.y + 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "down" and point.y > 1:
                     if str(self.vision[point.y - 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
-                elif point.direction == "right" and point.x < self.map_width - 1:
+                elif point.direction == "right" and point.x < len(self.vision[0]) - 1:
                     if str(self.vision[point.y][point.x + 1])[0] == "U":
                         temp_banned_points.append(point)
                 elif point.direction == "left" and point.x > 1:
@@ -643,11 +643,9 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
-                    self.endpoint_missiles_required = 0
                     self.planned_route = ["Share position"]
                     return
             elif loop_counter > self.map_height * self.map_width + self.m_count:
-                self.endpoint_missiles_required = 0
                 self.planned_route = ["Share position"]
                 return
             else:
@@ -656,18 +654,17 @@ class Submarine:
                 temp_y = self.temp_y
                 missiles_required = 0
                 new_route = []
-        self.endpoint_missiles_required= missiles_required
         self.planned_route = new_route
         
     @status_control
     def get_client_route(self, y_goal:int, x_goal:int) -> None | bool:
-        if self.temp_x == self.xe and self.temp_y == self.ye:
-            return False
-        elif self.temp_x == x_goal and self.temp_y == y_goal:
-            if self.vision != self.client.vision:
-                self.planned_route = ["Share vision", "Share missiles"]
-            else:
-                self.planned_route = ["Share missiles"]
+        if self.temp_x == x_goal and self.temp_y == y_goal:
+            self.client = None
+            self.planned_route = ["Share position"]
+            # if self.vision != self.client.vision:
+            #     self.planned_route = ["Share vision", "Share missiles"]
+            # else:
+            #     self.planned_route = ["Share missiles"]
         new_route = []
         banned_squares = []
         missiles_required = 0
