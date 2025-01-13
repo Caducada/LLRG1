@@ -377,7 +377,7 @@ class Submarine:
                 self.get_endpoint_route()
             else:
                 square = self.client.get_adjacent_square()
-                self.get_client_route(square[0], square[1])
+                self.get_client_route(int(square[0]), int(square[1]))
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
@@ -475,7 +475,7 @@ class Submarine:
             self.get_endpoint_route()
         else:
             square = self.client.get_adjacent_square()
-            self.get_client_route(square[0], square[1])
+            self.get_client_route(int(square[0]), int(square[1]))
 
     @status_control
     def get_endpoint_route(self) -> None:
@@ -530,8 +530,6 @@ class Submarine:
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
             temp_banned_points = []
-            if self.temp_x == 2 and self.temp_y == 2:
-                pass
             for point in new_points:
                 if point.x >= self.map_width or 0 > point.x:
                     temp_banned_points.append(point)
@@ -713,8 +711,6 @@ class Submarine:
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
             temp_banned_points = []
-            if self.temp_x == 2 and self.temp_y == 2:
-                pass
             for point in new_points:
                 if point.x >= self.map_width or 0 > point.x:
                     temp_banned_points.append(point)
@@ -752,7 +748,7 @@ class Submarine:
                     temp_x += 1
                 elif new_points[0].direction == "left":
                     temp_x -= 1
-                if self.xe == temp_x and self.ye == temp_y:
+                if x_goal == temp_x and y_goal == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
                             banned_squares.append(square)
@@ -802,7 +798,7 @@ class Submarine:
                     temp_x += 1
                 elif final_point.direction == "left":
                     temp_x -= 1
-                if self.xe == temp_x and self.ye == temp_y:
+                if x_goal == temp_x and y_goal == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
                             banned_squares.append(square)
@@ -827,6 +823,7 @@ class Submarine:
         new_route.append("Share vision")
         new_route.append("Share missiles")
         self.planned_route = new_route
+        return True
         
     def get_adjacent_square(self) -> str:
         if self.temp_y != self.map_height-1:

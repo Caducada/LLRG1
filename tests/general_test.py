@@ -31,9 +31,9 @@ def run_test(sim_map:Map) -> None:
                         pass
                 sub.bool_scan = True
                 if sub.client != None:
-                    print(sub.client.id)
-            sub.display_vision()
-            print("<------------------->")
+                    print(f"Client: {sub.client.id}")
+            # sub.display_vision()
+            # print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map

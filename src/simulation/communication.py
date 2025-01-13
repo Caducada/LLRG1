@@ -8,12 +8,19 @@ def share_position(sub_id:int, map:Map) -> None:
             safe_point = str(sub.temp_y) + str(sub.temp_x)
             if sub.endpoint_reached:
                 seek_help = False
+            elif not sub.endpoint_reached:
+                pass
             break
     for sub in map.fleet:
         if sub.id != sub_id:
             sub.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_id)
     if seek_help:
         assign_helper(sub_id, map)
+    else:
+        for sub in map.fleet:
+            if sub.client != None:
+                if sub.client.id == sub_id:
+                    sub.client = None
            
 def assign_helper(sub_id:int, map:Map):
     for sub in map.fleet:
