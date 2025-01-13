@@ -516,8 +516,6 @@ class Submarine:
                 new_points, key=lambda point: point.e_distance, reverse=False
             )
             temp_banned_points = []
-            if self.temp_x == 2 and self.temp_y == 2:
-                pass
             for point in new_points:
                 if point.x >= self.map_width or 0 > point.x:
                     temp_banned_points.append(point)
