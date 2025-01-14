@@ -4,7 +4,7 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
-from simulation.communication import share_position
+from simulation.communication import share_position, remove_helper
 
 def run_test(sim_map:Map) -> None:
     """Funktion för att testa olika kartor"""
@@ -13,11 +13,15 @@ def run_test(sim_map:Map) -> None:
         for sub in sim_map.fleet:
             if sub.bool_scan:
                 sub.advanced_scan()
+                if sub.planned_route != ["Share_vision"]:
+                    remove_helper(sub.id, sim_map)
                 sub.bool_scan = False
                 if sub.client != None:
                     print(f"Client: {sub.client.id}")
             else:
                 sub.basic_scan()
+                if sub.planned_route != ["Share_vision"]:
+                     remove_helper(sub.id, sim_map)
                 if sub.planned_route[0].split()[0] == "Move":
                     sub.move_sub(sub.planned_route[0].split()[1]) 
                 elif sub.planned_route[0].split()[0] == "Shoot":

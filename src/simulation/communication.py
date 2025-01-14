@@ -22,7 +22,7 @@ def share_position(sub_id:int, map:Map) -> None:
                 if sub.client.id == sub_id:
                     sub.client = None
            
-def assign_helper(sub_id:int, map:Map):
+def assign_helper(sub_id:int, map:Map) -> None:
     for sub in map.fleet:
         if sub.id == sub_id:
             square = sub.get_adjacent_square()
@@ -35,4 +35,11 @@ def assign_helper(sub_id:int, map:Map):
             if (sub.m_count - sub.endpoint_missiles_required - sub.client_missiles_required) > 0:
                 sub.client = client
                 return
+            
+def remove_helper(sub_id:int, map:Map) -> None:
+    for sub in map.fleet:
+        if sub.client != None:
+            if sub.client.id == sub_id:
+                sub.client = None
+            
     
