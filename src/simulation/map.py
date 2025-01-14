@@ -1,6 +1,8 @@
 import os
 import csv
 import itertools
+from .submarine import Submarine
+from .get_fleet import get_fleet
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
@@ -19,7 +21,9 @@ class Map:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
-            # self.read_sub_coords(file=sub_file_name)
+            self._map = [row for row in self._map if len(row)!=0]
+            self.fleet = get_fleet(sub_file_name, self._map)
+            self.update_map()
 
 
     def print_map(self):
@@ -150,8 +154,30 @@ class Map:
         with open(MAP_FILE, 'w', newline='') as file:
             csvwriter = csv.writer(file)
             csvwriter.writerows(self._map)
-
-
+            
+    def update_map(self):
+        """Hanterar eventuella konflikter som uppstår efter 
+        att alla U-båter gjort någonting"""
+        for i in range(len(self._map)):
+            for j in range(len(self._map[i])):
+                if self._map[i][j] == "U":
+                    self._map[i][j] = 0
+        repeated = {}
+        for sub in self.fleet:
+            for i in range(len(sub.vision)):
+                for j in range(len(sub.vision[i])):
+                    if sub.vision[i][j] == "S":
+                        self._map[i][j] = "U"
+                        if str(i)+" " + str(j) not in repeated:
+                            repeated.setdefault(str(i)+ " "+ str(j), 0)
+                        else:
+                            repeated[str(i)+ " " + str(j)] += 1
+        for key in repeated.keys():
+            if repeated[key] >= 1:
+                for sub in self.fleet:
+                    if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
+                        sub.is_alive = False
+                        self._map[int(key.split()[0])][int(key.split()[1])] = "0"
 
 # Exempel
 

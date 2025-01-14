@@ -15,6 +15,7 @@ class SimulationGUI(BaseGUI):
     def run(self):
         """Kör simuleringen."""
         running = True
+
 #        while running:
         self.screen.fill((0, 0, 0))
         # Här lägger du till rendering av simuleringen
