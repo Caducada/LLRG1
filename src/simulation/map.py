@@ -160,15 +160,15 @@ class Map:
         att alla U-båter gjort någonting"""
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
-                if self._map[i][j] == "U":
+                if str(self._map[i][j])[0] == "U":
                     self._map[i][j] = 0
         repeated = {}
         for sub in self.fleet:
             for i in range(len(sub.vision)):
                 for j in range(len(sub.vision[i])):
                     if sub.vision[i][j] == "S":
-                        self._map[i][j] = "U"
-                        if str(i)+" " + str(j) not in repeated:
+                        self._map[i][j] = f"U{sub.id}"
+                        if str(i) + " " + str(j) not in repeated:
                             repeated.setdefault(str(i)+ " "+ str(j), 0)
                         else:
                             repeated[str(i)+ " " + str(j)] += 1
