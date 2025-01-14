@@ -16,8 +16,8 @@ def run_test(sim_map:Map) -> None:
                 if sub.planned_route != ["Share_vision"]:
                     remove_helper(sub.id, sim_map)
                 sub.bool_scan = False
-                if sub.client != None:
-                    print(f"Client: {sub.client.id}")
+                # if sub.client != None:
+                #     print(f"Client: {sub.client.id}")
             else:
                 sub.basic_scan()
                 if sub.planned_route != ["Share_vision"]:
@@ -34,11 +34,11 @@ def run_test(sim_map:Map) -> None:
                     elif sub.planned_route[0].split()[1] == "missiles":
                         pass
                 sub.bool_scan = True
-                if sub.client != None:
-                    print(f"Client: {sub.client.id}")
-            sub.display_vision()
-            print(f"{sub.planned_route}")
-            print("<------------------->")
+                # if sub.client != None:
+                #     print(f"Client: {sub.client.id}")
+            # sub.display_vision()
+            # print(f"{sub.planned_route}")
+            # print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
