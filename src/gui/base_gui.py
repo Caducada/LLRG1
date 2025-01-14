@@ -6,14 +6,16 @@ class BaseGUI:
         self.screen = screen
         self.running = False
 
-    def run(self):
-        """Kör huvudloopen för GUI."""
+    def run(self, fps=60):
+        """Kör huvudloopen med angiven FPS."""
+        clock = pygame.time.Clock()
         self.running = True
         while self.running:
             self.handle_events()
             self.update()
             self.render()
             pygame.display.flip()
+            clock.tick(fps)  # Begränsa FPS
 
     def handle_events(self):
         """Hantera händelser."""
@@ -28,3 +30,5 @@ class BaseGUI:
     def render(self):
         """Rendera grafik."""
         pass
+
+

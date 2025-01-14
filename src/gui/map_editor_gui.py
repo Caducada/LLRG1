@@ -1,7 +1,7 @@
 from gui.base_gui import BaseGUI
 from gui.sidebar import Sidebar
 from simulation.map import Map
-from .widgets import GraphicsLibrary
+from .graphics import GraphicsLibrary
 import pygame
 
 
