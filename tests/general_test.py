@@ -36,8 +36,9 @@ def run_test(sim_map:Map) -> None:
                 sub.bool_scan = True
                 if sub.client != None:
                     print(f"Client: {sub.client.id}")
-            # sub.display_vision()
-            # print("<------------------->")
+            sub.display_vision()
+            print(f"{sub.planned_route}")
+            print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
@@ -53,6 +54,7 @@ def run_test(sim_map:Map) -> None:
 
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
-    run_test(Map(file_name="underground.txt", sub_file_name="collision.txt"))
+    run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
+    # run_test(Map(file_name="underground.txt", sub_file_name="collision.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="simple.txt"))
     

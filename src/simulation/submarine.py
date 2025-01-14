@@ -390,9 +390,7 @@ class Submarine:
     def remove_duplicate_subs(self, safe_point: str, sub_index: int):
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
-                if (
-                    self.vision[i][j] == "U" + str(sub_index)
-                ):
+                if self.vision[i][j] == "U" + str(sub_index):
                     self.vision[i][j] = 0
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
@@ -599,6 +597,7 @@ class Submarine:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         <= least_visited
+                        and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         least_visited = visited_squares_counter_copy[(point.y, point.x)]
                 final_point = new_points_visited[0]
@@ -606,6 +605,7 @@ class Submarine:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         == least_visited
+                        and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         final_point = point
                         break
@@ -653,9 +653,9 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.planned_route = new_route
-        
+
     @status_control
-    def get_client_route(self, y_goal:int, x_goal:int) -> None | bool:
+    def get_client_route(self, y_goal: int, x_goal: int) -> None | bool:
         if self.temp_x == x_goal and self.temp_y == y_goal:
             self.client = None
             self.planned_route = ["Share position"]
@@ -768,6 +768,7 @@ class Submarine:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         <= least_visited
+                        and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         least_visited = visited_squares_counter_copy[(point.y, point.x)]
                 final_point = new_points_visited[0]
@@ -775,6 +776,7 @@ class Submarine:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         == least_visited
+                        and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         final_point = point
                         break
@@ -824,18 +826,18 @@ class Submarine:
         new_route.append("Share missiles")
         self.planned_route = new_route
         return True
-        
+
     def get_adjacent_square(self) -> str:
-        if self.temp_y != self.map_height-1:
+        if self.temp_y != self.map_height - 1:
             if self.vision[self.temp_y + 1][self.temp_x] == 0:
                 return str(self.temp_y + 1) + str(self.temp_x)
         if self.temp_y != 0:
             if self.vision[self.temp_y - 1][self.temp_x] == 0:
-                return str(self.temp_y -1) + str(self.temp_x)
-        if self.temp_x != self.map_width-1:
+                return str(self.temp_y - 1) + str(self.temp_x)
+        if self.temp_x != self.map_width - 1:
             if self.vision[self.temp_y][self.temp_x + 1] == 0:
-                return str(self.temp_y) + str(self.temp_x+1)
+                return str(self.temp_y) + str(self.temp_x + 1)
         if self.temp_x != 0:
             if self.vision[self.temp_y][self.temp_x + 1] == 0:
-                return str(self.temp_y) + str(self.temp_x-1)
+                return str(self.temp_y) + str(self.temp_x - 1)
         return False
