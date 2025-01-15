@@ -29,10 +29,16 @@ class SimulationGUI(BaseGUI):
             map_path = os.path.join(MAP_DIR, map_file)
             temp_map = Map(file_name=map_path, sub_file_name=FLEET_FILE)
             map_data = temp_map._map
+
+            # Kontrollera om kartan är tom eller ogiltig
+            if not map_data or not isinstance(map_data, list) or not map_data[0]:
+                print(f"Kartan {map_file} är tom eller ogiltig och hoppas över.")
+                continue
+
             map_thumbnails[map_file] = self.generate_map_thumbnail(map_data, thumbnail_size)
 
         buttons = []
-        for i, map_file in enumerate(map_files):
+        for i, map_file in enumerate(map_thumbnails.keys()):  # Endast giltiga kartor
             rect = pygame.Rect(50, 50 + i * 120, 200, 100)
             buttons.append({"rect": rect, "map_file": map_file})
 
@@ -56,10 +62,14 @@ class SimulationGUI(BaseGUI):
                     mouse_pos = pygame.mouse.get_pos()
                     for button in buttons:
                         if button["rect"].collidepoint(mouse_pos):
-                            return button["map_file"]  
+                            return button["map_file"] 
 
     def generate_map_thumbnail(self, map_data, size):
         """Genererar en miniatyr för en karta."""
+        if not map_data or not isinstance(map_data, list) or not map_data[0]:
+            print("Ogiltig eller tom karta, kan inte generera miniatyr.")
+            return pygame.Surface(size)  # Returnera en tom yta för att undvika fel
+
         thumbnail = pygame.Surface(size)
         cell_size = min(size[0] // len(map_data[0]), size[1] // len(map_data))
         for y, row in enumerate(map_data):

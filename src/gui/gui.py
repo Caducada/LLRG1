@@ -11,7 +11,6 @@ class GuiApp:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        # Skapa menyer och andra delar
         self.menu = MainMenu(self.screen, self.handle_menu_selection)
         self.map_editor = MapEditor(self.screen)
         self.simulation = SimulationGUI(self.screen)

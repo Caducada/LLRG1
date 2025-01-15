@@ -10,16 +10,14 @@ class MainMenu(BaseGUI):
         self.selected_index = 0
         self.on_option_selected = on_option_selected
 
-        # Rubrik
         self.title_font = pygame.font.Font(None, 80)  
         self.title_text = "Lindas Lustfyllda Rederi"
 
-        # Initial window dimensions
         self.width, self.height = screen.get_size()
 
     def render(self):
         """Ritar huvudmenyn med Matrix-effekt och text."""
-        self.screen.fill((0, 0, 0))  # Svart bakgrund
+        self.screen.fill((0, 0, 0)) 
         self.draw_title()
         self.draw_menu_buttons()
 
@@ -53,13 +51,10 @@ class MainMenu(BaseGUI):
             else:
                 button_color = (0, 100 + i * 30, 0) 
 
-            # Bakgrund för knapp
             pygame.draw.rect(self.screen, button_color, rect, border_radius=10)
 
-            # Kantlinje för knappen
             pygame.draw.rect(self.screen, (0, 255, 0), rect, 3, border_radius=10)
 
-            # Text på knappen
             text_color = (255, 255, 255) if i == self.selected_index else (200, 255, 200)
             text = font.render(option, True, text_color)
             text_rect = text.get_rect(center=rect.center)
@@ -89,7 +84,6 @@ class MainMenu(BaseGUI):
                     self.on_option_selected(self.selected_index)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1: 
-                    # Kontrollera om musen klickade på en knapp
                     button_width = self.width // 3
                     button_height = self.height // 12
                     center_x = self.width // 2
