@@ -15,6 +15,7 @@ def status_control(method):
                 and method.__name__ != "get_endpoint_route"
                 and method.__name__ != "get_client_route"
                 and method.__name__ != "display_vision"
+                and method.__name__ != "move_sub"
             ):
                 self.print_winner_message(method.__name__)
                 return
@@ -115,9 +116,12 @@ class Submarine:
                 elif (
                     self.map[self.temp_y + 1][self.temp_x] == 0
                     or self.map[self.temp_y + 1][self.temp_x] == "E"
-                    or self.map[self.temp_y + 1][self.temp_x] == "U"
+                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
                 ):
-                    self.vision[self.temp_y][self.temp_x] = 0
+                    if self.temp_y != self.ye and self.xe != self.temp_x:
+                        self.vision[self.temp_y][self.temp_x] = 0
+                    else:
+                        self.vision[self.temp_y][self.temp_x] = "E"
                     self.temp_y += 1
                     if (
                         self.temp_y,
@@ -143,9 +147,12 @@ class Submarine:
                 elif (
                     self.map[self.temp_y - 1][self.temp_x] == 0
                     or self.map[self.temp_y - 1][self.temp_x] == "E"
-                    or self.map[self.temp_y - 1][self.temp_x] == "U"
+                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
                 ):
-                    self.vision[self.temp_y][self.temp_x] = 0
+                    if self.temp_y != self.ye and self.xe != self.temp_x:
+                        self.vision[self.temp_y][self.temp_x] = 0
+                    else:
+                        self.vision[self.temp_y][self.temp_x] = "E"
                     self.temp_y -= 1
                     if (
                         self.temp_y,
@@ -174,9 +181,12 @@ class Submarine:
                     elif (
                         self.map[self.temp_y][self.temp_x + 1] == 0
                         or self.map[self.temp_y][self.temp_x + 1] == "E"
-                        or self.map[self.temp_y][self.temp_x + 1] == "U"
+                        or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
                     ):
-                        self.vision[self.temp_y][self.temp_x] = 0
+                        if self.temp_y != self.ye and self.xe != self.temp_x:
+                            self.vision[self.temp_y][self.temp_x] = 0
+                        else:
+                            self.vision[self.temp_y][self.temp_x] = "E"
                         self.temp_x += 1
                         if (
                             self.temp_y,
@@ -204,9 +214,12 @@ class Submarine:
                 elif (
                     self.map[self.temp_y][self.temp_x - 1] == 0
                     or self.map[self.temp_y][self.temp_x - 1] == "E"
-                    or self.map[self.temp_y][self.temp_x - 1] == "U"
+                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
                 ):
-                    self.vision[self.temp_y][self.temp_x] = 0
+                    if self.temp_y != self.ye and self.xe != self.temp_x:
+                        self.vision[self.temp_y][self.temp_x] = 0
+                    else:
+                        self.vision[self.temp_y][self.temp_x] = "E"
                     self.temp_x -= 1
                     if (
                         self.temp_y,
@@ -216,9 +229,6 @@ class Submarine:
                     else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.vision[self.temp_y][self.temp_x] = "S"
-        if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.endpoint_reached = True
-            self.vision[self.temp_y][self.temp_x] = "S"
 
     @status_control
     def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
@@ -331,7 +341,7 @@ class Submarine:
         self.secret_keys.setdefault(external_id, external_key)
 
     @status_control
-    def basic_scan(self, plan_route=True):
+    def basic_scan(self, plan_route=True) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
@@ -373,11 +383,14 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
-            if not self.client:
+            if self.client == None:
                 self.get_endpoint_route()
             else:
                 square = self.client.get_adjacent_square()
                 self.get_client_route(int(square[0]), int(square[1]))
+        if self.temp_x == self.xe and self.temp_y == self.ye:
+            self.endpoint_reached = True
+            self.vision[self.temp_y][self.temp_x] = "S"
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
@@ -469,7 +482,7 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        if not self.client:
+        if self.client == None:
             self.get_endpoint_route()
         else:
             square = self.client.get_adjacent_square()
