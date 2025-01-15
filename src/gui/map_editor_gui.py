@@ -13,7 +13,7 @@ class MapEditor(BaseGUI):
         self.cell_size = 20
         self.map_obj = Map()
         self.map_obj.create_empty_map(width, height)
-        self.selected_value = "0"
+        self.selected_value = "x"
         self.graphics = GraphicsLibrary()
         self.sidebar_buttons = [] 
         self.init_sidebar()
@@ -23,9 +23,7 @@ class MapEditor(BaseGUI):
         """Initiera sidopanelens knappar."""
         self.add_sidebar_button("Wall (x)", lambda: self.set_selected_value("x"), self.graphics.get_resource("map", "x")["color"])
         self.add_sidebar_button("Mine (B)", lambda: self.set_selected_value("B"), self.graphics.get_resource("map", "B")["color"])
-
         self.add_stonepile_buttons(range(1, 9))  
-
         self.add_sidebar_button("Empty (0)", lambda: self.set_selected_value("0"), self.graphics.get_resource("map", "0")["color"])
         self.add_sidebar_button("Save Map", self.save_map, (200, 200, 200))
         self.add_sidebar_button("Main Menu", lambda: self.change_page("main"), (200, 200, 200))
@@ -69,6 +67,7 @@ class MapEditor(BaseGUI):
         """Ställ in det valda värdet för redigering."""
         self.selected_value = value
 
+    # TODO: IMPLEMENTERA VAL AV FILNAMN
     def save_map(self):
         """Spara kartan till en fil."""
         if self.map_obj:
@@ -116,7 +115,6 @@ class MapEditor(BaseGUI):
             return cell_x, cell_y
         return None
 
-    
     def modify_cell_under_mouse(self):
         """Modifiera cellen under muspekaren."""
         cell_coords = self.get_cell_under_mouse()

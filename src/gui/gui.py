@@ -3,6 +3,7 @@ from gui.main_menu import MainMenu
 from gui.simulation_menu import SimulationMenu
 from gui.map_editor_menu import MapEditorMenu
 from gui.map_editor_gui import MapEditor
+from gui.simulation_gui import SimulationGUI
 
 class GuiApp:
     """Huvudappen som hanterar sidväxling."""
@@ -14,16 +15,24 @@ class GuiApp:
         self.current_page = None
         self.running = True
 
-    def change_page(self, page_name, **kwargs):
-        """Byt till en annan sida."""
-        self.running = False  # Stoppa nuvarande sidans loop
-        self.change_page_callback(page_name, **kwargs)
+    # def change_page(self, page_name, **kwargs):
+    #     """Byt till en annan sida."""
+    #     self.running = False  # Stoppa nuvarande sidans loop
+    #     self.change_page_callback(page_name, **kwargs)
 
     def set_page(self, page_name, **kwargs):
         """Byt till en ny sida."""
         if page_name == "map_editor" and "width" in kwargs and "height" in kwargs:
             # Dynamiskt skapa MapEditor med angivna dimensioner
             self.pages["map_editor"] = MapEditor(self.screen, self.set_page, kwargs["width"], kwargs["height"])
+        elif page_name == "simulation" and "map_file" in kwargs:
+            # Dynamiskt skapa SimulationGUI med karta och ubåtsfil
+            map_file = kwargs["map_file"]
+            print(map_file)
+            fleet_file = kwargs.get("fleet_file", "uboat.txt")
+            self.pages["simulation"] = SimulationGUI(self.screen, self.set_page, map_file, fleet_file)
+        
+        # Sätt sidan och starta dess loop
         self.current_page = self.pages[page_name]
 
     def initialize_pages(self):

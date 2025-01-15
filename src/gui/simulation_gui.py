@@ -6,21 +6,21 @@ from gui.graphics import GraphicsLibrary
 
 class SimulationGUI(BaseGUI):
     """GUI för att köra simuleringen."""
-    def __init__(self, screen, change_page_callback, map_file):
+    def __init__(self, screen, change_page_callback, map_file, fleet_file):
         super().__init__(screen, change_page_callback)
         self.set_title("Simulering")
         self.map_file = map_file
+        self.fleet_file = fleet_file
         self.graphics = GraphicsLibrary()
         self.sim_map = Map(file_name=self.map_file)
-        self.sub_list = get_fleet("uboat.txt", self.sim_map._map)
+        self.sub_list = get_fleet(self.fleet_file, self.sim_map._map)
         self.cell_size = 20
 
     def draw_map(self):
-        """Rita kartan och u-båtarna."""
-        font = pygame.font.Font(None, self.cell_size - 4)
+        """Rita kartan och ubåtarna."""
         for y, row in enumerate(self.sim_map._map):
             for x, cell in enumerate(row):
-                cell_x = x * self.cell_size + 200
+                cell_x = x * self.cell_size
                 cell_y = y * self.cell_size
                 resource = self.graphics.get_resource("map", cell)
                 color = resource["color"]
@@ -32,7 +32,7 @@ class SimulationGUI(BaseGUI):
             pygame.draw.rect(
                 self.screen,
                 (0, 255, 0),
-                (sub.temp_x * self.cell_size + 200, sub.temp_y * self.cell_size, self.cell_size, self.cell_size),
+                (sub.temp_x * self.cell_size, sub.temp_y * self.cell_size, self.cell_size, self.cell_size),
             )
 
     def simulate_step(self):
@@ -45,19 +45,14 @@ class SimulationGUI(BaseGUI):
                     direction = action.split()[1]
                     sub.move_sub(direction)
 
-    def handle_events(self):
-        """Hantera användarens input."""
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-
     def run(self):
         """Kör simuleringen."""
         self.running = True
+        clock = pygame.time.Clock()
         while self.running:
             self.handle_events()
             self.simulate_step()
             self.screen.fill(self.graphics.get_resource("gui", "background")["color"])
             self.draw_map()
             pygame.display.flip()
-            pygame.time.delay(500)
+            clock.tick(60)

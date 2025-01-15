@@ -96,7 +96,8 @@ class BaseGUI:
         """Hantera input för sidans alternativ."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False
+                pygame.quit()
+                exit()
             elif event.type == pygame.VIDEORESIZE:
                 self.handle_resize(event.size)
             elif event.type == pygame.KEYDOWN:
