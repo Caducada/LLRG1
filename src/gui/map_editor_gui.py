@@ -23,15 +23,47 @@ class MapEditor(BaseGUI):
         """Initiera sidopanelens knappar."""
         self.add_sidebar_button("Wall (x)", lambda: self.set_selected_value("x"), self.graphics.get_resource("map", "x")["color"])
         self.add_sidebar_button("Mine (B)", lambda: self.set_selected_value("B"), self.graphics.get_resource("map", "B")["color"])
+
+        self.add_stonepile_buttons(range(1, 9))  
+
         self.add_sidebar_button("Empty (0)", lambda: self.set_selected_value("0"), self.graphics.get_resource("map", "0")["color"])
         self.add_sidebar_button("Save Map", self.save_map, (200, 200, 200))
         self.add_sidebar_button("Main Menu", lambda: self.change_page("main"), (200, 200, 200))
 
     def add_sidebar_button(self, text, action, color):
-        """Lägg till en knapp till sidopanelen."""
-        button_y = 10 + len(self.sidebar_buttons) * 50
+        """Lägg till en vanlig knapp till sidopanelen."""
+        if len(self.sidebar_buttons) > 0:
+            last_button = self.sidebar_buttons[-1]
+            button_y = last_button["rect"].bottom + 10  
+        else:
+            button_y = 10 
+
         button_rect = pygame.Rect(10, button_y, 180, 40)
-        self.sidebar_buttons.append({"rect": button_rect, "text": text, "action": action, "color": color})
+        self.sidebar_buttons.append({"rect": button_rect, "text": text, "action": action, "color": color, "is_stonepile": False})
+
+    def add_stonepile_buttons(self, stone_range):
+        """Lägg till stenröseknappar, två och två per rad."""
+        buttons_per_row = 2
+        button_width = (200 - 30) // buttons_per_row  #
+        button_height = 40
+        spacing = 10
+
+        if len(self.sidebar_buttons) > 0:
+            last_button = self.sidebar_buttons[-1]
+            stonepile_start_y = last_button["rect"].bottom + 10
+        else:
+            stonepile_start_y = 10
+
+        for i, stone_value in enumerate(stone_range):
+            color = self.graphics.get_resource("map", str(stone_value))["color"]
+            row = i // buttons_per_row
+            col = i % buttons_per_row
+
+            button_x = 10 + col * (button_width + spacing)
+            button_y = stonepile_start_y + row * (button_height + spacing)
+
+            button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
+            self.sidebar_buttons.append({"rect": button_rect, "text": str(stone_value), "action": lambda value=str(stone_value): self.set_selected_value(value), "color": color, "is_stonepile": True})
 
     def set_selected_value(self, value):
         """Ställ in det valda värdet för redigering."""
@@ -48,34 +80,26 @@ class MapEditor(BaseGUI):
     def handle_events(self):
         """Hantera events som mus- och tangentbordsinmatning."""
         mouse_pos = pygame.mouse.get_pos()
-        mouse_held = pygame.mouse.get_pressed()[0]  # Kontrollera om vänster musknapp hålls nere
+        mouse_held = pygame.mouse.get_pressed()[0]  
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if mouse_pos[0] < 200:  # Klick på sidopanel
+                if mouse_pos[0] < 200:  
                     for button in self.sidebar_buttons:
                         if button["rect"].collidepoint(mouse_pos):
                             button["action"]()
-                else:  # Klick på kartan
+                else: 
                     self.modify_cell_under_mouse()
-            elif event.type == pygame.MOUSEMOTION:
-                # Hantera hover för sidopanelen
-                for button in self.sidebar_buttons:
-                    if button["rect"].collidepoint(mouse_pos):
-                        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-                        break
-                else:
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-
-            elif event.type == pygame.MOUSEMOTION and mouse_held:
-                if mouse_pos[0] >= 200:
+            elif event.type == pygame.MOUSEMOTION and mouse_held:  
+                if mouse_pos[0] >= 200:  
                     self.modify_cell_under_mouse()
             elif event.type == pygame.VIDEORESIZE:
+                print("Window resized to", event.size)
                 self.screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)
                 self.width, self.height = self.screen.get_size()
-                self.calculate_cell_size()
+                self.calculate_cell_size() 
     
     def get_cell_under_mouse(self):
         """Hämta vilken cell musen pekar på."""
@@ -132,6 +156,7 @@ class MapEditor(BaseGUI):
             text = font.render(button["text"], True, (0, 0, 0))
             self.screen.blit(text, (button["rect"].x + 10, button["rect"].y + 10))
 
+
     def calculate_cell_size(self):
         """Beräkna cellstorlek för att kartan ska fylla utrymmet proportionellt och centreras."""
         if not self.map_obj or not self.map_obj._map:
@@ -161,11 +186,8 @@ class MapEditor(BaseGUI):
 
                 if color:
                     pygame.draw.rect(self.screen, color, (cell_x, cell_y, self.cell_size, self.cell_size))
-
                 if symbol:
-                    text = font.render(symbol, True, (0, 255, 0))  # Matrix-grönt för symboler
+                    text = font.render(symbol, True, (0, 0, 0))
                     text_rect = text.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
                     self.screen.blit(text, text_rect)
-
-                border_color = self.graphics.get_resource("gui", "border")["color"]
-                pygame.draw.rect(self.screen, border_color, (cell_x, cell_y, self.cell_size, self.cell_size), 1)
+                pygame.draw.rect(self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1)
