@@ -8,4 +8,6 @@ class MainMenu(BaseGUI):
         self.set_title("Lindas Lustfyllda Rederi")
         self.add_option("Simulation", lambda: self.change_page("simulation_menu"))
         self.add_option("Map Editor", lambda: self.change_page("map_editor_menu"))
-        self.add_option("Exit", lambda: pygame.quit())
+        self.add_option("Exit", self.exit_app)
+
+

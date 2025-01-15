@@ -12,5 +12,4 @@ class MapEditorMenu(BaseGUI):
 
     def start_editor(self, width, height):
         """Starta karteditorn med vald storlek."""
-        print(f"Startar editor med storlek {width}x{height}")
         self.change_page("map_editor", width=width, height=height)
