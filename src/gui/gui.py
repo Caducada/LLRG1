@@ -1,36 +1,35 @@
 import pygame
 from gui.main_menu import MainMenu
-from gui.map_editor_gui import MapEditor
-from gui.simulation_gui import SimulationGUI
+from gui.simulation_menu import SimulationMenu
+from gui.map_editor_menu import MapEditorMenu
 
 class GuiApp:
+    """Huvudappen som hanterar sidväxling."""
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
         pygame.display.set_caption("Submarine Simulation")
-        self.clock = pygame.time.Clock()
-        self.running = True
+        self.pages = {}
+        self.current_page = None
 
-        self.menu = MainMenu(self.screen, self.handle_menu_selection)
-        self.map_editor = MapEditor(self.screen)
-        self.simulation = SimulationGUI(self.screen)
+    def set_page(self, page_name, **kwargs):
+        """Byt till en ny sida."""
+        self.current_page = self.pages[page_name]
+        if kwargs and hasattr(self.current_page, "load_data"):
+            self.current_page.load_data(**kwargs)
 
-    def handle_menu_selection(self, index):
-        """Hantera val från huvudmenyn."""
-        if index == 0:  # Simulation
-            self.simulation.run()
-        elif index == 1:  # Map Editor
-            self.map_editor.run()
-        elif index == 2:  # Exit
-            print("Exiting application...")  # Debug
-            pygame.quit()
-            exit()
+    def initialize_pages(self):
+        """Initialisera alla sidor."""
+        self.pages["main"] = MainMenu(self.screen, self.set_page)
+        self.pages["simulation_menu"] = SimulationMenu(self.screen, self.set_page, ["map1.txt", "map2.txt"])
+        self.pages["map_editor_menu"] = MapEditorMenu(self.screen, self.set_page)
 
     def run(self):
-        """Huvudloopen för hela GUI-applikationen."""
+        """Huvudloopen för applikationen."""
+        self.initialize_pages()  # Flytta detta här för att säkerställa att sidor är initialiserade
+        self.set_page("main")
         while True:
-            self.menu.run()  # Kör menyn tills något annat startas eller Exit väljs
-            self.clock.tick(60)
+            self.current_page.run()
 
 if __name__ == "__main__":
     app = GuiApp()
