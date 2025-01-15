@@ -23,6 +23,7 @@ class Map:
             self._map = self._map[::-1]
             self._map = [row for row in self._map if len(row)!=0]
             self.fleet = get_fleet(sub_file_name, self._map)
+            self.missile_hits_dict = {}
             self.update_map()
 
 
@@ -154,7 +155,46 @@ class Map:
         with open(MAP_FILE, 'w', newline='') as file:
             csvwriter = csv.writer(file)
             csvwriter.writerows(self._map)
-            
+
+
+    def missile_hits(self, sub_id, x, y, direction):
+        collision = ""
+        y_step = x_step = 0
+        if direction == "up" and y < (len(self._map) -1):
+            for y_step in range(y + 1, (len(self._map)), 1):
+                if self._map[y_step][x] != 0:
+                    collision = self._map[y_step + 1][x]
+                    y = y_step
+                    break
+        elif direction == "down" and y > 0:
+            for y_step in range(y - 1, -1, -1):
+                if self._map[y_step][x] != 0:
+                    collision = self._map[y_step - 1][x]
+                    y = y_step
+                    break
+        elif direction == "right" and x < (len(self._map[0]) - 1):
+            for x_step in range(x + 1, len(self._map[0]) - 1, 1):
+                if self._map[y][x_step] != 0:
+                    collision = self._map[y][x_step + 1]
+                    x = x_step
+                    break
+        elif direction == "left" and x > 0:
+            for x_step in range(x - 1, -1, -1):
+                if self._map[y][x_step] != 0:
+                    collision = self._map[y][x_step]
+                    x = x_step
+                    break
+        print(f'collision: {collision}')
+        self.missile_hits_dict[sub_id] = (x, y)
+
+
+    def clear_missile_hits(self):
+        self.missile_hits_dict = {}
+
+    def get_missile_hits(self):
+        return self.missile_hits_dict
+    
+
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter 
         att alla U-båter gjort någonting"""

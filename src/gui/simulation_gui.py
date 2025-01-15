@@ -27,12 +27,12 @@ class SimulationGUI(BaseGUI):
                 sub.move_sub(sub.planned_route[0].split()[1]) 
             elif sub.planned_route[0].split()[0] == "Shoot":
                 sub.missile_shoot()
+                sim_map.missile_hits(sub.id, sub.x0, sub.y0, sub.planned_route[0].split()[1])
             elif sub.planned_route[0].split()[0] == "Share":
                 pass
 
-            action = random.random()
-            if action > 0.2:
-                sim_map.reduce_rubble(1, 3)
+            print(f'Missile hits: {sim_map.missile_hits_dict}')
+
 
             sim_map.update_map()
             for sub in sim_map.fleet:
