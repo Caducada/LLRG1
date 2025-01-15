@@ -93,6 +93,7 @@ class SimulationMenu(BaseGUI):
     def run_default_sim(self):
         """Kör simuleringen med underground.txt."""
         default_map = "underground.txt"
+        print(self.map_files)
         if default_map in self.map_files:
             self.start_simulation(default_map)
         else:

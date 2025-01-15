@@ -10,10 +10,11 @@ class GraphicsLibrary:
                 "border": {"color": (0, 255, 0)},
             },
             "map": {
-                "0": {"color": (255, 255, 255), "symbol": None},   # Tom cell
+                "E": {"color": (255, 255, 0), "symbol": "E"},     # Exit
+                "0": {"color": (255, 255, 255), "symbol": 0},   # Tom cell
                 "x": {"color": (100, 100, 100), "symbol": "X"},   # Vägg
                 "B": {"color": (255, 0, 0), "symbol": "B"},       # Mina
-                "submarine": {"color": None, "symbol": "🚤"},     # Ubåt (emoji)
+                "U": {"color": None, "symbol": "U"},     # Ubåt (emoji)
                 "y": {"color": (0, 128, 255), "symbol": None},    # Placeholder
                 **{str(i): {"color": (0, 128 + i * 14, 0), "symbol": str(i)} for i in range(1, 9)},
 

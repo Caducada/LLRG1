@@ -10,20 +10,21 @@ SUB_DIR = os.path.join(BASE_DIR, "data", "fleets")
 
 class Map:
     def __init__(self, file_name='', sub_file_name='', x=10, y=10) -> None:
-        '''
-            Skapar en karta efter kartfil och lägger till ubåtar, 
-            om ingen kartfil anges skapas en tom karta
-        '''
+        """
+        Skapar en karta efter kartfil och lägger till ubåtar,
+        om ingen kartfil anges skapas en tom karta.
+        """
         if file_name == '':
             self.create_empty_map(x, y)
-            # self.read_sub_coords(file='uboat.txt')
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
-            self._map = [row for row in self._map if len(row)!=0]
-        if sub_file_name:  # Kontrollera om flottan ska laddas
-            self.fleet = get_fleet(sub_file_name, self._map)
+            self._map = [row for row in self._map if len(row) != 0]
+        
+        self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
+
+        if self.fleet:
             self.update_map()
 
     def print_map(self):
@@ -104,7 +105,17 @@ class Map:
                     
         except Exception as e:
             print(f'{e}')
-            
+    
+    def get_cell_value(self, x, y):
+        """
+        Returnerar värdet på en specifik cell i kartan.
+        Om koordinaterna är ogiltiga returneras None.
+        """
+        if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
+            return self._map[y][x]
+        else:
+            print(f"Invalid coordinates: ({x}, {y})")
+            return None
 
     def reduce_rubble(self, x, y):
         print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
@@ -158,12 +169,15 @@ class Map:
             csvwriter.writerows(self._map)
             
     def update_map(self):
-        """Hanterar eventuella konflikter som uppstår efter 
-        att alla U-båter gjort någonting"""
+        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något."""
+        if not self.fleet:
+            return  
+
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
                 if str(self._map[i][j])[0] == "U":
                     self._map[i][j] = 0
+
         repeated = {}
         for sub in self.fleet:
             for i in range(len(sub.vision)):
@@ -171,36 +185,13 @@ class Map:
                     if sub.vision[i][j] == "S":
                         self._map[i][j] = f"U{sub.id}"
                         if str(i) + " " + str(j) not in repeated:
-                            repeated.setdefault(str(i)+ " "+ str(j), 0)
+                            repeated.setdefault(str(i) + " " + str(j), 0)
                         else:
-                            repeated[str(i)+ " " + str(j)] += 1
+                            repeated[str(i) + " " + str(j)] += 1
+
         for key in repeated.keys():
             if repeated[key] >= 1:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
                         self._map[int(key.split()[0])][int(key.split()[1])] = "0"
-
-# Exempel
-
-# Läser in kartfil
-# new_map = Map(file_name='underground.txt')
-# new_map.print_map()
-# print(new_map._map[1][1])
-# print(new_map.get_scan_info(1, 1))
-# print('----------------------')
-# print(new_map._map[6][9])
-# print(new_map.get_scan_info(10, 1))
-# print('----------------------')
-# print(new_map._map[3][1])
-# print(new_map.get_scan_info(3, 1))
-# print('----------------------')
-# print(new_map._map[3][0])
-# print(new_map.get_scan_info(3, 0))
-# print('----------------------')
-# print(new_map._map[9][0])
-# print(new_map.get_scan_info(9, 0))
-
-# Skapar tom karta med angiven storlek
-# new_map = Map(x=20, y=20)
-# new_map.print_map()
