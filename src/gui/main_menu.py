@@ -9,5 +9,3 @@ class MainMenu(BaseGUI):
         self.add_option("Simulation", lambda: self.change_page("simulation_menu"))
         self.add_option("Map Editor", lambda: self.change_page("map_editor_menu"))
         self.add_option("Exit", self.exit_app)
-
-

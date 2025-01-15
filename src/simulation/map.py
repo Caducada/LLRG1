@@ -5,8 +5,8 @@ from .submarine import Submarine
 from .get_fleet import get_fleet
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
-SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
+MAP_DIR = os.path.join(BASE_DIR, "data", "maps")
+SUB_DIR = os.path.join(BASE_DIR, "data", "fleets")
 
 class Map:
     def __init__(self, file_name='', sub_file_name='', x=10, y=10) -> None:
@@ -22,9 +22,9 @@ class Map:
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
             self._map = [row for row in self._map if len(row)!=0]
+        if sub_file_name:  # Kontrollera om flottan ska laddas
             self.fleet = get_fleet(sub_file_name, self._map)
             self.update_map()
-
 
     def print_map(self):
         temp_map = self._map[::-1]
@@ -34,40 +34,42 @@ class Map:
 
 
     def valid_map(self, map):
-        for row in map:
-            for col in row:
-                if col not in ['x', 'B', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-                    print(col)
-                    return False
-        return True
-
+        """Kontrollerar att kartan har en giltig struktur."""
+        if not map or not isinstance(map, list) or not all(isinstance(row, list) for row in map):
+            return False
+        width = len(map[0])
+        return all(len(row) == width for row in map)
 
     def read_map_file(self, file: str):
-        '''Läser in en kartfil och kontrollerar att bara giltiga tecken finns med'''
+        """Läser in en kartfil och kontrollerar att bara giltiga tecken finns med."""
         MAP_FILE = os.path.join(MAP_DIR, file)
         map = [[]]
 
         if not os.path.exists(MAP_FILE):
-            print("File not found")
+            print(f"File {file} not found")
             return map
         if os.path.getsize(MAP_FILE) == 0:
-            print("File is empty")
+            print(f"File {file} is empty")
             return map
-        
+
         try:
             with open(MAP_FILE, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 map = []
                 for row in reader:
+                    if not all(char.isdigit() or char in {'x', 'B'} for char in row):
+                        print(f"Invalid characters in {file}, skipping.")
+                        return []  # Returnera tom karta om ogiltiga tecken finns
                     map.append([int(char) if char.isdigit() else char for char in row])
-                    
-            if self.valid_map(map):
-                return map
-            else:
-                return []
+                
+                if self.valid_map(map):
+                    return map
+                else:
+                    print(f"Invalid map structure in {file}")
+                    return []
 
         except Exception as e:
-            print(f'{e}')
+            print(f"Error reading {file}: {e}")
             return []
         
     def create_empty_map(self, width, height, default_value='0'):

@@ -1,7 +1,8 @@
 import pygame
+from gui.base_gui import BaseGUI
 
 
-class Sidebar:
+class Sidebar(BaseGUI):
     def __init__(self, screen, width):
         self.screen = screen
         self.width = width

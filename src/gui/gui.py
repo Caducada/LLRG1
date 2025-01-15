@@ -29,7 +29,7 @@ class GuiApp:
     def initialize_pages(self):
         """Initialisera alla sidor."""
         self.pages["main"] = MainMenu(self.screen, self.set_page)
-        self.pages["simulation_menu"] = SimulationMenu(self.screen, self.set_page, ["map1.txt", "map2.txt"])
+        self.pages["simulation_menu"] = SimulationMenu(self.screen, self.set_page)
         self.pages["map_editor_menu"] = MapEditorMenu(self.screen, self.set_page)
 
     def run(self):

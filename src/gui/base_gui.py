@@ -11,8 +11,10 @@ class BaseGUI:
         self.options = []
         self.selected_index = 0
         self.width, self.height = self.screen.get_size()
-        self.title_font = pygame.font.Font(None, 80)
-        self.option_font = pygame.font.Font(None, 50)
+        self.title_font = pygame.font.Font(None, self.get_dynamic_font_size(10))
+        self.option_font = pygame.font.Font(None, self.get_dynamic_font_size(14))
+        self.min_width = 640  # Minsta bredd
+        self.min_height = 450  # Minsta höjd
 
     def set_title(self, title):
         """Ställ in sidans titel."""
@@ -27,29 +29,29 @@ class BaseGUI:
         self.running = False  # Stoppa nuvarande sidans loop
         self.change_page_callback(page_name, **kwargs)
 
+    def get_dynamic_font_size(self, percentage):
+        """Beräkna dynamisk teckenstorlek baserat på fönsterhöjd."""
+        return max(20, int(self.height * percentage / 100))
+
     def render(self):
         """Rendera sidans titel och alternativ."""
         self.screen.fill(self.graphics.get_resource("gui", "background")["color"])
         self.draw_title()
         self.draw_options()
-    
-    def exit_app(self):
-        """Avsluta applikationen."""
-        pygame.quit()
-        exit()
 
     def draw_title(self):
         """Ritar sidans titel."""
+        self.title_font = pygame.font.Font(None, self.get_dynamic_font_size(10))
         text = self.title_font.render(self.title, True, self.graphics.get_resource("gui", "title")["color"])
-        text_rect = text.get_rect(center=(self.width // 2, self.height // 6))
+        text_rect = text.get_rect(center=(self.width // 2, self.height // 8))
         self.screen.blit(text, text_rect)
 
     def draw_options(self):
         """Ritar alla alternativ."""
-        button_width = self.width // 3
-        button_height = self.height // 12
+        button_width = self.width // 2
+        button_height = self.height // 8
         center_x = self.width // 2
-        start_y = self.height // 2
+        start_y = self.height // 4 
         spacing = 20
 
         mouse_pos = pygame.mouse.get_pos()
@@ -58,7 +60,7 @@ class BaseGUI:
             x = center_x - button_width // 2
             y = start_y + i * (button_height + spacing)
             rect = pygame.Rect(x, y, button_width, button_height)
-            option["rect"] = rect 
+            option["rect"] = rect
 
             if rect.collidepoint(mouse_pos):
                 button_color = self.graphics.get_resource("gui", "hover")["color"]
@@ -69,16 +71,34 @@ class BaseGUI:
             pygame.draw.rect(self.screen, button_color, rect, border_radius=10)
             pygame.draw.rect(self.screen, self.graphics.get_resource("gui", "border")["color"], rect, 3, border_radius=10)
 
+            text_size = int(button_height * 0.6)
+            text_font = pygame.font.Font(None, text_size)
+
             text_color = (255, 255, 255)
-            text = self.option_font.render(option["text"], True, text_color)
+            text = text_font.render(option["text"], True, text_color)
             text_rect = text.get_rect(center=rect.center)
             self.screen.blit(text, text_rect)
+
+    def handle_resize(self, new_size):
+        """Hanterar fönsterstorleksändring med minimistorlekskontroll."""
+        new_width, new_height = new_size
+        if new_width < self.min_width:
+            new_width = self.min_width
+        if new_height < self.min_height:
+            new_height = self.min_height
+
+        self.width, self.height = new_width, new_height
+        self.screen = pygame.display.set_mode((new_width, new_height), pygame.RESIZABLE)
+        self.title_font = pygame.font.Font(None, self.get_dynamic_font_size(10))
+        self.option_font = pygame.font.Font(None, self.get_dynamic_font_size(14))
 
     def handle_events(self):
         """Hantera input för sidans alternativ."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.running = False  # Avsluta sidans loop
+                self.running = False
+            elif event.type == pygame.VIDEORESIZE:
+                self.handle_resize(event.size)
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     self.selected_index = (self.selected_index - 1) % len(self.options)
@@ -97,8 +117,14 @@ class BaseGUI:
                         if action:
                             action()
 
+    def exit_app(self):
+        """Avsluta applikationen."""
+        pygame.quit()
+        exit()
+
     def run(self):
         """Huvudloopen för en sida."""
+        self.handle_resize(self.screen.get_size())
         self.running = True
         clock = pygame.time.Clock()
         while self.running:
