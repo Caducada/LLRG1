@@ -54,6 +54,7 @@ class Simulation:
         cell_value = self.map.get_cell_value(x, y)
         return cell_value not in invalid_cells and cell_value is not None
 
+
     def get_map(self):
         """Returnerar den aktuella kartan."""
         return self.map._map
@@ -62,8 +63,10 @@ class Simulation:
         """Returnerar ubåtarnas status."""
         return self.fleet
 
+
     def get_active_fleet(self):
         return self.active_fleet
+
 
     def is_simulation_complete(self):
         """Kontrollerar om alla ubåtar har nått sitt mål eller dött."""

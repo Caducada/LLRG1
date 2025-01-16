@@ -123,3 +123,4 @@ class SimulationGUI(BaseGUI):
             if self.simulation.is_simulation_complete():
                 print("Simulation complete!")
                 self.change_page("main")
+
