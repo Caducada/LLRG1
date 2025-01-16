@@ -10,10 +10,10 @@ sys.path.append(SRC_DIR)
 from simulation.simulation import runsim
 
 # Kör GUI
-from gui.gui import GuiApp
+# from gui.gui import GuiApp
 
 if __name__ == "__main__":
     # app = GuiApp()
     # app.run()
 
-    runsim(fleet_name="simple.txt", map_name="underground.txt")
+    runsim(fleet_name="uboat2.txt", map_name="collision2.txt")

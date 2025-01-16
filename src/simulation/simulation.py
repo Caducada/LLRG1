@@ -22,7 +22,7 @@ def runsim(fleet_name:str, map_name:str):
             print(f'sub_planned_route: {sub.planned_route[0].split()[0]}')
             print(f'sub_planned_route: {sub.planned_route[0].split()[1]}')
             input("Press any key")
-            print(f'sub x:y {sub.x0}:{sub.y0}')
+            # print(f'sub x:y {sub.x0}:{sub.y0}')
             sim_map.print_map()
             if sub.planned_route[0].split()[0] == "Move":
                 sub.move_sub(sub.planned_route[0].split()[1]) 
@@ -30,12 +30,11 @@ def runsim(fleet_name:str, map_name:str):
                 sim_map.missile_hits(sub.id, sub.x0, sub.y0, sub.planned_route[0].split()[1])
             
         print(f'Missile hits: {sim_map.missile_hits_dict}')
-
         sim_map.update_map()
         sim_map.print_map()
 
 
 
 if __name__ == "__main__":
-    runsim(fleet_name="uboat.txt", map_name="collision.txt")
+    runsim(fleet_name="uboat2.txt", map_name="collision2.txt")
 
