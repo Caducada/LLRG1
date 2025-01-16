@@ -33,9 +33,9 @@ def run_test(sim_map: Map) -> None:
                     elif sub.planned_route[0].split()[1] == "missiles":
                         pass
                 sub.bool_scan = True
-            # sub.display_vision()
-            # print(f"{sub.planned_route}")
-            # print("<------------------->")
+            sub.display_vision()
+            print(f"{sub.planned_route}")
+            print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
@@ -46,8 +46,8 @@ def run_test(sim_map: Map) -> None:
             elif not sub.is_alive:
                 cleared.add(sub)
         time.sleep(3)
-        sim_map.print_map()
-        print("<------------------->")
+        # sim_map.print_map()
+        # print("<------------------->")
 
 
 if __name__ == "__main__":
