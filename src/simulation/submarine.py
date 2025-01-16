@@ -117,7 +117,7 @@ class Submarine:
                 elif (
                     self.map[self.temp_y + 1][self.temp_x] == 0
                     or self.map[self.temp_y + 1][self.temp_x] == "E"
-                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
+                    or str(self.map[self.temp_y+1][self.temp_x])[0] == "U"
                 ):
                     if self.temp_y != self.ye and self.xe != self.temp_x:
                         self.vision[self.temp_y][self.temp_x] = 0
@@ -148,7 +148,7 @@ class Submarine:
                 elif (
                     self.map[self.temp_y - 1][self.temp_x] == 0
                     or self.map[self.temp_y - 1][self.temp_x] == "E"
-                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
+                    or str(self.map[self.temp_y-1][self.temp_x])[0] == "U"
                 ):
                     if self.temp_y != self.ye and self.xe != self.temp_x:
                         self.vision[self.temp_y][self.temp_x] = 0
@@ -182,7 +182,7 @@ class Submarine:
                     elif (
                         self.map[self.temp_y][self.temp_x + 1] == 0
                         or self.map[self.temp_y][self.temp_x + 1] == "E"
-                        or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
+                        or str(self.map[self.temp_y][self.temp_x + 1])[0] == "U"
                     ):
                         if self.temp_y != self.ye and self.xe != self.temp_x:
                             self.vision[self.temp_y][self.temp_x] = 0
@@ -418,10 +418,7 @@ class Submarine:
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if self.vision[i][j] == "U" + str(sub_index):
-                    if self.ye != i and self.xe != j:
-                        self.vision[i][j] = 0
-                    else:
-                        self.vision[i][j] = "E"
+                    self.vision[i][j] = 0
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
 
