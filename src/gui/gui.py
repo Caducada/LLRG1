@@ -1,63 +1,57 @@
 import pygame
+from gui.main_menu import MainMenu
+from gui.simulation_menu import SimulationMenu
+from gui.map_editor_menu import MapEditorMenu
 from gui.map_editor_gui import MapEditor
 from gui.simulation_gui import SimulationGUI
 
 class GuiApp:
-    """Huvudklass som hanterar hela applikationen"""
+    """Huvudappen som hanterar sidväxling."""
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((1600, 1200))
+        self.screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
         pygame.display.set_caption("Submarine Simulation")
-        self.clock = pygame.time.Clock()
+        self.pages = {}
+        self.current_page = None
         self.running = True
 
-        self.active_screen = "menu"
+    # def change_page(self, page_name, **kwargs):
+    #     """Byt till en annan sida."""
+    #     self.running = False  # Stoppa nuvarande sidans loop
+    #     self.change_page_callback(page_name, **kwargs)
 
-        self.map_editor = MapEditor(self.screen)
-        self.simulation = SimulationGUI(self.screen)
+    def set_page(self, page_name, **kwargs):
+        """Byt till en ny sida."""
+        if page_name == "map_editor" and "width" in kwargs and "height" in kwargs:
+            # Dynamiskt skapa MapEditor med angivna dimensioner
+            self.pages["map_editor"] = MapEditor(self.screen, self.set_page, kwargs["width"], kwargs["height"])
+        elif page_name == "simulation" and "map_file" in kwargs:
+            # Dynamiskt skapa SimulationGUI med karta och ubåtsfil
+            map_file = kwargs["map_file"]
+            print(map_file)
+            fleet_file = kwargs.get("fleet_file", "uboat.txt")
+            self.pages["simulation"] = SimulationGUI(self.screen, self.set_page, map_file, fleet_file)
+        
+        # Sätt sidan och starta dess loop
+        self.current_page = self.pages[page_name]
 
-# TODO FIXA MENYN, LÄGG TILL SAKER VID BEHOV
-    def main_menu(self):
-        font = pygame.font.Font(None, 36)
-        menu_items = ["1. Map editor", "2. Simulation", "3. Quit"]
-        selected_option = None
+    def initialize_pages(self):
+        """Initialisera alla sidor."""
+        self.pages["main"] = MainMenu(self.screen, self.set_page)
+        self.pages["simulation_menu"] = SimulationMenu(self.screen, self.set_page)
+        self.pages["map_editor_menu"] = MapEditorMenu(self.screen, self.set_page)
 
-        while selected_option is None:
-            self.screen.fill((0, 0, 0))
-            for i, text in enumerate(menu_items):
-                rendered_text = font.render(text, True, (255, 255, 255))
-                self.screen.blit(rendered_text, (200, 100 + i * 50))
-            pygame.display.flip()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    return
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_1:
-                        self.active_screen = "map_editor"
-                        return
-                    elif event.key == pygame.K_2:
-                        self.active_screen = "simulation"
-                        return
-                    elif event.key == pygame.K_3:
-                        self.running = False
-                        return
     def run(self):
-        """Huvudkörningen för hela gui-applikationen."""
+        """Huvudloopen för applikationen."""
+        self.initialize_pages()  # Flytta detta här för att säkerställa att sidor är initialiserade
+        self.set_page("main")
         while self.running:
-            if self.active_screen == "menu":
-                self.main_menu()
-            elif self.active_screen == "map_editor":
-                self.map_editor.run()
-                self.active_screen = "menu"
-            elif self.active_screen == "simulation":
-                self.simulation_gui.run()
-                self.active_screen = "menu" 
-            self.clock.tick(60)
+            self.current_page.run()
+            if not self.running:
+                break
 
         pygame.quit()
 
 if __name__ == "__main__":
-    app = GuiApp()  # Skapa en instans av huvudklassen
-    app.run()    # Kör applikationen
+    app = GuiApp()
+    app.run()
