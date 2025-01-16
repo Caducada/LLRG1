@@ -4,38 +4,35 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
-from simulation.communication import share_position, remove_helper
+from simulation.communication import share_position, remove_helper, request_missiles, share_missile_info, share_endpoint
 
 
 def run_test(sim_map: Map) -> None:
     """Funktion för att testa olika kartor"""
     cleared = set()
     while len(cleared) != len(sim_map.fleet):
+        share_position(sim_map)
+        share_missile_info(sim_map)
+        share_endpoint(sim_map)
         for sub in sim_map.fleet:
-            if sub.bool_scan:
-                sub.advanced_scan()
-                if sub.planned_route != ["Share position"]:
-                    remove_helper(sub.id, sim_map)
-                sub.bool_scan = False
-            else:
-                sub.basic_scan()
-                if sub.planned_route != ["Share position"]:
-                    remove_helper(sub.id, sim_map)
-                if sub.planned_route[0].split()[0] == "Move":
-                    sub.move_sub(sub.planned_route[0].split()[1])
-                elif sub.planned_route[0].split()[0] == "Shoot":
-                    sub.missile_shoot()
-                elif sub.planned_route[0].split()[0] == "Share":
-                    if sub.planned_route[0].split()[1] == "position":
-                        share_position(sub.id, sim_map)
-                    elif sub.planned_route[0].split()[1] == "vision":
-                        pass
-                    elif sub.planned_route[0].split()[1] == "missiles":
-                        pass
-                sub.bool_scan = True
-            sub.display_vision()
-            print(f"{sub.planned_route}")
-            print("<------------------->")
+            sub.basic_scan()
+            if sub.planned_route != ["Request missiles"]:
+                remove_helper(sub.id, sim_map)
+            if sub.planned_route[0].split()[0] == "Move":
+                sub.move_sub(sub.planned_route[0].split()[1])
+            elif sub.planned_route[0].split()[0] == "Shoot":
+                sub.missile_shoot()
+            elif sub.planned_route[0].split()[0] == "Request":
+                if sub.planned_route[0].split()[1] == "missiles":
+                    request_missiles(sub.id, sim_map)
+            elif sub.planned_route[0].split()[0] == "Scan":
+                if sub.planned_route[0].split()[1] == "basic":
+                    sub.basic_scan()
+                elif sub.planned_route[0].split()[1] == "advanced":
+                    sub.advanced_scan()
+            # sub.display_vision()
+            # print(f"{sub.planned_route}")
+            # print("<------------------->")
         sim_map.update_map()
         for sub in sim_map.fleet:
             sub.map = sim_map._map
@@ -46,8 +43,8 @@ def run_test(sim_map: Map) -> None:
             elif not sub.is_alive:
                 cleared.add(sub)
         time.sleep(3)
-        # sim_map.print_map()
-        # print("<------------------->")
+        sim_map.print_map()
+        print("<------------------->")
 
 
 if __name__ == "__main__":

@@ -28,13 +28,16 @@ class Submarine:
     def __init__(
         self,
         id: int,
-        map: list,
+        map: list | None = None,
         secret_keys: dict = {},
         x0=None,
         y0=None,
         xe=None,
         ye=None,
         m_count=0,
+        endpoint_reached=False,
+        temp_x=None,
+        temp_y=None,
     ) -> None:
         """Map attribute needs to be updated each cycle"""
         self.is_alive = True
@@ -43,32 +46,30 @@ class Submarine:
         self.y0 = y0
         self.xe = xe
         self.ye = ye
+        self.temp_x = temp_x
+        self.temp_y = temp_y
         self.map = map
-        if self.y0 == None:
-            self.temp_y = -1
-        else:
-            self.temp_y = self.y0
-        if self.x0 == None:
-            self.temp_x = -1
-        else:
+        self.endpoint_reached = endpoint_reached
+        if self.x0 != None:
             self.temp_x = self.x0
-        self.endpoint_reached = False
+        if self.y0 != None:
+            self.temp_y = self.y0
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
-        if self.map[self.temp_y][self.temp_x] != 0:
-            self.is_alive = False
+        if map != None and self.temp_x != None and self.temp_y != None:
+            if self.map[self.temp_y][self.temp_x] != 0:
+                self.is_alive = False
+            self.map_height = len(self.map)
+            self.map_width = len(self.map[0])
+            self.vision = self.__get_starting_vision()
         self.m_count = m_count
         self.planned_route = ["Share position"]
         self.secret_keys = secret_keys
         self.sub_list = []
-        self.map_height = len(self.map)
-        self.map_width = len(self.map[0])
-        self.vision = self.__get_starting_vision()
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
-        self.bool_scan = True
         self.endpoint_missiles_required = 0
         self.client_missiles_required = 0
-        self.client = None
+        self.client_id = None
 
     def print_death_message(self, name: str) -> None:
         print(f"Submarine {self.id} is dead and can't {name}")
@@ -383,11 +384,24 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
-            if self.client == None:
+            if self.client_id == None:
                 self.get_endpoint_route()
             else:
-                square = self.client.get_adjacent_square()
-                self.get_client_route(int(square[0]), int(square[1]))
+                client = None
+                for sub in self.sub_list:
+                    if sub.id == self.client_id:
+                        client = sub
+                        break
+                if client != None:
+                    square = self.get_adjacent_square(client.temp_x, client.temp_y)
+                    if square != False:
+                        self.get_client_route(int(square[0]), int(square[1]))
+                        return
+                if "Share missiles" not in self.planned_route:
+                    self.planned_route = ["Share missiles", "Share vision"]
+                else:
+                    self.planned_route = ["Share missiles", "Share vision"]
+                    self.client_id = None
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
@@ -404,10 +418,12 @@ class Submarine:
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if self.vision[i][j] == "U" + str(sub_index):
-                    self.vision[i][j] = 0
+                    if self.ye != i and self.xe != j:
+                        self.vision[i][j] = 0
+                    else:
+                        self.vision[i][j] = "E"
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
-        self.get_endpoint_route()
 
     @status_control
     def advanced_scan(self):
@@ -482,16 +498,29 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        if self.client == None:
+        if self.client_id == None:
             self.get_endpoint_route()
         else:
-            square = self.client.get_adjacent_square()
-            self.get_client_route(int(square[0]), int(square[1]))
+            client = None
+            for sub in self.sub_list:
+                if sub.id == self.client_id:
+                    client = sub
+                    break
+            if client != None:
+                square = self.get_adjacent_square(client.temp_x, client.temp_y)
+                if square != False:
+                    self.get_client_route(int(square[0]), int(square[1]))
+                    return
+            if "Share missiles" not in self.planned_route:
+                self.planned_route = ["Share missiles", "Share vision"]
+            else:
+                self.planned_route = ["Share missiles", "Share vision"]
+                self.client_id = None
 
     @status_control
     def get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.planned_route = ["Share position"]
+            self.planned_route = ["Scan advanced"]
             return
         new_route = []
         banned_squares = []
@@ -654,10 +683,10 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
-                    self.planned_route = ["Share position"]
+                    self.planned_route = ["Request missiles"]
                     return
             elif loop_counter > self.map_height * self.map_width + self.m_count:
-                self.planned_route = ["Share position"]
+                self.planned_route = ["Request missiles"]
                 return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
@@ -669,13 +698,24 @@ class Submarine:
 
     @status_control
     def get_client_route(self, y_goal: int, x_goal: int) -> None | bool:
-        if self.temp_x == x_goal and self.temp_y == y_goal:
-            self.client = None
-            self.planned_route = ["Share position"]
-            # if self.vision != self.client.vision:
-            #     self.planned_route = ["Share vision", "Share missiles"]
-            # else:
-            #     self.planned_route = ["Share missiles"]
+        if (
+            self.temp_x == x_goal
+            and self.temp_y == y_goal
+            and (self.m_count - self.endpoint_missiles_required) > 0
+        ):
+            self.planned_route = ["Share missiles", "Share vision"]
+            return
+        elif (
+            self.temp_x == x_goal
+            and self.temp_y == y_goal
+            and (self.m_count - self.endpoint_missiles_required) <= 0
+        ):
+            self.planned_route = ["Share vision"]
+            return
+        elif self.temp_x == x_goal and self.temp_y == y_goal:
+            self.client_id = None
+            self.planned_route = ["Scan advanced"]
+            return
         new_route = []
         banned_squares = []
         missiles_required = 0
@@ -840,17 +880,18 @@ class Submarine:
         self.planned_route = new_route
         return True
 
-    def get_adjacent_square(self) -> str:
-        if self.temp_y != self.map_height - 1:
-            if self.vision[self.temp_y + 1][self.temp_x] == 0:
-                return str(self.temp_y + 1) + str(self.temp_x)
+    def get_adjacent_square(self, point_x, point_y) -> str:
+        """Hittar en säker ruta bredvid en given ruta"""
+        if point_y != self.map_height - 1:
+            if self.vision[point_y + 1][point_x] == 0:
+                return str(point_y + 1) + str(point_x)
         if self.temp_y != 0:
-            if self.vision[self.temp_y - 1][self.temp_x] == 0:
-                return str(self.temp_y - 1) + str(self.temp_x)
-        if self.temp_x != self.map_width - 1:
-            if self.vision[self.temp_y][self.temp_x + 1] == 0:
-                return str(self.temp_y) + str(self.temp_x + 1)
+            if self.vision[point_y - 1][point_x] == 0:
+                return str(point_y - 1) + str(point_x)
+        if point_x != self.map_width - 1:
+            if self.vision[point_y][point_x] == 0:
+                return str(point_y) + str(point_x)
         if self.temp_x != 0:
-            if self.vision[self.temp_y][self.temp_x + 1] == 0:
-                return str(self.temp_y) + str(self.temp_x - 1)
+            if self.vision[point_y][point_x] == 0:
+                return str(point_y) + str(point_x)
         return False
