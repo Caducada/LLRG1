@@ -5,18 +5,17 @@ from .submarine import Submarine
 from .get_fleet import get_fleet
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-MAP_DIR = os.path.join(BASE_DIR, "data", "maps/")
-SUB_DIR = os.path.join(BASE_DIR, "data", "fleets/")
+MAP_DIR = os.path.join(BASE_DIR, "data", "maps")
+SUB_DIR = os.path.join(BASE_DIR, "data", "fleets")
 
 class Map:
     def __init__(self, file_name='', sub_file_name='', x=10, y=10) -> None:
-        '''
-            Skapar en karta efter kartfil och lägger till ubåtar, 
-            om ingen kartfil anges skapas en tom karta
-        '''
+        """
+        Skapar en karta efter kartfil och lägger till ubåtar,
+        om ingen kartfil anges skapas en tom karta.
+        """
         if file_name == '':
             self.create_empty_map(x, y)
-            # self.read_sub_coords(file='uboat.txt')
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
@@ -26,6 +25,8 @@ class Map:
             self.missile_hits_dict = {}
             self.update_map()
 
+        if self.fleet:
+            self.update_map()
 
     def print_map(self):
         temp_map = self._map[::-1]
@@ -35,40 +36,42 @@ class Map:
 
 
     def valid_map(self, map):
-        for row in map:
-            for col in row:
-                if col not in ['x', 'B', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-                    print(col)
-                    return False
-        return True
-
+        """Kontrollerar att kartan har en giltig struktur."""
+        if not map or not isinstance(map, list) or not all(isinstance(row, list) for row in map):
+            return False
+        width = len(map[0])
+        return all(len(row) == width for row in map)
 
     def read_map_file(self, file: str):
-        '''Läser in en kartfil och kontrollerar att bara giltiga tecken finns med'''
+        """Läser in en kartfil och kontrollerar att bara giltiga tecken finns med."""
         MAP_FILE = os.path.join(MAP_DIR, file)
         map = [[]]
 
         if not os.path.exists(MAP_FILE):
-            print("File not found")
+            print(f"File {file} not found")
             return map
         if os.path.getsize(MAP_FILE) == 0:
-            print("File is empty")
+            print(f"File {file} is empty")
             return map
-        
+
         try:
             with open(MAP_FILE, newline='') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
                 map = []
                 for row in reader:
+                    if not all(char.isdigit() or char in {'x', 'B'} for char in row):
+                        print(f"Invalid characters in {file}, skipping.")
+                        return []  # Returnera tom karta om ogiltiga tecken finns
                     map.append([int(char) if char.isdigit() else char for char in row])
-                    
-            if self.valid_map(map):
-                return map
-            else:
-                return []
+                
+                if self.valid_map(map):
+                    return map
+                else:
+                    print(f"Invalid map structure in {file}")
+                    return []
 
         except Exception as e:
-            print(f'{e}')
+            print(f"Error reading {file}: {e}")
             return []
         
     def create_empty_map(self, width, height, default_value='0'):
@@ -103,7 +106,17 @@ class Map:
                     
         except Exception as e:
             print(f'{e}')
-            
+    
+    def get_cell_value(self, x, y):
+        """
+        Returnerar värdet på en specifik cell i kartan.
+        Om koordinaterna är ogiltiga returneras None.
+        """
+        if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
+            return self._map[y][x]
+        else:
+            print(f"Invalid coordinates: ({x}, {y})")
+            return None
 
     def reduce_rubble(self, x, y):
         print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
@@ -196,12 +209,15 @@ class Map:
     
 
     def update_map(self):
-        """Hanterar eventuella konflikter som uppstår efter 
-        att alla U-båter gjort någonting"""
+        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något."""
+        if not self.fleet:
+            return  
+
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
                 if str(self._map[i][j])[0] == "U":
                     self._map[i][j] = 0
+
         repeated = {}
         for sub in self.fleet:
             for i in range(len(sub.vision)):
@@ -209,36 +225,13 @@ class Map:
                     if sub.vision[i][j] == "S":
                         self._map[i][j] = f"U{sub.id}"
                         if str(i) + " " + str(j) not in repeated:
-                            repeated.setdefault(str(i)+ " "+ str(j), 0)
+                            repeated.setdefault(str(i) + " " + str(j), 0)
                         else:
-                            repeated[str(i)+ " " + str(j)] += 1
+                            repeated[str(i) + " " + str(j)] += 1
+
         for key in repeated.keys():
             if repeated[key] >= 1:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
                         self._map[int(key.split()[0])][int(key.split()[1])] = "0"
-
-# Exempel
-
-# Läser in kartfil
-# new_map = Map(file_name='underground.txt')
-# new_map.print_map()
-# print(new_map._map[1][1])
-# print(new_map.get_scan_info(1, 1))
-# print('----------------------')
-# print(new_map._map[6][9])
-# print(new_map.get_scan_info(10, 1))
-# print('----------------------')
-# print(new_map._map[3][1])
-# print(new_map.get_scan_info(3, 1))
-# print('----------------------')
-# print(new_map._map[3][0])
-# print(new_map.get_scan_info(3, 0))
-# print('----------------------')
-# print(new_map._map[9][0])
-# print(new_map.get_scan_info(9, 0))
-
-# Skapar tom karta med angiven storlek
-# new_map = Map(x=20, y=20)
-# new_map.print_map()
