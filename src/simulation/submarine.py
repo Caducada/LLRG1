@@ -103,133 +103,67 @@ class Submarine:
     def move_sub(self, direction: str) -> None:
         if direction == "up":
             if self.temp_y != self.map_height - 1:
-                if self.map[self.temp_y + 1][self.temp_x] == "B":
-                    self.temp_y += 1
-                    if (
-                        self.temp_y,
-                        self.temp_x,
-                    ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
-                    else:
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.is_alive = False
-                    return
-                elif (
-                    self.map[self.temp_y + 1][self.temp_x] == 0
-                    or self.map[self.temp_y + 1][self.temp_x] == "E"
-                    or str(self.map[self.temp_y+1][self.temp_x])[0] == "U"
-                ):
-                    if self.temp_y != self.ye and self.xe != self.temp_x:
-                        self.vision[self.temp_y][self.temp_x] = 0
-                    else:
-                        self.vision[self.temp_y][self.temp_x] = "E"
-                    self.temp_y += 1
-                    if (
-                        self.temp_y,
-                        self.temp_x,
-                    ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
-                    else:
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.vision[self.temp_y][self.temp_x] = "S"
+                if self.temp_y != self.ye and self.xe != self.temp_x:
+                    self.vision[self.temp_y][self.temp_x] = 0
+                else:
+                    self.vision[self.temp_y][self.temp_x] = "E"
+                self.temp_y += 1
+                if (
+                    self.temp_y,
+                    self.temp_x,
+                ) in self.visited_squares_counter.keys():
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                else:
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
+                self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "down":
             if self.temp_y != 0:
-                if self.map[self.temp_y - 1][self.temp_x] == "B":
-                    self.temp_y -= 1
-                    if (
-                        self.temp_y,
-                        self.temp_x,
-                    ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
-                    else:
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.is_alive = False
-                    return
-                elif (
-                    self.map[self.temp_y - 1][self.temp_x] == 0
-                    or self.map[self.temp_y - 1][self.temp_x] == "E"
-                    or str(self.map[self.temp_y-1][self.temp_x])[0] == "U"
-                ):
-                    if self.temp_y != self.ye and self.xe != self.temp_x:
-                        self.vision[self.temp_y][self.temp_x] = 0
-                    else:
-                        self.vision[self.temp_y][self.temp_x] = "E"
-                    self.temp_y -= 1
-                    if (
-                        self.temp_y,
-                        self.temp_x,
-                    ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
-                    else:
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.vision[self.temp_y][self.temp_x] = "S"
+                if self.temp_y != self.ye and self.xe != self.temp_x:
+                    self.vision[self.temp_y][self.temp_x] = 0
+                else:
+                    self.vision[self.temp_y][self.temp_x] = "E"
+                self.temp_y -= 1
+                if (
+                    self.temp_y,
+                    self.temp_x,
+                ) in self.visited_squares_counter.keys():
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                else:
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
+                self.vision[self.temp_y][self.temp_x] = "S"
         elif direction == "right":
             if self.temp_x != self.map_width - 1:
                 if self.temp_x != self.map_width:
-                    if self.map[self.temp_y][self.temp_x + 1] == "B":
-                        self.temp_x += 1
-                        if (
-                            self.temp_y,
-                            self.temp_x,
-                        ) in self.visited_squares_counter.keys():
-                            self.visited_squares_counter[
-                                (self.temp_y, self.temp_x)
-                            ] += 1
-                        else:
-                            self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                        self.is_alive = False
-                        return
-                    elif (
-                        self.map[self.temp_y][self.temp_x + 1] == 0
-                        or self.map[self.temp_y][self.temp_x + 1] == "E"
-                        or str(self.map[self.temp_y][self.temp_x + 1])[0] == "U"
-                    ):
-                        if self.temp_y != self.ye and self.xe != self.temp_x:
-                            self.vision[self.temp_y][self.temp_x] = 0
-                        else:
-                            self.vision[self.temp_y][self.temp_x] = "E"
-                        self.temp_x += 1
-                        if (
-                            self.temp_y,
-                            self.temp_x,
-                        ) in self.visited_squares_counter.keys():
-                            self.visited_squares_counter[
-                                (self.temp_y, self.temp_x)
-                            ] += 1
-                        else:
-                            self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                        self.vision[self.temp_y][self.temp_x] = "S"
-        elif direction == "left":
-            if self.temp_x != 0:
-                if self.map[self.temp_y][self.temp_x - 1] == "B":
-                    self.temp_x -= 1
-                    if (
-                        self.temp_y,
-                        self.temp_x,
-                    ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
-                    else:
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
-                    self.is_alive = False
-                    return
-                elif (
-                    self.map[self.temp_y][self.temp_x - 1] == 0
-                    or self.map[self.temp_y][self.temp_x - 1] == "E"
-                    or str(self.map[self.temp_y][self.temp_x - 1])[0] == "U"
-                ):
                     if self.temp_y != self.ye and self.xe != self.temp_x:
                         self.vision[self.temp_y][self.temp_x] = 0
                     else:
                         self.vision[self.temp_y][self.temp_x] = "E"
-                    self.temp_x -= 1
+                    self.temp_x += 1
                     if (
                         self.temp_y,
                         self.temp_x,
                     ) in self.visited_squares_counter.keys():
-                        self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                        self.visited_squares_counter[
+                            (self.temp_y, self.temp_x)
+                        ] += 1
                     else:
                         self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                     self.vision[self.temp_y][self.temp_x] = "S"
+        elif direction == "left":
+            if self.temp_x != 0:
+                if self.temp_y != self.ye and self.xe != self.temp_x:
+                    self.vision[self.temp_y][self.temp_x] = 0
+                else:
+                    self.vision[self.temp_y][self.temp_x] = "E"
+                self.temp_x -= 1
+                if (
+                    self.temp_y,
+                    self.temp_x,
+                ) in self.visited_squares_counter.keys():
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] += 1
+                else:
+                    self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
+                self.vision[self.temp_y][self.temp_x] = "S"
 
     @status_control
     def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
@@ -397,14 +331,11 @@ class Submarine:
                     if square != False:
                         self.get_client_route(int(square[0]), int(square[1]))
                         return
-                if "Share missiles" not in self.planned_route:
+                if self.m_count - self.endpoint_missiles_required - self.client_missiles_required > 0:
                     self.planned_route = ["Share missiles", "Share vision"]
                 else:
-                    self.planned_route = ["Share missiles", "Share vision"]
+                    self.planned_route = ["Share vision"]
                     self.client_id = None
-        if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.endpoint_reached = True
-            self.vision[self.temp_y][self.temp_x] = "S"
 
     def __get_gravel_squares(self) -> list:
         gravel_squares = []
@@ -508,11 +439,12 @@ class Submarine:
                 if square != False:
                     self.get_client_route(int(square[0]), int(square[1]))
                     return
-            if "Share missiles" not in self.planned_route:
+            if self.m_count - self.endpoint_missiles_required - self.client_missiles_required > 0:
                 self.planned_route = ["Share missiles", "Share vision"]
             else:
-                self.planned_route = ["Share missiles", "Share vision"]
+                self.planned_route = ["Share vision"]
                 self.client_id = None
+
 
     @status_control
     def get_endpoint_route(self) -> None:
