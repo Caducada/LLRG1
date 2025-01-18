@@ -741,13 +741,4 @@ class Submarine:
                             > 0
                         ) or self.__is_adjacent(sub):
                             return sub.id
-                elif (
-                    self.client_id != None
-                    and self.m_count - self.endpoint_missiles_required >= 0
-                ):
-                    self.planned_route = ["Share missiles", "Share vision"]
-                    return self.client_id
-                else:
-                    self.planned_route = ["Share vision"]
-                    return self.client_id
         return None
