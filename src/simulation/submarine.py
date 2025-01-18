@@ -509,10 +509,15 @@ class Submarine:
 
     def __get_client_route(self, y_goal: int, x_goal: int) -> bool:
         if self.temp_x == x_goal and self.temp_y == y_goal:
+            client = None
+            for sub in self.sub_list:
+                if sub.id == self.client_id:
+                    client = sub
+                    break
             if self.m_count - self.endpoint_missiles_required > 0:
                 self.planned_route = ["Share missiles", "Share vision"]
                 return True
-            else:
+            elif client.vision == None:
                 self.planned_route = ["Share vision"]
                 return True
         new_route = []
