@@ -520,6 +520,9 @@ class Submarine:
             elif client.vision == None:
                 self.planned_route = ["Share vision"]
                 return True
+            else:
+                self.planned_route = self.__get_endpoint_route()
+                return True
         new_route = []
         banned_squares = []
         missiles_required = 0
