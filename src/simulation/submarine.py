@@ -715,6 +715,18 @@ class Submarine:
                 return str(point_y) + str(point_x)
         return False
 
+    def __is_adjacent(self, sub) -> bool:
+        """Kontrollerar om det står en ubåt bredvid ubåten"""
+        if sub.temp_y+1 == self.temp_y and sub.temp_x == self.temp_x:
+            return True
+        elif sub.temp_y-1 == self.temp_y and sub.temp_x == self.temp_x:
+            return True
+        elif sub.temp_y == self.temp_y and sub.temp_x +1  == self.temp_x:
+            return True
+        elif sub.temp_y == self.temp_y and sub.temp_x - 1  == self.temp_x:
+            return True
+        return False
+
     def __get_client_id(self) -> int | None:
         """Retunerar ett ID på en ubåt som behöver hjälp"""
         for sub in self.sub_list:
@@ -727,7 +739,7 @@ class Submarine:
                             - self.endpoint_missiles_required
                             - self.client_missiles_required
                             > 0
-                        ):
+                        ) or self.__is_adjacent(sub):
                             return sub.id
                 elif (
                     self.client_id != None
