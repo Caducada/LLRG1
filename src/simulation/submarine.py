@@ -521,24 +521,6 @@ class Submarine:
         self.planned_route = new_route
 
     def __get_client_route(self, y_goal: int, x_goal: int) -> None | bool:
-        if (
-            self.temp_x == x_goal
-            and self.temp_y == y_goal
-            and (self.m_count - self.endpoint_missiles_required) > 0
-        ):
-            self.planned_route = ["Share missiles", "Share vision"]
-            return
-        elif (
-            self.temp_x == x_goal
-            and self.temp_y == y_goal
-            and (self.m_count - self.endpoint_missiles_required) <= 0
-        ):
-            self.planned_route = ["Share vision"]
-            return
-        elif self.temp_x == x_goal and self.temp_y == y_goal:
-            self.client_id = None
-            self.planned_route = ["Scan advanced"]
-            return
         new_route = []
         banned_squares = []
         missiles_required = 0
