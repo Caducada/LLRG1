@@ -2,81 +2,78 @@ from .map import Map
 from .submarine import Submarine
 
 
-def share_position(map: Map) -> None:
+def share_position(giver_sub: Submarine, map: Map) -> None:
+    """Delar sin position med de övriga ubåtarna"""
     for sub in map.fleet:
-        for i in range(len(map.fleet)):
-            if i != sub.id:
-                safe_point = str(map.fleet[i].temp_y) + str(map.fleet[i].temp_x)
-                sub.remove_duplicate_subs(safe_point=safe_point, sub_index=sub.id)
-    for sub in map.fleet:
-        if not len(sub.sub_list):
-            for i in range(len(map.fleet)):
-                if map.fleet[i-1].id != sub.id:
-                    sub.sub_list.append(
-                        Submarine(id=map.fleet[i-1].id, temp_x=map.fleet[i-1].temp_x, temp_y=map.fleet[i-1].temp_y )
+        if sub.id != giver_sub.id:
+            create_sub = True
+            for temp_sub in sub.sub_list:
+                if temp_sub:
+                    if temp_sub.id == giver_sub.id:
+                        create_sub = False
+            if not create_sub:
+                for temp_sub in sub.sub_list:
+                    if temp_sub.id == giver_sub.id:
+                        if (
+                            temp_sub.temp_x == giver_sub.temp_x
+                            and temp_sub.temp_y == giver_sub.temp_y
+                            and not temp_sub.endpoint_reached
+                        ):
+                            temp_sub.static = True
+                        else:
+                            temp_sub.static = False
+                        temp_sub.temp_x = giver_sub.temp_x
+                        temp_sub.temp_y = giver_sub.temp_y
+            else:
+                sub.sub_list.append(
+                    Submarine(
+                        id=giver_sub.id,
+                        temp_x=giver_sub.temp_x,
+                        temp_y=giver_sub.temp_y,
                     )
-        else:
-            for i in range(len(map.fleet)):
-                if map.fleet[i-1].id != sub.id:
-                    sub.sub_list[i-1].temp_x = map.fleet[i-1].temp_x
-                    sub.sub_list[i-1].temp_y = map.fleet[i-1].temp_y
+                )
 
-def share_missile_info(map: Map) -> None:
+
+def share_missile_info(giver_sub: Submarine, map: Map) -> None:
+    """Delar antalet missiler med de övriga ubåtarna"""
     for sub in map.fleet:
-        if not len(sub.sub_list):
-            for i in range(len(map.fleet)):
-                if map.fleet[i-1].id != sub.id:
-                    sub.sub_list.append(
-                        Submarine(id=map.fleet[i-1].id, m_count=map.fleet[i-1].m_count)
+        if sub.id != giver_sub.id:
+            create_sub = True
+            for temp_sub in sub.sub_list:
+                if temp_sub:
+                    if temp_sub.id == giver_sub.id:
+                        create_sub = False
+            if not create_sub:
+                for temp_sub in sub.sub_list:
+                    if temp_sub.id == giver_sub.id:
+                        temp_sub.m_count = giver_sub.m_count
+            else:
+                sub.sub_list.append(
+                    Submarine(id=giver_sub.id, m_count=giver_sub.m_count)
+                )
+
+
+def share_endpoint(giver_sub: Submarine, map: Map) -> None:
+    """Delar info om slutpositionen med de övriga ubåtarna"""
+    for sub in map.fleet:
+        if sub.id != giver_sub.id:
+            create_sub = True
+            for temp_sub in sub.sub_list:
+                if temp_sub:
+                    if temp_sub.id == giver_sub.id:
+                        create_sub = False
+            if not create_sub:
+                for temp_sub in sub.sub_list:
+                    if temp_sub.id == giver_sub.id:
+                        temp_sub.xe = giver_sub.xe
+                        temp_sub.ye = giver_sub.ye
+                        temp_sub.endpoint_reached = giver_sub.endpoint_reached
+            else:
+                sub.sub_list.append(
+                    Submarine(
+                        id=giver_sub.id,
+                        xe=giver_sub.xe,
+                        ye=giver_sub.ye,
+                        endpoint_reached=giver_sub.endpoint_reached,
                     )
-        else:
-            for i in range(len(map.fleet)):
-                if map.fleet[i-1].id != sub.id:
-                    sub.sub_list[i-1].m_count = map.fleet[i-1].m_count
-
-
-def share_endpoint(map: Map) -> None:
-    for sub in map.fleet:
-        if not len(sub.sub_list):
-            for i in range(len(map.fleet)):
-                if map.fleet[i].id != sub.id:
-                    sub.sub_list.append(
-                        Submarine(
-                            id=map.fleet[i-1].id,
-                            xe=map.fleet[i-1].xe,
-                            ye=map.fleet[i-1].ye,
-                            endpoint_reached=map.fleet[i-1].endpoint_reached,
-                        )
-                    )
-        else:
-            for i in range(len(map.fleet)):
-                if map.fleet[i-1].id != sub.id:
-                    sub.sub_list[i-1].xe = map.fleet[i-1].xe
-                    sub.sub_list[i-1].ye = map.fleet[i-1].ye
-                    sub.sub_list[i-1].endpoint_reached = map.fleet[i-1].endpoint_reached
-
-
-def request_missiles(sub_id: int, map: Map) -> None:
-    for sub in map.fleet:
-        if sub.id == sub_id:
-            square = sub.get_adjacent_square(sub.temp_x, sub.temp_y)
-            client = sub
-            break
-    if not square:
-        return
-    for sub in map.fleet:
-        if sub.get_client_route(y_goal=int(square[0]), x_goal=int(square[1])):
-            if (
-                sub.m_count
-                - sub.endpoint_missiles_required
-                - sub.client_missiles_required
-            ) > 0:
-                sub.client_id = client.id
-                return
-
-
-def remove_helper(sub_id: int, map: Map) -> None:
-    for sub in map.fleet:
-        if sub.client_id != None:
-            if sub.client_id == sub_id:
-                sub.client = None
+                )

@@ -4,27 +4,23 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
-from simulation.communication import share_position, remove_helper, request_missiles, share_missile_info, share_endpoint
+from simulation.communication import share_position, share_missile_info, share_endpoint
 
 
 def run_test(sim_map: Map) -> None:
     """Funktion för att testa olika kartor"""
     cleared = set()
     while len(cleared) != len(sim_map.fleet):
-        share_position(sim_map)
-        share_missile_info(sim_map)
-        share_endpoint(sim_map)
         for sub in sim_map.fleet:
-            sub.basic_scan()
-            if sub.planned_route != ["Request missiles"]:
-                remove_helper(sub.id, sim_map)
+            share_position(sub, sim_map)
+            share_missile_info(sub, sim_map)
+            share_endpoint(sub, sim_map) 
+            sub.basic_scan()   
+        for sub in sim_map.fleet:
             if sub.planned_route[0].split()[0] == "Move":
                 sub.move_sub(sub.planned_route[0].split()[1])
             elif sub.planned_route[0].split()[0] == "Shoot":
                 sub.missile_shoot()
-            elif sub.planned_route[0].split()[0] == "Request":
-                if sub.planned_route[0].split()[1] == "missiles":
-                    request_missiles(sub.id, sim_map)
             elif sub.planned_route[0].split()[0] == "Scan":
                 if sub.planned_route[0].split()[1] == "basic":
                     sub.basic_scan()

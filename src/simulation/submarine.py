@@ -12,8 +12,6 @@ def status_control(method):
             if (
                 method.__name__ != "advanced_scan"
                 and method.__name__ != "basic_scan"
-                and method.__name__ != "get_endpoint_route"
-                and method.__name__ != "get_client_route"
                 and method.__name__ != "display_vision"
                 and method.__name__ != "move_sub"
             ):
@@ -69,6 +67,7 @@ class Submarine:
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
         self.endpoint_missiles_required = 0
         self.client_missiles_required = 0
+        self.static = False 
         self.client_id = None
 
     def print_death_message(self, name: str) -> None:
@@ -166,114 +165,9 @@ class Submarine:
                 self.vision[self.temp_y][self.temp_x] = "S"
 
     @status_control
-    def get_vision_from_sub(self, external_id: int, external_vision: list) -> None:
-        for sub in self.sub_list:
-            if sub.id == external_id:
-                sub.vision = external_vision
-                self.__merge_vision(sub)
-                self.get_endpoint_route()
-                return
-        new_sub = Submarine(
-            id=external_id,
-            map=self.map,
-        )
-        new_sub.vision = external_vision
-        self.__merge_vision(new_sub)
-        self.sub_list.append(new_sub)
-        self.get_endpoint_route()
-
-    @status_control
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
-
-    def __merge_vision(self, external_sub) -> None:
-        for i in range(self.map_height):
-            for j in range(self.map_width):
-                if self.vision[i][j] == "?" and external_sub.vision[i][j] != "?":
-                    self.vision[i][j] = external_sub.vision[i][j]
-                elif self.vision[i][j] != "?" and external_sub.vision[i][j] == "?":
-                    external_sub.vision[i][j] = self.vision[i][j]
-                elif (
-                    self.vision[i][j] != "?"
-                    and external_sub.vision[i][j] != "?"
-                    and self.vision[i][j] != external_sub.vision[i][j]
-                    and self.id < external_sub.id
-                ):
-                    external_sub.vision[i][j] = self.vision[i][j]
-                elif (
-                    self.vision[i][j] != "?"
-                    and external_sub.vision[i][j] != "?"
-                    and self.vision[i][j] != external_sub.vision[i][j]
-                    and self.id > external_sub.id
-                ):
-                    self.vision[i][j] = external_sub.vision[i][j]
-
-    @status_control
-    def trade_missiles(self, m_change: int) -> None:
-        if (m_change * -1) > self.m_count:
-            raise ValueError("Not enough missiles to perform trade")
-        elif m_change == 0:
-            raise ValueError("Can't trade w/o missiles")
-        self.m_count += m_change
-
-    @status_control
-    def get_endpoint_data_from_sub(
-        self,
-        external_id: int,
-        external_xe: int,
-        external_ye: int,
-        external_endpoint_status: int,
-    ) -> None:
-        for sub in self.sub_list:
-            if sub.id == external_id:
-                sub.xe = external_xe
-                sub.ye = external_ye
-                sub.endpoint_reached = external_endpoint_status
-                return
-        self.sub_list.append(
-            Submarine(
-                id=external_id,
-                xe=external_xe,
-                ye=external_ye,
-                endpoint_reached=external_endpoint_status,
-                map=self.map,
-            )
-        )
-
-    @status_control
-    def get_missile_data_from_sub(
-        self, external_id: int, external_m_count: int
-    ) -> None:
-        for sub in self.sub_list:
-            if sub.id == external_id:
-                sub.m_count = external_m_count
-                return
-        self.sub_list.append(
-            Submarine(
-                id=external_id,
-                map=self.map,
-                m_count=external_m_count,
-            )
-        )
-
-    @status_control
-    def get_route_from_sub(self, external_id, external_route) -> None:
-        for sub in self.sub_list:
-            if sub.id == external_id:
-                sub.planned_route = external_route
-                return
-        self.sub_list.append(
-            Submarine(
-                id=external_id,
-                map=self.map,
-                planned_route=external_route,
-            )
-        )
-
-    @status_control
-    def get_secret_from_sub(self, external_id, external_key) -> None:
-        self.secret_keys.setdefault(external_id, external_key)
 
     @status_control
     def basic_scan(self, plan_route=True) -> None:
@@ -285,7 +179,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y != 0:
             self.vision[self.temp_y - 1][self.temp_x] = self.map[self.temp_y - 1][
                 self.temp_x
@@ -293,7 +187,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != self.map_width - 1:
             self.vision[self.temp_y][self.temp_x + 1] = self.map[self.temp_y][
                 self.temp_x + 1
@@ -301,7 +195,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 1)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x != 0:
             self.vision[self.temp_y][self.temp_x - 1] = self.map[self.temp_y][
                 self.temp_x - 1
@@ -309,7 +203,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 1)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if i == self.ye and j == self.xe:
@@ -318,8 +212,9 @@ class Submarine:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
         if plan_route:
+            self.client_id = self.__get_client_id()
             if self.client_id == None:
-                self.get_endpoint_route()
+                self.__get_endpoint_route()
             else:
                 client = None
                 for sub in self.sub_list:
@@ -327,11 +222,11 @@ class Submarine:
                         client = sub
                         break
                 if client != None:
-                    square = self.get_adjacent_square(client.temp_x, client.temp_y)
+                    square = self.__get_adjacent_square(client.temp_x, client.temp_y)
                     if square != False:
-                        self.get_client_route(int(square[0]), int(square[1]))
+                        self.__get_client_route(int(square[0]), int(square[1]))
                         return
-                if self.m_count - self.endpoint_missiles_required - self.client_missiles_required > 0:
+                if self.m_count - self.endpoint_missiles_required > 0:
                     self.planned_route = ["Share missiles", "Share vision"]
                 else:
                     self.planned_route = ["Share vision"]
@@ -345,7 +240,7 @@ class Submarine:
                     gravel_squares.append((i, j))
         return gravel_squares
 
-    def remove_duplicate_subs(self, safe_point: str, sub_index: int):
+    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
         for i in range(len(self.vision)):
             for j in range(len(self.vision[i])):
                 if self.vision[i][j] == "U" + str(sub_index):
@@ -363,7 +258,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 2][self.temp_x])[1])
                 safe_point = str(self.temp_y + 2) + str(self.temp_x)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_y - 2 >= 0:
             self.vision[self.temp_y - 2][self.temp_x] = self.map[self.temp_y - 2][
                 self.temp_x
@@ -371,7 +266,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 2][self.temp_x])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 2][self.temp_x])[1])
                 safe_point = str(self.temp_y - 2) + str(self.temp_x)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 2 < self.map_width:
             self.vision[self.temp_y][self.temp_x + 2] = self.map[self.temp_y][
                 self.temp_x + 2
@@ -379,7 +274,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x + 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x + 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x + 2)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 2 >= 0:
             self.vision[self.temp_y][self.temp_x - 2] = self.map[self.temp_y][
                 self.temp_x - 2
@@ -387,7 +282,7 @@ class Submarine:
             if str(self.vision[self.temp_y][self.temp_x - 2])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y][self.temp_x - 2])[1])
                 safe_point = str(self.temp_y) + str(self.temp_x - 2)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x + 1] = self.map[self.temp_y + 1][
                 self.temp_x + 1
@@ -395,7 +290,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x + 1)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y + 1 < self.map_height:
             self.vision[self.temp_y + 1][self.temp_x - 1] = self.map[self.temp_y + 1][
                 self.temp_x - 1
@@ -403,7 +298,7 @@ class Submarine:
             if str(self.vision[self.temp_y + 1][self.temp_x - 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y + 1][self.temp_x - 1])[1])
                 safe_point = str(self.temp_y + 1) + str(self.temp_x - 1)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x + 1 < self.map_width and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x + 1] = self.map[self.temp_y - 1][
                 self.temp_x + 1
@@ -411,7 +306,7 @@ class Submarine:
             if str(self.vision[self.temp_y - 1][self.temp_x + 1])[0] == "U":
                 sub_index = int(str(self.vision[self.temp_y - 1][self.temp_x + 1])[1])
                 safe_point = str(self.temp_y - 1) + str(self.temp_x + 1)
-                self.remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
+                self.__remove_duplicate_subs(safe_point=safe_point, sub_index=sub_index)
         if self.temp_x - 1 >= 0 and self.temp_y - 1 >= 0:
             self.vision[self.temp_y - 1][self.temp_x - 1] = self.map[self.temp_y - 1][
                 self.temp_x - 1
@@ -426,8 +321,9 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
+        self.client_id = self.__get_client_id()
         if self.client_id == None:
-            self.get_endpoint_route()
+            self.__get_endpoint_route()
         else:
             client = None
             for sub in self.sub_list:
@@ -435,19 +331,18 @@ class Submarine:
                     client = sub
                     break
             if client != None:
-                square = self.get_adjacent_square(client.temp_x, client.temp_y)
+                square = self.__get_adjacent_square(client.temp_x, client.temp_y)
                 if square != False:
-                    self.get_client_route(int(square[0]), int(square[1]))
+                    self.__get_client_route(int(square[0]), int(square[1]))
                     return
-            if self.m_count - self.endpoint_missiles_required - self.client_missiles_required > 0:
+            if self.m_count - self.endpoint_missiles_required > 0:
                 self.planned_route = ["Share missiles", "Share vision"]
             else:
                 self.planned_route = ["Share vision"]
                 self.client_id = None
 
 
-    @status_control
-    def get_endpoint_route(self) -> None:
+    def __get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.planned_route = ["Scan advanced"]
             return
@@ -612,10 +507,10 @@ class Submarine:
                     else:
                         break
                 elif loop_counter > self.map_height * self.map_width + self.m_count:
-                    self.planned_route = ["Request missiles"]
+                    self.planned_route = ["Scan advanced"]
                     return
             elif loop_counter > self.map_height * self.map_width + self.m_count:
-                self.planned_route = ["Request missiles"]
+                self.planned_route = ["Scan advanced"]
                 return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
@@ -625,8 +520,7 @@ class Submarine:
                 new_route = []
         self.planned_route = new_route
 
-    @status_control
-    def get_client_route(self, y_goal: int, x_goal: int) -> None | bool:
+    def __get_client_route(self, y_goal: int, x_goal: int) -> None | bool:
         if (
             self.temp_x == x_goal
             and self.temp_y == y_goal
@@ -809,7 +703,7 @@ class Submarine:
         self.planned_route = new_route
         return True
 
-    def get_adjacent_square(self, point_x, point_y) -> str:
+    def __get_adjacent_square(self, point_x:int, point_y:int) -> str | bool:
         """Hittar en säker ruta bredvid en given ruta"""
         if point_y != self.map_height - 1:
             if self.vision[point_y + 1][point_x] == 0:
@@ -824,3 +718,21 @@ class Submarine:
             if self.vision[point_y][point_x] == 0:
                 return str(point_y) + str(point_x)
         return False
+    
+    def __get_client_id(self) -> int | None:
+        """Retunerar ett ID på en ubåt som behöver hjälp"""
+        for sub in self.sub_list:
+            if sub.static:
+                square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
+                if square:
+                    if self.__get_client_route(int(square[1]), int(square[0])):
+                        if self.m_count - self.endpoint_missiles_required - self.client_missiles_required > 0:
+                                return sub.id
+                elif self.client_id != None and self.m_count-self.endpoint_missiles_required>=0:
+                    self.planned_route = ["Share missiles", "Share vision"]
+                    return self.client_id
+                else:
+                    self.planned_route = ["Share vision"]
+                    return self.client_id
+        return None
+                    
