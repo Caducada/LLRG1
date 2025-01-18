@@ -205,7 +205,7 @@ class Map:
     
 
     def update_map(self):
-        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något."""
+        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
             return  
 
