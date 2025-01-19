@@ -21,6 +21,8 @@ class Map:
             self._map = self.read_map_file(file_name)
             self._map = self._map[::-1]
             self._map = [row for row in self._map if len(row) != 0]
+            self.fleet = get_fleet(sub_file_name, self._map)
+            self.missile_hits_dict = {}
         
         self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
 
@@ -194,7 +196,7 @@ class Map:
                     x = x_step
                     break
         print(f'collision: {collision}')
-        self.missile_hits_dict[sub_id] = (x, y)
+        self.missile_hits_dict[(x, y)] = sub_id
 
 
     def clear_missile_hits(self):
@@ -203,12 +205,30 @@ class Map:
     def get_missile_hits(self):
         return self.missile_hits_dict
     
-
+    def __kill(self, sub_id):
+        for sub in self.fleet:
+            if sub.id == sub_id:
+                sub.is_alive = False
+                return
+    
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
             return  
 
+        for key in self.missile_hits_dict:
+            for i in range(len(self._map)):
+                for j in range(len(self._map[i])):
+                    if i == key[1] and j == key[0]:
+                        for k in range(self.missile_hits_dict[key]+1):
+                            if isinstance(self._map[i][j], int):
+                                self.reduce_rubble(j, i)
+                            elif str(self._map[i][j])[0] == "U":
+                                self.__kill(int(self._map[i][j][1]))
+                                
+                            
+        self.missile_hits_dict = {}
+                            
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
                 if str(self._map[i][j])[0] == "U":
@@ -216,14 +236,15 @@ class Map:
 
         repeated = {}
         for sub in self.fleet:
-            for i in range(len(sub.vision)):
-                for j in range(len(sub.vision[i])):
-                    if sub.vision[i][j] == "S":
-                        self._map[i][j] = f"U{sub.id}"
-                        if str(i) + " " + str(j) not in repeated:
-                            repeated.setdefault(str(i) + " " + str(j), 0)
-                        else:
-                            repeated[str(i) + " " + str(j)] += 1
+            if sub.is_alive:
+                for i in range(len(sub.vision)):
+                    for j in range(len(sub.vision[i])):
+                        if sub.vision[i][j] == "S":
+                            self._map[i][j] = f"U{sub.id}"
+                            if str(i) + " " + str(j) not in repeated:
+                                repeated.setdefault(str(i) + " " + str(j), 0)
+                            else:
+                                repeated[str(i) + " " + str(j)] += 1
 
         for key in repeated.keys():
             if repeated[key] >= 1:

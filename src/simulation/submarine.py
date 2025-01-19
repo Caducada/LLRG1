@@ -8,15 +8,6 @@ def status_control(method):
         if not self.is_alive:
             self.print_death_message(method.__name__)
             return
-        if self.endpoint_reached:
-            if (
-                method.__name__ != "advanced_scan"
-                and method.__name__ != "basic_scan"
-                and method.__name__ != "display_vision"
-                and method.__name__ != "move_sub"
-            ):
-                self.print_winner_message(method.__name__)
-                return
         return method(self, *args, **kwargs)
 
     return wrapper
@@ -27,7 +18,6 @@ class Submarine:
         self,
         id: int,
         map: list | None = None,
-        secret_keys: dict = {},
         x0=None,
         y0=None,
         xe=None,
@@ -62,7 +52,7 @@ class Submarine:
             self.vision = self.__get_starting_vision()
         self.m_count = m_count
         self.planned_route = ["Share position"]
-        self.secret_keys = secret_keys
+        self.secret_key = None
         self.sub_list = []
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
         self.endpoint_missiles_required = 0
@@ -72,9 +62,6 @@ class Submarine:
 
     def print_death_message(self, name: str) -> None:
         print(f"Submarine {self.id} is dead and can't {name}")
-
-    def print_winner_message(self, name: str) -> None:
-        print(f"Submarine {self.id} has reached its goal and can't {name}")
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -166,9 +153,16 @@ class Submarine:
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
-
+            
+    @status_control 
+    def general_scan(self, scannning_type:str)-> None:
+        if scannning_type == "basic":
+            self.basic_scan()
+        elif scannning_type == "advanced":
+            self.advanced_scan()
+    
     @status_control
-    def basic_scan(self, plan_route=True) -> None:
+    def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
@@ -209,41 +203,10 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        if plan_route:
-            self.client_id = self.__get_client_id()
-            if self.client_id == None:
-                self.__get_endpoint_route()
-            else:
-                client = None
-                for sub in self.sub_list:
-                    if sub.id == self.client_id:
-                        client = sub
-                        break
-                square = self.__get_adjacent_square(client.temp_x, client.temp_y)
-                if square != False:
-                    self.__get_client_route(int(square[0]), int(square[1]))
-                else:
-                    self.__get_endpoint_route()
-
-    def __get_gravel_squares(self) -> list:
-        gravel_squares = []
-        for i in range(len(self.vision)):
-            for j in range(len(self.vision[i])):
-                if isinstance(self.vision[i][j], int) and self.vision[i][j] != 0:
-                    gravel_squares.append((i, j))
-        return gravel_squares
-
-    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
-        for i in range(len(self.vision)):
-            for j in range(len(self.vision[i])):
-                if self.vision[i][j] == "U" + str(sub_index):
-                    self.vision[i][j] = 0
-                if int(safe_point[0]) == i and int(safe_point[1]) == j:
-                    self.vision[i][j] = "U" + str(sub_index)
 
     @status_control
     def advanced_scan(self):
-        self.basic_scan(False)
+        self.basic_scan()
         if self.temp_y + 2 < self.map_height:
             self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
                 self.temp_x
@@ -314,20 +277,22 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
-        self.client_id = self.__get_client_id()
-        if self.client_id == None:
-            self.__get_endpoint_route()
-        else:
-            client = None
-            for sub in self.sub_list:
-                if sub.id == self.client_id:
-                    client = sub
-                    break
-            square = self.__get_adjacent_square(client.temp_x, client.temp_y)
-            if square != False:
-                self.__get_client_route(int(square[0]), int(square[1]))
-            else:
-                self.__get_endpoint_route()
+
+    def __get_gravel_squares(self) -> list:
+        gravel_squares = []
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if isinstance(self.vision[i][j], int) and self.vision[i][j] != 0:
+                    gravel_squares.append((i, j))
+        return gravel_squares
+
+    def __remove_duplicate_subs(self, safe_point: str, sub_index: int):
+        for i in range(len(self.vision)):
+            for j in range(len(self.vision[i])):
+                if self.vision[i][j] == "U" + str(sub_index):
+                    self.vision[i][j] = 0
+                if int(safe_point[0]) == i and int(safe_point[1]) == j:
+                    self.vision[i][j] = "U" + str(sub_index)
 
     def __get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
@@ -395,6 +360,9 @@ class Submarine:
                     new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
+                elif isinstance(self.vision[point.y][point.x], int):
+                    if self.m_count-missiles_required-self.vision[point.y][point.x] < 0:
+                        temp_banned_points.append(point)
                 elif point.direction == "up" and point.y < len(self.vision) - 1:
                     if str(self.vision[point.y + 1][point.x])[0] == "U":
                         temp_banned_points.append(point)
@@ -420,6 +388,7 @@ class Submarine:
                     )
                     for i in range(self.vision[new_points[0].y][new_points[0].x]):
                         new_route.append(f"Shoot {new_points[0].direction}")
+                    new_route.append(f"Move {new_points[0].direction}")
                 else:
                     new_route.append(f"Move {new_points[0].direction}")
                 if new_points[0].direction == "up":
@@ -515,10 +484,13 @@ class Submarine:
                     client = sub
                     break
             if self.m_count - self.endpoint_missiles_required > 0:
-                self.planned_route = ["Share missiles", "Share vision"]
+                self.planned_route = ["Share missiles", "Share vision", "Share secret"]
                 return True
             elif client.vision == None:
-                self.planned_route = ["Share vision"]
+                self.planned_route = ["Share vision", "Share secret"]
+                return True
+            elif client.secret_key == None:
+                self.planned_route = ["Share secret"]
                 return True
             else:
                 self.planned_route = self.__get_endpoint_route()
@@ -585,6 +557,9 @@ class Submarine:
                     new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
+                elif isinstance(self.vision[point.y][point.x], int):
+                    if self.m_count - missiles_required - self.vision[point.y][point.x] < 0:
+                        temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -742,3 +717,31 @@ class Submarine:
                         ) or self.__is_adjacent(sub):
                             return sub.id
         return None
+    
+    @status_control
+    def update_vision(self):
+        for sub in self.sub_list:
+            if sub.temp_x != None and sub.temp_y != None:
+                for i in range(len(self.vision)):
+                    for j in range(len(self.vision[i])):
+                        if i == sub.temp_y and j == sub.temp_x:
+                            self.vision[i][j] = "U"+str(sub.id)
+                        elif str(self.vision[i][j])[0] ==  "U":
+                            self.vision[i][j] = 0
+    @status_control                
+    def update_path(self):
+        self.client_id = self.__get_client_id()
+        if self.client_id == None:
+            self.__get_endpoint_route()
+        else:
+            client = None
+            for sub in self.sub_list:
+                if sub.id == self.client_id:
+                    client = sub
+                    break
+            square = self.__get_adjacent_square(client.temp_x, client.temp_y)
+            if square != False:
+                self.__get_client_route(int(square[0]), int(square[1]))
+            else:
+                self.__get_endpoint_route()
+        
