@@ -14,6 +14,7 @@ class Simulation:
         """Utför en simulering av ett steg."""
         for submarine in self.active_fleet[:]:  # Skapa en kopia av listan för säker iteration
             submarine.basic_scan()
+            submarine.update_path()
             if submarine.planned_route:
                 action = submarine.planned_route.pop(0)
                 if "Move" in action:
