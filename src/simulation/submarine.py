@@ -38,6 +38,17 @@ class Submarine:
         self.temp_y = temp_y
         self.map = map
         self.endpoint_reached = endpoint_reached
+        self.m_count = m_count
+        self.planned_route = ["Share position"]
+        self.secret_key = None
+        self.sub_list = []
+        self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
+        self.endpoint_missiles_required = 0
+        self.client_missiles_required = 0
+        self.static = 0
+        self.client_id = None
+        self.prev_x = None
+        self.prev_y = None
         if self.x0 != None:
             self.temp_x = self.x0
         if self.y0 != None:
@@ -50,15 +61,6 @@ class Submarine:
             self.map_height = len(self.map)
             self.map_width = len(self.map[0])
             self.vision = self.__get_starting_vision()
-        self.m_count = m_count
-        self.planned_route = ["Share position"]
-        self.secret_key = None
-        self.sub_list = []
-        self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
-        self.endpoint_missiles_required = 0
-        self.client_missiles_required = 0
-        self.static = False
-        self.client_id = None
 
     def print_death_message(self, name: str) -> None:
         print(f"Submarine {self.id} is dead and can't {name}")
@@ -87,6 +89,8 @@ class Submarine:
 
     @status_control
     def move_sub(self, direction: str) -> None:
+        self.prev_x = self.temp_x
+        self.prev_y = self.temp_y
         if direction == "up":
             if self.temp_y != self.map_height - 1:
                 if self.temp_y != self.ye and self.xe != self.temp_x:

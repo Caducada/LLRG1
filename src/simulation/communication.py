@@ -34,9 +34,11 @@ def share_position(giver_sub: Submarine, map: Map) -> None:
                                 and temp_sub.temp_y == giver_sub.temp_y
                                 and not temp_sub.endpoint_reached
                             ):
-                                temp_sub.static = True
+                                temp_sub.static +=1
                             else:
-                                temp_sub.static = False
+                                temp_sub.static = 0
+                            temp_sub.prev_x = temp_sub.temp_x
+                            temp_sub.prev_y = temp_sub.prev_y
                             temp_sub.temp_x = giver_sub.temp_x
                             temp_sub.temp_y = giver_sub.temp_y
                 else:
