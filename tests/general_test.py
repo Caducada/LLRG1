@@ -60,6 +60,6 @@ def run_test(sim_map: Map) -> None:
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
-    run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
-    # run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
+    # run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
+    run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="simple.txt"))

@@ -19,15 +19,14 @@ class Map:
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
-            self._map = self._map[::-1]
+            self._map = self._map
             self._map = [row for row in self._map if len(row) != 0]
-            self.fleet = get_fleet(sub_file_name, self._map)
             self.missile_hits_dict = {}
         
         self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
 
     def print_map(self):
-        temp_map = self._map[::-1]
+        temp_map = self._map
         for row in temp_map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
@@ -196,7 +195,7 @@ class Map:
                     x = x_step
                     break
         print(f'collision: {collision}')
-        self.missile_hits_dict[(x, y)] = sub_id
+        self.missile_hits_dict[sub_id] = (x, y)
 
 
     def clear_missile_hits(self):
@@ -205,6 +204,7 @@ class Map:
     def get_missile_hits(self):
         return self.missile_hits_dict
     
+
     def __kill(self, sub_id):
         for sub in self.fleet:
             if sub.id == sub_id:
@@ -227,7 +227,7 @@ class Map:
                                 self.__kill(int(self._map[i][j][1]))
                                 
                             
-        self.missile_hits_dict = {}
+        self.clear_missile_hits()
                             
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
@@ -235,6 +235,7 @@ class Map:
                     self._map[i][j] = 0
 
         repeated = {}
+        
         for sub in self.fleet:
             if sub.is_alive:
                 for i in range(len(sub.vision)):
