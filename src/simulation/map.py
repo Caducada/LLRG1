@@ -195,7 +195,7 @@ class Map:
                     x = x_step
                     break
         print(f'collision: {collision}')
-        self.missile_hits_dict[sub_id] = (x, y)
+        self.missile_hits_dict[(x, y)] = sub_id
 
 
     def clear_missile_hits(self):
