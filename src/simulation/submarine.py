@@ -164,10 +164,18 @@ class Submarine:
             self.basic_scan()
         elif scannning_type == "advanced":
             self.advanced_scan()
+            
+    def __static_counter(self) -> None:
+        if self.prev_x == self.temp_x and self.prev_y == self.temp_y:
+            self.static += 1
+        else:
+            static = 0
+        return
     
     @status_control
     def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        self.__static_counter()
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
@@ -466,10 +474,10 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif loop_counter > (self.map_height * self.map_width + self.m_count)*10:
                     self.planned_route = ["Scan advanced"]
                     return
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif loop_counter > (self.map_height * self.map_width + self.m_count)*10:
                 self.planned_route = ["Scan advanced"]
                 return
             else:
@@ -487,14 +495,14 @@ class Submarine:
                 if sub.id == self.client_id:
                     client = sub
                     break
-            if self.m_count - self.endpoint_missiles_required > 0:
-                self.planned_route = ["Share missiles", "Share vision", "Share secret"]
+            if client.secret_key == None:
+                self.planned_route = ["Share secret" , "Share vision", "Share missiles"]
                 return True
             elif client.vision == None:
-                self.planned_route = ["Share vision", "Share secret"]
+                self.planned_route = ["Share vision", "Share missiles"]
                 return True
-            elif client.secret_key == None:
-                self.planned_route = ["Share secret"]
+            elif self.m_count - self.endpoint_missiles_required > 0:
+                self.planned_route = ["Share missiles"]
                 return True
             else:
                 self.planned_route = self.__get_endpoint_route()
@@ -618,7 +626,7 @@ class Submarine:
                         and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         final_point = point
-                        break
+                        break 
                 visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
                 if (
                     isinstance(self.vision[final_point.y][final_point.x], int)
@@ -650,9 +658,9 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif loop_counter > (self.map_height * self.map_width + self.m_count)*10:
                     return False
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif loop_counter > (self.map_height * self.map_width + self.m_count)*10:
                 return False
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
@@ -661,6 +669,7 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.client_missiles_required = missiles_required
+        new_route.append("Share secret")
         new_route.append("Share vision")
         new_route.append("Share missiles")
         self.planned_route = new_route
@@ -708,18 +717,24 @@ class Submarine:
 
     def __get_client_id(self) -> int | None:
         """Retunerar ett ID på en ubåt som behöver hjälp"""
-        for sub in self.sub_list:
-            if sub.static:
-                square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
-                if square:
-                    if self.__get_client_route(int(square[1]), int(square[0])):
-                        if (
-                            self.m_count
-                            - self.endpoint_missiles_required
-                            - self.client_missiles_required
-                            > 0
-                        ) or self.__is_adjacent(sub):
-                            return sub.id
+        if self.client_id == None:
+            for sub in self.sub_list:
+                if sub.static:
+                    square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
+                    if square:
+                        if self.__get_client_route(int(square[1]), int(square[0])):
+                            if (
+                                self.m_count
+                                - self.endpoint_missiles_required
+                                - self.client_missiles_required
+                                > 0
+                            ):
+                                return sub.id
+        else:
+            for sub in self.sub_list:
+                if self.client_id == sub.id:
+                    if self.__is_adjacent(sub):
+                        return sub.id
         return None
     
     @status_control
