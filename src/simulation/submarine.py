@@ -34,6 +34,7 @@ class Submarine:
         self.y0 = y0
         self.xe = xe
         self.ye = ye
+        self.vision = None
         self.temp_x = temp_x
         self.temp_y = temp_y
         self.map = map
@@ -157,17 +158,25 @@ class Submarine:
     def display_vision(self):
         for row in self.vision[::-1]:
             print(" ".join(map(str, row)))
-            
-    @status_control 
-    def general_scan(self, scannning_type:str)-> None:
+
+    @status_control
+    def general_scan(self, scannning_type: str) -> None:
         if scannning_type == "basic":
             self.basic_scan()
         elif scannning_type == "advanced":
             self.advanced_scan()
-    
+
+    def __static_counter(self) -> None:
+        if self.prev_x == self.temp_x and self.prev_y == self.temp_y:
+            self.static += 1
+        else:
+            static = 0
+        return
+
     @status_control
     def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        self.__static_counter()
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
@@ -365,7 +374,10 @@ class Submarine:
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
                 elif isinstance(self.vision[point.y][point.x], int):
-                    if self.m_count-missiles_required-self.vision[point.y][point.x] < 0:
+                    if (
+                        self.m_count - missiles_required - self.vision[point.y][point.x]
+                        < 0
+                    ):
                         temp_banned_points.append(point)
                 elif point.direction == "up" and point.y < len(self.vision) - 1:
                     if str(self.vision[point.y + 1][point.x])[0] == "U":
@@ -466,10 +478,13 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif (
+                    loop_counter
+                    > (self.map_height * self.map_width + self.m_count) * 10
+                ):
                     self.planned_route = ["Scan advanced"]
                     return
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif loop_counter > (self.map_height * self.map_width + self.m_count) * 10:
                 self.planned_route = ["Scan advanced"]
                 return
             else:
@@ -486,19 +501,19 @@ class Submarine:
             for sub in self.sub_list:
                 if sub.id == self.client_id:
                     client = sub
+                    secret_key = sub.secret_key
                     break
-            if self.m_count - self.endpoint_missiles_required > 0:
-                self.planned_route = ["Share missiles", "Share vision", "Share secret"]
+            if secret_key == None:
+                self.planned_route = ["Share secret", "Share vision", "Share missiles"]
                 return True
             elif client.vision == None:
-                self.planned_route = ["Share vision", "Share secret"]
+                self.planned_route = ["Share vision", "Share missiles"]
                 return True
-            elif client.secret_key == None:
-                self.planned_route = ["Share secret"]
+            elif self.m_count - self.endpoint_missiles_required > 0:
+                self.planned_route = ["Share missiles"]
                 return True
             else:
-                self.planned_route = self.__get_endpoint_route()
-                return True
+                return False
         new_route = []
         banned_squares = []
         missiles_required = 0
@@ -562,7 +577,10 @@ class Submarine:
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
                 elif isinstance(self.vision[point.y][point.x], int):
-                    if self.m_count - missiles_required - self.vision[point.y][point.x] < 0:
+                    if (
+                        self.m_count - missiles_required - self.vision[point.y][point.x]
+                        < 0
+                    ):
                         temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
@@ -650,9 +668,12 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif (
+                    loop_counter
+                    > (self.map_height * self.map_width + self.m_count) * 10
+                ):
                     return False
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif loop_counter > (self.map_height * self.map_width + self.m_count) * 10:
                 return False
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
@@ -661,6 +682,7 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.client_missiles_required = missiles_required
+        new_route.append("Share secret")
         new_route.append("Share vision")
         new_route.append("Share missiles")
         self.planned_route = new_route
@@ -696,32 +718,43 @@ class Submarine:
 
     def __is_adjacent(self, sub) -> bool:
         """Kontrollerar om det står en ubåt bredvid ubåten"""
-        if sub.temp_y+1 == self.temp_y and sub.temp_x == self.temp_x:
+        if sub.temp_y + 1 == self.temp_y and sub.temp_x == self.temp_x:
             return True
-        elif sub.temp_y-1 == self.temp_y and sub.temp_x == self.temp_x:
+        elif sub.temp_y - 1 == self.temp_y and sub.temp_x == self.temp_x:
             return True
-        elif sub.temp_y == self.temp_y and sub.temp_x +1  == self.temp_x:
+        elif sub.temp_y == self.temp_y and sub.temp_x + 1 == self.temp_x:
             return True
-        elif sub.temp_y == self.temp_y and sub.temp_x - 1  == self.temp_x:
+        elif sub.temp_y == self.temp_y and sub.temp_x - 1 == self.temp_x:
             return True
         return False
 
     def __get_client_id(self) -> int | None:
         """Retunerar ett ID på en ubåt som behöver hjälp"""
-        for sub in self.sub_list:
-            if sub.static:
-                square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
-                if square:
-                    if self.__get_client_route(int(square[1]), int(square[0])):
-                        if (
-                            self.m_count
-                            - self.endpoint_missiles_required
-                            - self.client_missiles_required
-                            > 0
-                        ) or self.__is_adjacent(sub):
-                            return sub.id
+        if self.client_id == None:
+            for sub in self.sub_list:
+                if sub.static:
+                    square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
+                    if square:
+                        if self.__get_client_route(int(square[1]), int(square[0])):
+                            if (
+                                self.m_count
+                                - self.endpoint_missiles_required
+                                - self.client_missiles_required
+                                >= 0
+                            ):
+                                return sub.id
+        else:
+            for sub in self.sub_list:
+                if self.client_id == sub.id:
+                    if (
+                        self.__is_adjacent(sub)
+                        and self.m_count
+                        - self.endpoint_missiles_required
+                        > 0
+                    ):
+                        return sub.id
         return None
-    
+
     @status_control
     def update_vision(self):
         for sub in self.sub_list:
@@ -729,10 +762,11 @@ class Submarine:
                 for i in range(len(self.vision)):
                     for j in range(len(self.vision[i])):
                         if i == sub.temp_y and j == sub.temp_x:
-                            self.vision[i][j] = "U"+str(sub.id)
-                        elif str(self.vision[i][j])[0] ==  "U":
+                            self.vision[i][j] = "U" + str(sub.id)
+                        elif str(self.vision[i][j])[0] == "U":
                             self.vision[i][j] = 0
-    @status_control                
+
+    @status_control
     def update_path(self):
         self.client_id = self.__get_client_id()
         if self.client_id == None:
@@ -748,4 +782,3 @@ class Submarine:
                 self.__get_client_route(int(square[0]), int(square[1]))
             else:
                 self.__get_endpoint_route()
-        
