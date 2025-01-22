@@ -18,10 +18,6 @@ def prepare(sim_map: Map) -> None:
 def decide(sim_map: Map) -> None:
     for sub in sim_map.fleet:
         sub.update_path()
-        time.sleep(3)
-        # os.system("cls" if os.name == "nt" else "clear")
-        sub.display_vision()
-        print(sub.planned_route)
         if sub.planned_route[0].split()[0] == "Move":
             sub.move_sub(sub.planned_route[0].split()[1])
         elif sub.planned_route[0].split()[0] == "Shoot":
@@ -52,15 +48,15 @@ def run_test(sim_map: Map) -> None:
     """Funktion för att testa olika kartor"""
     cleared = set()
     sim_map.update_map()
-    cycle = 0
+    sim_map.print_map()
+    print("<------------------->")
     while len(cleared) != len(sim_map.fleet):
         prepare(sim_map)
         decide(sim_map)
         cleared = execute(sim_map, cleared)
-        print(f"Cycle: {cycle}")
-        if cycle == 18:
-            pass
-        cycle += 1
+        time.sleep(3)
+        sim_map.print_map()
+        print("<------------------->")
 
 
 if __name__ == "__main__":
