@@ -167,6 +167,7 @@ class Map:
             csvwriter.writerows(self._map)
 
     def subs_swap(self):
+        '''Kollar om ubåtar kör igenom varandra'''
         for sub in self.fleet:
             # print(f'{sub.id}')
             for sub1 in self.fleet:
