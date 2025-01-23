@@ -214,20 +214,22 @@ class Map:
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
-            return  
+            return 
+         
+        fleet_size = len(self.fleet)
 
         for key in self.missile_hits_dict:
             for i in range(len(self._map)):
                 for j in range(len(self._map[i])):
                     if i == key[1] and j == key[0]:
-                        for k in range(self.missile_hits_dict[key]+1):
+                        for k in range(self.missile_hits_dict[key] - fleet_size +2):
                             if isinstance(self._map[i][j], int):
                                 self.reduce_rubble(j, i)
                             elif str(self._map[i][j])[0] == "U":
                                 self.__kill(int(self._map[i][j][1]))
                                 
                             
-        self.missile_hits_dict = {}
+        self.clear_missile_hits()
                             
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
@@ -235,6 +237,7 @@ class Map:
                     self._map[i][j] = 0
 
         repeated = {}
+        
         for sub in self.fleet:
             if sub.is_alive:
                 for i in range(len(sub.vision)):

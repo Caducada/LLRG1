@@ -37,6 +37,9 @@ class Submarine:
         self.temp_x = temp_x
         self.temp_y = temp_y
         self.map = map
+        self.prev_x = None
+        self.prev_y = None
+        self.vision = None
         self.endpoint_reached = endpoint_reached
         if self.x0 != None:
             self.temp_x = self.x0
@@ -87,6 +90,8 @@ class Submarine:
 
     @status_control
     def move_sub(self, direction: str) -> None:
+        self.prev_x = self.temp_x
+        self.prev_y = self.temp_y
         if direction == "up":
             if self.temp_y != self.map_height - 1:
                 if self.temp_y != self.ye and self.xe != self.temp_x:
@@ -477,24 +482,26 @@ class Submarine:
         self.planned_route = new_route
 
     def __get_client_route(self, y_goal: int, x_goal: int) -> bool:
+        if self.m_count -self.endpoint_missiles_required ==0:
+            return False
         if self.temp_x == x_goal and self.temp_y == y_goal:
             client = None
             for sub in self.sub_list:
                 if sub.id == self.client_id:
                     client = sub
+                    secret_key = sub.secret_key
                     break
-            if self.m_count - self.endpoint_missiles_required > 0:
-                self.planned_route = ["Share missiles", "Share vision", "Share secret"]
+            if secret_key == None:
+                self.planned_route = ["Share secret", "Share vision", "Share missiles"]
                 return True
             elif client.vision == None:
-                self.planned_route = ["Share vision", "Share secret"]
+                self.planned_route = ["Share vision", "Share missiles"]
                 return True
-            elif client.secret_key == None:
-                self.planned_route = ["Share secret"]
+            elif self.m_count - self.endpoint_missiles_required > 0:
+                self.planned_route = ["Share missiles"]
                 return True
             else:
-                self.planned_route = self.__get_endpoint_route()
-                return True
+                return False
         new_route = []
         banned_squares = []
         missiles_required = 0
@@ -657,6 +664,7 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.client_missiles_required = missiles_required
+        new_route.append("Share secret")
         new_route.append("Share vision")
         new_route.append("Share missiles")
         self.planned_route = new_route
