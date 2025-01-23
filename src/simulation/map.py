@@ -238,6 +238,8 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
+                if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
+                    sub.is_alive == False
                 for i in range(len(sub.vision)):
                     for j in range(len(sub.vision[i])):
                         if sub.vision[i][j] == "S":
