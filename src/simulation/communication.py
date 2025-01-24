@@ -127,7 +127,9 @@ def share_missiles(giver_sub: Submarine, map: Map) -> None:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
 
     if not len(adjacent_subs):
-        print(f"Error! No adjacent subs found for sub with id {giver_sub.id}")
+        for sub in giver_sub.sub_list:
+            if sub.id == giver_sub.client_id:
+                sub.static = 0
         return
 
     missiles_shared = giver_sub.m_count - giver_sub.endpoint_missiles_required
@@ -170,8 +172,11 @@ def share_vision(giver_sub: Submarine, map: Map) -> None:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
 
     if not len(adjacent_subs):
-        print(f"Error! No adjacent subs found for sub with id {giver_sub.id}")
+        for sub in giver_sub.sub_list:
+            if sub.id == giver_sub.client_id:
+                sub.static = 0
         return
+
 
     for adjacent_id in adjacent_subs:
         for sub in map.fleet:
@@ -217,8 +222,11 @@ def share_secret(giver_sub: Submarine, map: Map) -> None:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
 
     if not len(adjacent_subs):
-        print(f"Error! No adjacent subs found for sub with id {giver_sub.id}")
+        for sub in giver_sub.sub_list:
+            if sub.id == giver_sub.client_id:
+                sub.static = 0
         return
+
 
     for adjacent_id in adjacent_subs:
         for sub in giver_sub.sub_list:
