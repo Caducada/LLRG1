@@ -820,7 +820,7 @@ class Submarine:
                     for j in range(len(self.vision[i])):
                         if i == sub.temp_y and j == sub.temp_x:
                             self.vision[i][j] = "U" + str(sub.id)
-                        elif str(self.vision[i][j])[0] == "U":
+                        elif self.vision[i][j] == "U" + str(sub.id):
                             self.vision[i][j] = 0
 
     @status_control
