@@ -340,7 +340,7 @@ class Submarine:
                     return True
             if (
                 point.y > 0
-                and point.x - 1 <= 0
+                and point.x - 1 >= 0
                 and str(self.vision[point.y][point.x - 1])[0] == "U"
             ):
                 if random.randint(0, 2) != 0:
@@ -362,7 +362,7 @@ class Submarine:
                     return True
             if (
                 point.x < len(self.vision[0])
-                and point.y - 1 <= 0
+                and point.y - 1 >= 0
                 and str(self.vision[point.y - 1][point.x])[0] == "U"
             ):
                 if random.randint(0, 2) != 0:
@@ -550,10 +550,10 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
                     self.planned_route = ["Scan advanced"]
                     return
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
                 self.planned_route = ["Scan advanced"]
                 return
             else:
