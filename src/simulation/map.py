@@ -195,7 +195,10 @@ class Map:
                     x = x_step
                     break
         print(f'collision: {collision}')
-        self.missile_hits_dict[(x, y)] = sub_id
+        if (x, y) not in self.missile_hits_dict.keys():
+            self.missile_hits_dict.setdefault((x,y), 0)
+        else:
+            self.missile_hits_dict[(x,y)] += 1
 
 
     def clear_missile_hits(self):
@@ -214,13 +217,13 @@ class Map:
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
-            return  
+            return 
 
         for key in self.missile_hits_dict:
             for i in range(len(self._map)):
                 for j in range(len(self._map[i])):
                     if i == key[1] and j == key[0]:
-                        for k in range(self.missile_hits_dict[key]+1):
+                        for k in range(self.missile_hits_dict[key] +1):
                             if isinstance(self._map[i][j], int):
                                 self.reduce_rubble(j, i)
                             elif str(self._map[i][j])[0] == "U":

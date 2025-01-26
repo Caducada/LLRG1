@@ -54,7 +54,8 @@ def run_test(sim_map: Map) -> None:
         prepare(sim_map)
         decide(sim_map)
         cleared = execute(sim_map, cleared)
-        time.sleep(3)
+        time.sleep(1)
+        os.system("cls" if os.name == "nt" else "clear")
         sim_map.print_map()
         print("<------------------->")
 
@@ -62,5 +63,7 @@ def run_test(sim_map: Map) -> None:
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
     run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
+    # run_test(Map(file_name="help.txt", sub_file_name="help2.txt"))
     # run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="simple.txt"))
+
