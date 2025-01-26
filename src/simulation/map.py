@@ -19,14 +19,14 @@ class Map:
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
-            self._map = self._map
+            self._map = self._map[::-1]
             self._map = [row for row in self._map if len(row) != 0]
             self.missile_hits_dict = {}
         
         self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
 
     def print_map(self):
-        temp_map = self._map
+        temp_map = self._map[::-1]
         for row in temp_map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
@@ -207,7 +207,6 @@ class Map:
     def get_missile_hits(self):
         return self.missile_hits_dict
     
-
     def __kill(self, sub_id):
         for sub in self.fleet:
             if sub.id == sub_id:
