@@ -66,3 +66,4 @@ if __name__ == "__main__":
     # run_test(Map(file_name="help.txt", sub_file_name="help2.txt"))
     # run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="simple.txt"))
+

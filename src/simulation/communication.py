@@ -178,6 +178,7 @@ def share_vision(giver_sub: Submarine, map: Map) -> None:
         return
 
 
+
     for adjacent_id in adjacent_subs:
         for sub in map.fleet:
             if sub.id == int(adjacent_id):
@@ -199,9 +200,11 @@ def share_vision(giver_sub: Submarine, map: Map) -> None:
 
 def share_secret(giver_sub: Submarine, map: Map) -> None:
     """Ger en hemlig nyckel till en annan ubåt"""
+
     if giver_sub.client_id == None:
         print("Error! Can't share secret with no asigned client")
         return
+      
     secret_key = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
     
     adjacent_subs = []
@@ -222,11 +225,11 @@ def share_secret(giver_sub: Submarine, map: Map) -> None:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
 
     if not len(adjacent_subs):
+
         for sub in giver_sub.sub_list:
             if sub.id == giver_sub.client_id:
                 sub.static = 0
         return
-
 
     for adjacent_id in adjacent_subs:
         for sub in giver_sub.sub_list:
@@ -239,4 +242,6 @@ def share_secret(giver_sub: Submarine, map: Map) -> None:
                 if int(temp_sub.id) == giver_sub.id:
                     temp_sub.secret_key = secret_key
                     
+
     print(f"Sub {giver_sub.id} and sub {adjacent_id} shared the secret key: {secret_key}")
+

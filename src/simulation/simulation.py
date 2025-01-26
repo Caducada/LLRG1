@@ -14,6 +14,7 @@ class Simulation:
         """Utför en simulering av ett steg."""
         for submarine in self.active_fleet[:]:  # Skapa en kopia av listan för säker iteration
             submarine.basic_scan()
+            submarine.update_path()
             if submarine.planned_route:
                 action = submarine.planned_route.pop(0)
                 if "Move" in action:
@@ -31,11 +32,23 @@ class Simulation:
                     
         self._update_map()
 
+    def translate_visual_coordinates(self, x, y):
+        """Översätter interna koordinater (indexering) till visuella koordinater."""
+        map_height = len(self.map._map)
+        translated_y = map_height - 1 - y
+        return x, translated_y
+
+
     def _update_map(self):
         """Uppdaterar kartan baserat på ubåtarnas positioner och andra förändringar."""
         self.map.update_map()
         for submarine in self.fleet:
             submarine.map = self.map._map 
+
+        # Om du ska visualisera något, använd `translate_visual_coordinates`
+        for submarine in self.active_fleet:
+            visual_x, visual_y = self.translate_visual_coordinates(submarine.temp_x, submarine.temp_y)
+            print(f"Ubåt {submarine.id} är på visuell position ({visual_x}, {visual_y})")
 
     def _handle_share_action(self, submarine, action):
         """Hanterar 'Share' kommandon för ubåtar."""
