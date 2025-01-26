@@ -50,7 +50,7 @@ def run_test(sim_map: Map) -> None:
     sim_map.update_map()
     sim_map.print_map()
     print("<------------------->")
-    while len(cleared) != len(sim_map.fleet):
+    while len(cleared) < len(sim_map.fleet):
         prepare(sim_map)
         decide(sim_map)
         cleared = execute(sim_map, cleared)

@@ -209,6 +209,10 @@ class Submarine:
         if self.temp_x == self.xe and self.temp_y == self.ye:
             self.endpoint_reached = True
             self.vision[self.temp_y][self.temp_x] = "S"
+        else:
+            self.endpoint_reached = False
+            self.vision[self.temp_y][self.temp_x] = "S"
+            
 
     @status_control
     def advanced_scan(self):
@@ -498,7 +502,8 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif loop_counter > 9999:
+                    self.planned_route = ["Scan advanced"]
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
@@ -550,10 +555,10 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
+                elif loop_counter > 9999:
                     self.planned_route = ["Scan advanced"]
                     return
-            elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
+            elif loop_counter > 9999:
                 self.planned_route = ["Scan advanced"]
                 return
             else:
@@ -687,7 +692,7 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif loop_counter > 9999:
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
@@ -739,9 +744,9 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > self.map_height * self.map_width + self.m_count:
+                elif loop_counter > 9999:
                     return False
-            elif loop_counter > self.map_height * self.map_width + self.m_count:
+            elif loop_counter > 9999:
                 return False
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
