@@ -50,15 +50,10 @@ class Submarine:
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
         self.endpoint_missiles_required = 0
         self.client_missiles_required = 0
-<<<<<<< HEAD
-        self.static = False
-        self.client_id = None
-=======
         self.static = 0
         self.client_id = None
         self.prev_x = None
         self.prev_y = None
->>>>>>> main
         if self.x0 != None:
             self.temp_x = self.x0
         if self.y0 != None:
@@ -175,8 +170,7 @@ class Submarine:
         elif scannning_type == "advanced":
             self.advanced_scan()
 
-<<<<<<< HEAD
-=======
+
     def __static_counter(self) -> None:
         if self.prev_x == self.temp_x and self.prev_y == self.temp_y:
             self.static += 1
@@ -184,7 +178,6 @@ class Submarine:
             static = 0
         return
 
->>>>>>> main
     @status_control
     def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
@@ -479,21 +472,6 @@ class Submarine:
                         self.m_count - missiles_required - self.vision[point.y][point.x]
                         < 0
                     ):
-<<<<<<< HEAD
-=======
-                        temp_banned_points.append(point)
-                elif point.direction == "up" and point.y < len(self.vision) - 1:
-                    if str(self.vision[point.y + 1][point.x])[0] == "U":
-                        temp_banned_points.append(point)
-                elif point.direction == "down" and point.y > 1:
-                    if str(self.vision[point.y - 1][point.x])[0] == "U":
-                        temp_banned_points.append(point)
-                elif point.direction == "right" and point.x < len(self.vision[0]) - 1:
-                    if str(self.vision[point.y][point.x + 1])[0] == "U":
-                        temp_banned_points.append(point)
-                elif point.direction == "left" and point.x > 1:
-                    if str(self.vision[point.y][point.x - 1])[0] == "U":
->>>>>>> main
                         temp_banned_points.append(point)
                 elif self.__is_scared(point):
                     temp_banned_points.append(point)
@@ -584,20 +562,11 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-<<<<<<< HEAD
                 elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
                     self.planned_route = ["Scan advanced"]
                     return
             elif (loop_counter > self.map_height * self.map_width + self.m_count)*30:
-=======
-                elif (
-                    loop_counter
-                    > (self.map_height * self.map_width + self.m_count) * 10
-                ):
-                    self.planned_route = ["Scan advanced"]
-                    return
-            elif loop_counter > (self.map_height * self.map_width + self.m_count) * 10:
->>>>>>> main
+
                 self.planned_route = ["Scan advanced"]
                 return
             else:
@@ -878,11 +847,8 @@ class Submarine:
                     for j in range(len(self.vision[i])):
                         if i == sub.temp_y and j == sub.temp_x:
                             self.vision[i][j] = "U" + str(sub.id)
-<<<<<<< HEAD
                         elif self.vision[i][j] == "U" + str(sub.id):
-=======
-                        elif str(self.vision[i][j])[0] == "U":
->>>>>>> main
+
                             self.vision[i][j] = 0
 
     @status_control
