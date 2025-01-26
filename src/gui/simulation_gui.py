@@ -24,8 +24,9 @@ class SimulationGUI(BaseGUI):
 
     def draw_cell(self, x, y, cell):
         """Ritar en individuell cell."""
-        cell_x = x * self.cell_size + 200
-        cell_y = y * self.cell_size
+        visual_x, visual_y = self.simulation.translate_visual_coordinates(x, y)
+        cell_x = visual_x * self.cell_size + 200
+        cell_y = visual_y * self.cell_size
 
         resource = self.graphics.get_resource("map", cell)
         color = resource["color"]
@@ -47,11 +48,11 @@ class SimulationGUI(BaseGUI):
             self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1
         )
 
-    def draw_submarine(self, sub):
+    def draw_submarine(self, sub, visual_x, visual_y):
         """Ritar en ubåt."""
         submarine_resource = self.graphics.get_resource("map", "U")
-        cell_x = sub.temp_x * self.cell_size + 200
-        cell_y = sub.temp_y * self.cell_size
+        cell_x = visual_x * self.cell_size + 200
+        cell_y = visual_y * self.cell_size
 
         pygame.draw.rect(
             self.screen,
@@ -95,15 +96,10 @@ class SimulationGUI(BaseGUI):
             for x, cell in enumerate(row):
                 self.draw_cell(x, y, cell)
 
-        # Ritar ubåtar och slutdestinationer
+        # Ritar ubåtar
         for sub in self.simulation.get_active_fleet():
-            if not self.simulation.is_valid_destination(sub.xe, sub.ye):
-                print(f"Ubåtens slutdestination ({sub.xe}, {sub.ye}) är ogiltig.")
-                sub.is_alive = False
-
-            if sub.is_alive:
-                self.draw_submarine(sub)
-            self.draw_destination(sub)
+            visual_x, visual_y = self.simulation.translate_visual_coordinates(sub.temp_x, sub.temp_y)
+            self.draw_submarine(sub, visual_x, visual_y)
 
     def simulate_step(self):
         """Utför ett steg i simuleringen."""
