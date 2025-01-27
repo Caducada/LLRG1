@@ -573,6 +573,7 @@ class Submarine:
         if self.m_count - self.endpoint_missiles_required == 0:
             return False
         if self.temp_x == x_goal and self.temp_y == y_goal:
+            self.__reset_visited_counter()
             client = None
             for sub in self.sub_list:
                 if sub.id == self.client_id:
@@ -587,9 +588,6 @@ class Submarine:
                 return True
             elif self.m_count - self.endpoint_missiles_required > 0:
                 self.planned_route = ["Share missiles"]
-                for key in self.visited_squares_counter.keys():
-                    if self.visited_squares_counter[key] > 0:
-                        self.visited_squares_counter[key] = 0
                 return True
             else:
                 return False
@@ -803,6 +801,11 @@ class Submarine:
             ):
                 return str(point_y) + str(point_x)
         return False
+    
+    def __reset_visited_counter(self):
+        for key in self.visited_squares_counter.keys():
+            if self.visited_squares_counter[key] > 0:
+                self.visited_squares_counter[key] = 0
 
     def __is_adjacent(self, sub) -> bool:
         """Kontrollerar om det står en ubåt bredvid ubåten"""
