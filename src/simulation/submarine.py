@@ -587,6 +587,9 @@ class Submarine:
                 return True
             elif self.m_count - self.endpoint_missiles_required > 0:
                 self.planned_route = ["Share missiles"]
+                for key in self.visited_squares_counter.keys():
+                    if self.visited_squares_counter[key] > 0:
+                        self.visited_squares_counter[key] = 0
                 return True
             else:
                 return False
@@ -755,9 +758,21 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.client_missiles_required = missiles_required
-        new_route.append("Share secret")
-        new_route.append("Share vision")
-        new_route.append("Share missiles")
+        secret_key = None
+        for sub in self.sub_list:
+            if sub.id == self.client_id:
+                client = sub
+                secret_key = sub.secret_key
+                break
+        if secret_key == None:
+            new_route.append("Share secret")
+            new_route.append("Share vision")
+            new_route.append("Share missiles")
+        elif client.vision == None:
+            new_route.append("Share vision")
+            new_route.append("Share missiles")
+        elif self.m_count - self.endpoint_missiles_required > 0:
+            new_route.append("Share missiles")
         self.planned_route = new_route
         return True
 
