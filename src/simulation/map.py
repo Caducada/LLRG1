@@ -166,6 +166,20 @@ class Map:
             csvwriter = csv.writer(file)
             csvwriter.writerows(self._map)
 
+    def subs_swap(self):
+        '''Kollar om ubåtar kör igenom varandra'''
+        for sub in self.fleet:
+            # print(f'{sub.id}')
+            for sub1 in self.fleet:
+                # print(f'Loop2: {sub1.id}')
+                if sub.temp_x == sub1.prev_x and sub.temp_y == sub1.prev_y \
+                    and sub.prev_x == sub1.temp_x and sub.prev_y == sub1.temp_y \
+                    and sub.id != sub1.id:
+                    self.modify_cell(sub.temp_x, sub.temp_y, 0)
+                    self.modify_cell(sub1.temp_x, sub1.temp_y, 0)
+                    sub.is_alive = False
+                    sub1.is_alive = False
+        
 
     def missile_hits(self, sub_id, x, y, direction):
         collision = ""
@@ -221,7 +235,12 @@ class Map:
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
-            return 
+
+            return
+        
+        self.subs_swap()
+
+    
 
         for key in self.missile_hits_dict:
             for i in range(len(self._map)):
@@ -233,7 +252,7 @@ class Map:
                             elif str(self._map[i][j])[0] == "U":
                                 self.__kill(int(self._map[i][j][1]))
                                 
-                            
+
         self.clear_missile_hits()
                             
         for i in range(len(self._map)):
@@ -245,6 +264,9 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
+                if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
+                    sub.is_alive == False
+                    self.modify_cell(sub.temp_x, sub.temp_y, 0)
                 for i in range(len(sub.vision)):
                     for j in range(len(sub.vision[i])):
                         if sub.vision[i][j] == "S":
@@ -259,4 +281,6 @@ class Map:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
-                        self._map[int(key.split()[0])][int(key.split()[1])] = "0"
+                        self._map[int(key.split()[0])][int(key.split()[1])] = 0
+
+  
