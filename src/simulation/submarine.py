@@ -212,7 +212,6 @@ class Submarine:
         else:
             self.endpoint_reached = False
             self.vision[self.temp_y][self.temp_x] = "S"
-            
 
     @status_control
     def advanced_scan(self):
@@ -378,7 +377,7 @@ class Submarine:
                     return True
             if (
                 point.x > 0
-                and point.y < self.map_height - 1 
+                and point.y < self.map_height - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
                 if random.randint(0, 2) != 0:
@@ -502,12 +501,12 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif self.__breaker(loop_counter):
                     self.planned_route = ["Scan advanced"]
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
-                least_visited = 9999
+                least_visited = 999
                 for point in new_points_visited:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
@@ -555,10 +554,10 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif self.__breaker(loop_counter):
                     self.planned_route = ["Scan advanced"]
                     return
-            elif loop_counter > 9999:
+            elif self.__breaker(loop_counter):
                 self.planned_route = ["Scan advanced"]
                 return
             else:
@@ -575,6 +574,7 @@ class Submarine:
         if self.temp_x == x_goal and self.temp_y == y_goal:
             self.__reset_visited_counter()
             client = None
+            secret_key = None
             for sub in self.sub_list:
                 if sub.id == self.client_id:
                     client = sub
@@ -693,11 +693,11 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif self.__breaker(loop_counter):
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
-                least_visited = 9999
+                least_visited = 999
                 for point in new_points_visited:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
@@ -745,9 +745,9 @@ class Submarine:
                         temp_y = self.temp_y
                     else:
                         break
-                elif loop_counter > 9999:
+                elif self.__breaker(loop_counter):
                     return False
-            elif loop_counter > 9999:
+            elif self.__breaker(loop_counter):
                 return False
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
@@ -773,6 +773,11 @@ class Submarine:
             new_route.append("Share missiles")
         self.planned_route = new_route
         return True
+    
+    def __breaker(self, loop_counter:int) -> bool:
+        if loop_counter > 599* self.map_height * self.map_width:
+            return True
+        return False
 
     def __get_adjacent_square(self, point_x: int, point_y: int) -> str | bool:
         """Hittar en säker ruta bredvid en given ruta"""
@@ -801,7 +806,7 @@ class Submarine:
             ):
                 return str(point_y) + str(point_x)
         return False
-    
+
     def __reset_visited_counter(self):
         for key in self.visited_squares_counter.keys():
             if self.visited_squares_counter[key] > 0:
@@ -839,12 +844,24 @@ class Submarine:
     def update_vision(self):
         for sub in self.sub_list:
             if sub.temp_x != None and sub.temp_y != None:
-                for i in range(len(self.vision)):
-                    for j in range(len(self.vision[i])):
+                for i in range(self.map_height):
+                    for j in range(self.map_width):
                         if i == sub.temp_y and j == sub.temp_x:
                             self.vision[i][j] = "U" + str(sub.id)
                         elif self.vision[i][j] == "U" + str(sub.id):
                             self.vision[i][j] = 0
+            if sub.vision != None:
+                for i in range(self.map_height):
+                    for j in range(self.map_width):
+                        if (
+                            sub.vision[i][j] not in {"S", "E", "?"}
+                            and sub.vision[i][j] != self.vision[i][j]
+                            and self.vision[i][j] not in {"S", "E"}
+                        ):
+                            self.vision[i][j] = sub.vision[i][j]
+                        elif sub.vision[i][j] == "S":
+                            self.vision[i][j] = "U" + str(sub.id)
+        return
 
     @status_control
     def update_path(self):
