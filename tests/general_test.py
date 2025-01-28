@@ -13,11 +13,12 @@ def prepare(sim_map: Map) -> None:
         general_share("position", sub, sim_map)
         general_share("missile_info", sub, sim_map)
         general_share("endpoint", sub, sim_map)
+    sim_map.update_paths()
 
 
 def decide(sim_map: Map) -> None:
     for sub in sim_map.fleet:
-        sub.update_path()
+        general_share("paths", sub, sim_map)
         if sub.planned_route[0].split()[0] == "Move":
             sub.move_sub(sub.planned_route[0].split()[1])
         elif sub.planned_route[0].split()[0] == "Shoot":
@@ -50,12 +51,12 @@ def run_test(sim_map: Map) -> None:
     sim_map.update_map()
     sim_map.print_map()
     print("<------------------->")
-    while len(cleared) != len(sim_map.fleet):
+    while len(cleared) < len(sim_map.fleet):
         prepare(sim_map)
         decide(sim_map)
         cleared = execute(sim_map, cleared)
-        # time.sleep(3)
-        input()
+        time.sleep(1)
+        os.system("cls" if os.name == "nt" else "clear")
         sim_map.print_map()
         print("<------------------->")
 

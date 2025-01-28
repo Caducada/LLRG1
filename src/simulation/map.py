@@ -19,14 +19,14 @@ class Map:
         else:
             self._file_name = file_name
             self._map = self.read_map_file(file_name)
-            self._map = self._map
+            self._map = self._map[::-1]
             self._map = [row for row in self._map if len(row) != 0]
             self.missile_hits_dict = {}
         
         self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
 
     def print_map(self):
-        temp_map = self._map
+        temp_map = self._map[::-1]
         for row in temp_map:
             print(' '.join(map(str, row)))
             # print(f'{row}')
@@ -209,7 +209,10 @@ class Map:
                     x = x_step
                     break
         print(f'collision: {collision}')
-        self.missile_hits_dict[(x, y)] = sub_id
+        if (x, y) not in self.missile_hits_dict.keys():
+            self.missile_hits_dict.setdefault((x,y), 0)
+        else:
+            self.missile_hits_dict[(x,y)] += 1
 
 
     def clear_missile_hits(self):
@@ -218,7 +221,11 @@ class Map:
     def get_missile_hits(self):
         return self.missile_hits_dict
     
-
+    def update_paths(self):
+        """Den här metoden körs varje cykel"""
+        for sub in self.fleet:
+            sub.update_path()
+    
     def __kill(self, sub_id):
         for sub in self.fleet:
             if sub.id == sub_id:
@@ -228,15 +235,18 @@ class Map:
     def update_map(self):
         """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
         if not self.fleet:
+
             return
         
         self.subs_swap()
+
+    
 
         for key in self.missile_hits_dict:
             for i in range(len(self._map)):
                 for j in range(len(self._map[i])):
                     if i == key[1] and j == key[0]:
-                        for k in range(self.missile_hits_dict[key]+1):
+                        for k in range(self.missile_hits_dict[key] +1):
                             if isinstance(self._map[i][j], int):
                                 self.reduce_rubble(j, i)
                             elif str(self._map[i][j])[0] == "U":
@@ -272,3 +282,5 @@ class Map:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
                         self._map[int(key.split()[0])][int(key.split()[1])] = 0
+
+  
