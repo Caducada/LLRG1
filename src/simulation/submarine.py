@@ -43,7 +43,7 @@ class Submarine:
         self.vision = None
         self.endpoint_reached = endpoint_reached
         self.m_count = m_count
-        self.planned_route = ["Share position"]
+        self.planned_route = []
         self.secret_key = None
         self.sub_list = []
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
@@ -303,6 +303,24 @@ class Submarine:
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
 
+    def __check_ally_path(self, direction:str) -> bool:
+        for sub in self.sub_list:
+            if sub.planned_route != []:
+                if direction == "up":
+                    if sub.temp_x == self.temp_x and sub.temp_y == self.temp_y + 1 and sub.planned_route[0] == "Move down":
+                        return True
+                if direction == "down":
+                    if sub.temp_x == self.temp_x and sub.temp_y  == self.temp_y - 1 and sub.planned_route[0] == "Move up":
+                        return True
+                if direction == "right":
+                    if sub.temp_x == self.temp_x and sub.temp_x  == self.temp_x + 1 and sub.planned_route[0] == "Move left":
+                        return True
+                if direction == "left":
+                    if sub.temp_x == self.temp_x and sub.temp_x  == self.temp_x - 1 and sub.planned_route[0] == "Move right":
+                        return True
+                return False
+                                        
+
     def __is_scared(
         self,
         point: Point,
@@ -320,15 +338,17 @@ class Submarine:
                 and point.x < self.map_width - 1
                 and str(self.vision[point.y][point.x + 1])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
             if (
                 point.y < len(self.vision)
                 and point.x - 1 >= 0
                 and str(self.vision[point.y][point.x - 1])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
 
         elif point.direction == "down":
             if point.y > 1 and str(self.vision[point.y - 1][point.x])[0] == "U":
@@ -339,15 +359,17 @@ class Submarine:
                 and point.x < self.map_width - 1
                 and str(self.vision[point.y][point.x + 1])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
             if (
                 point.y > 0
                 and point.x - 1 >= 0
                 and str(self.vision[point.y][point.x - 1])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
 
         elif point.direction == "right":
             if (
@@ -361,34 +383,40 @@ class Submarine:
                 and point.y < self.map_height - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
             if (
                 point.x < len(self.vision[0])
                 and point.y - 1 >= 0
                 and str(self.vision[point.y - 1][point.x])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
+            return False
 
         elif point.direction == "left":
             if point.x > 1 and str(self.vision[point.y][point.x - 1])[0] == "U":
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
             if (
                 point.x > 0
                 and point.y < self.map_height - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
             if (
                 point.x > 0
                 and point.y - 1 >= 0
                 and str(self.vision[point.y - 1][point.x])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
-                    return True
+                if not self.__check_ally_path(point.direction):
+                    if random.randint(0, 2) != 0:
+                        return True
 
         return False
 

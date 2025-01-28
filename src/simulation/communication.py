@@ -17,6 +17,8 @@ def general_share(share_type, giver_sub: Submarine, map: Map):
         share_vision(giver_sub, map)
     elif share_type == "secret":
         share_secret(giver_sub, map)
+    elif share_type == "paths":
+        share_paths(giver_sub, map)
 
 
 def share_position(giver_sub: Submarine, map: Map) -> None:
@@ -74,6 +76,17 @@ def share_missile_info(giver_sub: Submarine, map: Map) -> None:
                         Submarine(id=giver_sub.id, m_count=giver_sub.m_count)
                     )
 
+
+def share_paths(giver_sub:Submarine, map: Map) -> None:
+    """Ubåt delar med sig av sin planerade rutt till alla som har access"""
+    for sub in map.fleet:
+        if sub.is_alive:
+            if sub.id == giver_sub.id:
+                for fake_sub in sub.sub_list:
+                    if fake_sub.secret_key != None:
+                        for real_sub in map.fleet:
+                            if real_sub.id == fake_sub.id:
+                                fake_sub.planned_route = real_sub.planned_route
 
 def share_endpoint(giver_sub: Submarine, map: Map) -> None:
     """Delar info om slutpositionen med de övriga ubåtarna"""

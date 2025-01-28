@@ -207,6 +207,11 @@ class Map:
     def get_missile_hits(self):
         return self.missile_hits_dict
     
+    def update_paths(self):
+        """Den här metoden körs varje cykel"""
+        for sub in self.fleet:
+            sub.update_path()
+    
     def __kill(self, sub_id):
         for sub in self.fleet:
             if sub.id == sub_id:
