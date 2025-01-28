@@ -13,12 +13,12 @@ def prepare(sim_map: Map) -> None:
         general_share("position", sub, sim_map)
         general_share("missile_info", sub, sim_map)
         general_share("endpoint", sub, sim_map)
+        general_share("paths", sub, sim_map)
     sim_map.update_paths()
 
 
 def decide(sim_map: Map) -> None:
     for sub in sim_map.fleet:
-        general_share("paths", sub, sim_map)
         if sub.planned_route[0].split()[0] == "Move":
             sub.move_sub(sub.planned_route[0].split()[1])
         elif sub.planned_route[0].split()[0] == "Shoot":
