@@ -9,7 +9,7 @@ class GuiApp:
     """Huvudappen som hanterar sidväxling."""
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((1200, 800), pygame.RESIZABLE)
         pygame.display.set_caption("Submarine Simulation")
         self.pages = {}
         self.current_page = None
@@ -23,16 +23,13 @@ class GuiApp:
     def set_page(self, page_name, **kwargs):
         """Byt till en ny sida."""
         if page_name == "map_editor" and "width" in kwargs and "height" in kwargs:
-            # Dynamiskt skapa MapEditor med angivna dimensioner
             self.pages["map_editor"] = MapEditor(self.screen, self.set_page, kwargs["width"], kwargs["height"])
         elif page_name == "simulation" and "map_file" in kwargs:
-            # Dynamiskt skapa SimulationGUI med karta och ubåtsfil
             map_file = kwargs["map_file"]
             print(map_file)
             fleet_file = kwargs.get("fleet_file", "uboat.txt")
             self.pages["simulation"] = SimulationGUI(self.screen, self.set_page, map_file, fleet_file)
         
-        # Sätt sidan och starta dess loop
         self.current_page = self.pages[page_name]
 
     def initialize_pages(self):
@@ -43,7 +40,7 @@ class GuiApp:
 
     def run(self):
         """Huvudloopen för applikationen."""
-        self.initialize_pages()  # Flytta detta här för att säkerställa att sidor är initialiserade
+        self.initialize_pages() 
         self.set_page("main")
         while self.running:
             self.current_page.run()
