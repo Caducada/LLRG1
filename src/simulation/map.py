@@ -264,6 +264,7 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
+                # Kör in i en mina
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
                     sub.is_alive == False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
@@ -276,7 +277,7 @@ class Map:
                 if isinstance(self.get_cell_value(sub.temp_x, sub.temp_y), int) \
                     and self.get_cell_value(sub.temp_x, sub.temp_y) > 0:
                     sub.is_alive == False
-                    self.modify_cell(sub.temp_x, sub.temp_y, self.get_cell_value(sub.temp_x, sub.temp_y) - 1)
+                    self.reduce_rubble(sub.temp_y, sub.temp_x)
 
 
                 for i in range(len(sub.vision)):
