@@ -13,8 +13,10 @@ class BaseGUI:
         self.width, self.height = self.screen.get_size()
         self.title_font = pygame.font.Font(None, self.get_dynamic_font_size(10))
         self.option_font = pygame.font.Font(None, self.get_dynamic_font_size(14))
-        self.min_width = 640  # Minsta bredd
-        self.min_height = 450  # Minsta höjd
+        self.min_width = 640
+        self.min_height = 450
+        self.scroll_offset = 0 
+        self.scroll_speed = 30 
 
     def set_title(self, title):
         """Ställ in sidans titel."""
@@ -47,18 +49,26 @@ class BaseGUI:
         self.screen.blit(text, text_rect)
 
     def draw_options(self):
-        """Ritar alla alternativ."""
+        """Ritar alla alternativ dynamiskt och justerar storlek om det finns för många."""
+        max_buttons = 4  
+        total_buttons = len(self.options)
+
+        if total_buttons > max_buttons:
+            button_height = self.height // (total_buttons + 4) 
+        else:
+            button_height = self.height // 8 
+
         button_width = self.width // 2
-        button_height = self.height // 8
         center_x = self.width // 2
-        start_y = self.height // 4 
-        spacing = 20
+        start_y = self.height // 4  
+        spacing = 10  
 
         mouse_pos = pygame.mouse.get_pos()
 
         for i, option in enumerate(self.options):
             x = center_x - button_width // 2
             y = start_y + i * (button_height + spacing)
+
             rect = pygame.Rect(x, y, button_width, button_height)
             option["rect"] = rect
 
@@ -71,7 +81,7 @@ class BaseGUI:
             pygame.draw.rect(self.screen, button_color, rect, border_radius=10)
             pygame.draw.rect(self.screen, self.graphics.get_resource("gui", "border")["color"], rect, 3, border_radius=10)
 
-            text_size = int(button_height * 0.6)
+            text_size = max(20, int(button_height * 0.5))  
             text_font = pygame.font.Font(None, text_size)
 
             text_color = (255, 255, 255)
@@ -93,7 +103,7 @@ class BaseGUI:
         self.option_font = pygame.font.Font(None, self.get_dynamic_font_size(14))
 
     def handle_events(self):
-        """Hantera input för sidans alternativ."""
+        """Hantera input och scroll."""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -109,6 +119,10 @@ class BaseGUI:
                     action = self.options[self.selected_index].get("action")
                     if action:
                         action()
+            elif event.type == pygame.MOUSEWHEEL:  
+                self.scroll_offset += event.y * self.scroll_speed
+                max_scroll = max(0, len(self.options) * (self.height // 4 + 10) - self.height // 2)
+                self.scroll_offset = max(-max_scroll, min(0, self.scroll_offset))
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 for option in self.options:

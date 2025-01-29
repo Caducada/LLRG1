@@ -1,20 +1,98 @@
 from gui.base_gui import BaseGUI
+from simulation.map import MAP_DIR
 import pygame
+import os
 
 class MapEditorMenu(BaseGUI):
     """Meny för att välja kartstorlek."""
     def __init__(self, screen, change_page_callback):
         super().__init__(screen, change_page_callback)
-        self.set_title("Skapa en ny karta")
+        self.set_title("Map Editor")
+        self.map_dir = MAP_DIR
         self.add_option("10x10", lambda: self.start_editor(10, 10))
         self.add_option("20x20", lambda: self.start_editor(20, 20))
         self.add_option("50x50", lambda: self.start_editor(50, 50))
         self.add_option("Ange storlek", self.custom_size_popup)
+        self.add_option("Välj befintlig karta", self.open_map_selection)
         self.add_option("Back", lambda: self.change_page("main"))
 
-    def start_editor(self, width, height):
-        """Starta karteditorn med vald storlek."""
-        self.change_page("map_editor", width=width, height=height)
+    def start_editor(self, width, height, map_file=None):
+        """Starta karteditorn med angiven storlek eller befintlig karta."""
+        self.change_page("map_editor", width=width, height=height, map_file=map_file)
+
+    def open_map_selection(self):
+        """Öppnar en popup där användaren kan välja en befintlig karta att redigera."""
+        self.run_scroll_popup()
+
+    def run_scroll_popup(self):
+        """Visar en scrollbar-popup med alla sparade kartor."""
+        running = True
+        font = pygame.font.Font(None, 32)
+        popup_width = self.width - 100
+        popup_height = self.height - 150
+        popup_rect = pygame.Rect(50, 75, popup_width, popup_height)
+
+        scroll_area_rect = popup_rect.inflate(-20, -20)
+        scroll_speed = 20
+        scroll_offset = 0
+        map_files = [f for f in os.listdir(self.map_dir) if f.endswith(".txt")]
+
+        scroll_content = []
+        y_offset = 0
+        for map_file in map_files:
+            rect = pygame.Rect(0, y_offset, scroll_area_rect.width, 50)
+            scroll_content.append({"file": map_file, "rect": rect})
+            y_offset += 60
+
+        scroll_content_height = y_offset
+
+        while running:
+            self.screen.fill((0, 0, 0))
+            pygame.draw.rect(self.screen, (50, 50, 50), popup_rect, border_radius=10)
+            pygame.draw.rect(self.screen, (255, 255, 255), popup_rect, 3, border_radius=10)
+
+            clip_rect = popup_rect.inflate(-10, -10)
+            original_clip = self.screen.get_clip()
+            self.screen.set_clip(clip_rect)
+
+            mouse_pos = pygame.mouse.get_pos()
+            for content in scroll_content:
+                rect = content["rect"].move(clip_rect.x, clip_rect.y - scroll_offset)
+
+                if rect.collidepoint(mouse_pos):
+                    row_color = (80, 80, 80)
+                else:
+                    row_color = (30, 30, 30)
+
+                pygame.draw.rect(self.screen, row_color, rect)
+                text_surface = font.render(content["file"], True, (255, 255, 255))
+                self.screen.blit(text_surface, (rect.x + 10, rect.y + 10))
+
+            self.screen.set_clip(original_clip)
+
+            close_button_rect = pygame.Rect(popup_rect.right - 60, popup_rect.top + 10, 50, 30)
+            pygame.draw.rect(self.screen, (200, 0, 0), close_button_rect, border_radius=5)
+            close_text = pygame.font.Font(None, 24).render("Close", True, (255, 255, 255))
+            self.screen.blit(close_text, close_button_rect.move(10, 5))
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                elif event.type == pygame.MOUSEWHEEL:
+                    scroll_offset += event.y * scroll_speed
+                    max_offset = max(0, scroll_content_height - scroll_area_rect.height)
+                    scroll_offset = max(0, min(scroll_offset, max_offset))
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if close_button_rect.collidepoint(mouse_pos):
+                        running = False
+                    for content in scroll_content:
+                        rect = content["rect"].move(clip_rect.x, clip_rect.y - scroll_offset)
+                        if rect.collidepoint(mouse_pos):
+                            self.start_editor(None, None, map_file=content["file"])
+                            return
 
     def custom_size_popup(self):
         """Popup för att ange egen kartstorlek."""

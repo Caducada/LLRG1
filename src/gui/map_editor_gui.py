@@ -4,18 +4,24 @@ from gui.sidebar import Sidebar
 from simulation.map import Map
 from gui.graphics import GraphicsLibrary
 
-
 class MapEditor(BaseGUI):
-    """Karteditor med stöd för att skapa och redigera kartor."""
-    def __init__(self, screen, change_page_callback, width=10, height=10):
+    """Karteditor för att skapa eller redigera en karta."""
+    def __init__(self, screen, change_page_callback, width=None, height=None, map_file=None):
         super().__init__(screen, change_page_callback)
-        self.set_title("Map Editor")
+        self.set_title("Karteditor")
         self.cell_size = 20
-        self.map_obj = Map()
-        self.map_obj.create_empty_map(width, height)
+        self.map_obj = None
+        self.map_file = map_file
+
+        if map_file:
+            self.load_existing_map(map_file)
+        else:
+            self.map_obj = Map()
+            self.map_obj.create_empty_map(width, height)
+
         self.selected_value = "x"
         self.graphics = GraphicsLibrary()
-        self.sidebar_buttons = [] 
+        self.sidebar_buttons = []  
         self.init_sidebar()
         self.calculate_cell_size()
 
@@ -67,20 +73,19 @@ class MapEditor(BaseGUI):
         """Ställ in det valda värdet för redigering."""
         self.selected_value = value
 
-    def save_map(self):
-        """Spara kartan till en fil."""
-        if not self.map_obj:
-            print("No map to save.")
-            return
+    def load_existing_map(self, map_file):
+        """Ladda en befintlig karta från fil."""
+        self.map_obj = Map(file_name=map_file)
+        print(f"Laddad karta: {map_file}")
 
-        file_name = self.get_file_name_input()
+    def save_map(self):
+        """Spara kartan tillbaka till fil (eller som ny fil om den skapats från scratch)."""
+        file_name = self.map_file if self.map_file else self.get_file_name_input()
         if file_name:
             if not file_name.endswith(".txt"):
-                file_name += ".txt" 
+                file_name += ".txt"
             self.map_obj.save_map_to_file(file_name)
             print(f"Map saved to {file_name}.")
-        else:
-            print("Save canceled.")
 
     def get_file_name_input(self):
         """Visa en popup för att låta användaren mata in ett filnamn."""
