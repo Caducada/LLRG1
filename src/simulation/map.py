@@ -267,6 +267,18 @@ class Map:
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
                     sub.is_alive == False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
+
+                # Kör in i en vägg
+                if self.get_cell_value(sub.temp_x, sub.temp_y) == "x":
+                    sub.is_alive == False
+
+                # Kör in i ett stenrös
+                if isinstance(self.get_cell_value(sub.temp_x, sub.temp_y), int) \
+                    and self.get_cell_value(sub.temp_x, sub.temp_y) > 0:
+                    sub.is_alive == False
+                    self.modify_cell(sub.temp_x, sub.temp_y, self.get_cell_value(sub.temp_x, sub.temp_y) - 1)
+
+
                 for i in range(len(sub.vision)):
                     for j in range(len(sub.vision[i])):
                         if sub.vision[i][j] == "S":
