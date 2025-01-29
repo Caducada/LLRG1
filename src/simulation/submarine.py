@@ -51,6 +51,7 @@ class Submarine:
         self.client_missiles_required = 0
         self.static = False
         self.client_id = None
+        self.death_message_printed = False
         if self.x0 != None:
             self.temp_x = self.x0
         if self.y0 != None:
@@ -65,7 +66,9 @@ class Submarine:
             self.vision = self.__get_starting_vision()
 
     def print_death_message(self, name: str) -> None:
-        print(f"Submarine {self.id} is dead and can't {name}")
+        if not self.death_message_printed:
+            print(f"Submarine {self.id} is dead and can't {name}")
+            self.death_message_printed = True
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []

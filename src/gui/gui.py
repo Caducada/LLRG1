@@ -4,6 +4,7 @@ from gui.simulation_menu import SimulationMenu
 from gui.map_editor_menu import MapEditorMenu
 from gui.map_editor_gui import MapEditor
 from gui.simulation_gui import SimulationGUI
+from gui.sub_select import SubmarineSelectionMenu
 
 class GuiApp:
     """Huvudappen som hanterar sidväxling."""
@@ -29,6 +30,9 @@ class GuiApp:
             print(map_file)
             fleet_file = kwargs.get("fleet_file", "uboat.txt")
             self.pages["simulation"] = SimulationGUI(self.screen, self.set_page, map_file, fleet_file)
+        elif page_name == "submarine_selection" and "map_file" in kwargs:
+            self.pages["submarine_selection"] = SubmarineSelectionMenu(self.screen, self.set_page, kwargs["map_file"])
+
         
         self.current_page = self.pages[page_name]
 

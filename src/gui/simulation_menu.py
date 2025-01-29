@@ -3,13 +3,15 @@ import os
 from gui.base_gui import BaseGUI
 from gui.graphics import GraphicsLibrary
 from simulation.map import Map
-from simulation.map import MAP_DIR
+from simulation.map import MAP_DIR, SUB_DIR
+import random
 
 class SimulationMenu(BaseGUI):
     def __init__(self, screen, change_page_callback):
         super().__init__(screen, change_page_callback)
         self.set_title("Välj en karta för simulering")
         self.map_dir = MAP_DIR
+        self.sub_dir = SUB_DIR
         self.graphics = GraphicsLibrary()
         self.map_files = self.load_map_files()
         self.map_thumbnails = {}
@@ -148,7 +150,7 @@ class SimulationMenu(BaseGUI):
             self.scroll_offset = max(0, min(self.scroll_offset, max_offset))
 
     def run_scroll_popup(self):
-        """Kör popup-loopen med kartlistan."""
+        """Kör popup-loopen med kartlistan och låt användaren välja ubåtsdata."""
         running = True
 
         # Definiera popupens område
@@ -180,9 +182,9 @@ class SimulationMenu(BaseGUI):
                 rect.width = clip_rect.width
 
                 if rect.collidepoint(mouse_pos):
-                    row_color = (80, 80, 80)  
+                    row_color = (80, 80, 80)
                 else:
-                    row_color = (30, 30, 30)  #
+                    row_color = (30, 30, 30)
 
                 pygame.draw.rect(self.screen, row_color, rect)
 
@@ -211,19 +213,99 @@ class SimulationMenu(BaseGUI):
                 elif event.type == pygame.MOUSEWHEEL:
                     self.handle_scroll_events(event)
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mouse_pos = pygame.mouse.get_pos()  
+                    mouse_pos = pygame.mouse.get_pos()
 
                     for content in self.scroll_content:
                         rect = content["rect"].move(clip_rect.x, clip_rect.y - self.scroll_offset)
                         rect.width = clip_rect.width
                         if rect.collidepoint(mouse_pos):
-                            print(f"Selected map: {content['file']}")
-                            self.start_simulation(content["file"])  # Kör simulering för vald karta
-                            running = False
+                            self.change_page("submarine_selection", map_file=content["file"])
+                            return
 
                     # Klick på stäng-knappen
                     if close_button_rect.collidepoint(mouse_pos):
                         running = False
+
+    # def choose_fleet_popup(self, map_file):
+    #     """Popup för att välja ubåtsdata."""
+    #     running = True
+    #     font = pygame.font.Font(None, 32)
+
+    #     input_box = pygame.Rect(self.width // 2 - 100, self.height // 2 + 40, 200, 40)
+    #     color_inactive = (150, 150, 150)
+    #     color_active = (0, 255, 0)
+    #     input_color = color_inactive
+    #     active_input = False
+    #     num_submarines_text = ""
+    #     error_message = ""
+
+    #     while running:
+    #         for event in pygame.event.get():
+    #             if event.type == pygame.QUIT:
+    #                 pygame.quit()
+    #                 exit()
+    #             elif event.type == pygame.MOUSEBUTTONDOWN:
+    #                 if input_box.collidepoint(event.pos):
+    #                     active_input = True
+    #                 else:
+    #                     active_input = False
+    #                 input_color = color_active if active_input else color_inactive
+
+    #                 # Kolla knappar
+    #                 if default_button.collidepoint(event.pos):
+    #                     self.change_page("simulation", map_file=map_file, fleet_file="uboat.txt")
+    #                     return
+    #                 elif random_button.collidepoint(event.pos):
+    #                     error_message = ""
+    #                     active_input = True
+
+    #             elif event.type == pygame.KEYDOWN and active_input:
+    #                 if event.key == pygame.K_RETURN:
+    #                     try:
+    #                         num_submarines = int(num_submarines_text.strip())
+    #                         if num_submarines <= 0:
+    #                             error_message = "Antalet måste vara större än 0."
+    #                         else:
+    #                             self.generate_random_submarines(map_file, num_submarines)
+    #                             self.change_page("simulation", map_file=map_file, fleet_file="random_dumb.txt")
+    #                             return
+    #                     except ValueError:
+    #                         error_message = "Ogiltigt värde. Ange ett heltal."
+    #                 elif event.key == pygame.K_BACKSPACE:
+    #                     num_submarines_text = num_submarines_text[:-1]
+    #                 else:
+    #                     num_submarines_text += event.unicode
+
+    #         # Rendera popup
+    #         self.screen.fill((30, 30, 30))
+    #         popup_rect = pygame.Rect(self.width // 2 - 150, self.height // 2 - 100, 300, 250)
+    #         pygame.draw.rect(self.screen, (50, 50, 50), popup_rect)
+    #         pygame.draw.rect(self.screen, (255, 255, 255), popup_rect, 2)
+
+    #         title_surface = font.render("Välj ubåtsdata", True, (255, 255, 255))
+    #         self.screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, self.height // 2 - 90))
+
+    #         default_button = pygame.Rect(self.width // 2 - 140, self.height // 2 - 40, 120, 40)
+    #         random_button = pygame.Rect(self.width // 2 + 20, self.height // 2 - 40, 120, 40)
+    #         pygame.draw.rect(self.screen, (0, 200, 0), default_button)
+    #         pygame.draw.rect(self.screen, (0, 200, 0), random_button)
+
+    #         default_surface = font.render("Default", True, (255, 255, 255))
+    #         random_surface = font.render("Random", True, (255, 255, 255))
+    #         self.screen.blit(default_surface, (default_button.x + 10, default_button.y + 5))
+    #         self.screen.blit(random_surface, (random_button.x + 10, random_button.y + 5))
+
+    #         # Input-fält
+    #         pygame.draw.rect(self.screen, input_color, input_box, 2)
+    #         input_text_surface = font.render(num_submarines_text, True, (255, 255, 255))
+    #         self.screen.blit(input_text_surface, (input_box.x + 5, input_box.y + 5))
+
+    #         # Felmeddelande
+    #         if error_message:
+    #             error_surface = font.render(error_message, True, (255, 0, 0))
+    #             self.screen.blit(error_surface, (self.width // 2 - error_surface.get_width() // 2, self.height // 2 + 90))
+
+    #         pygame.display.flip()
 
     def handle_events(self):
         """Hanterar event i menyn."""
@@ -246,6 +328,8 @@ class SimulationMenu(BaseGUI):
             elif event.type == pygame.VIDEORESIZE:
                 self.handle_resize(event.size)
 
+
     def start_simulation(self, map_file):
         """Starta simuleringen med vald karta."""
-        self.change_page("simulation", map_file=map_file, fleet_file="uboat.txt")
+        fleet_file = "uboat.txt" 
+        self.change_page("simulation", map_file=map_file, fleet_file=fleet_file)

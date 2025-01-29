@@ -5,13 +5,14 @@ import time
 import os
 
 class Simulation:
-    def __init__(self, map_file, fleet_file):
+    def __init__(self, map_file, fleet_file, max_cycles=None):
         """Initierar simuleringen med en karta och en lista av ubåtar."""
         self.map = Map(file_name=map_file, sub_file_name=fleet_file)
         self.fleet = self.map.fleet
         self.active_fleet = [sub for sub in self.fleet if sub.is_alive]
         self.cleared = set()
         self.cycle_count = 0
+        self.max_cycles = max_cycles
         
     def prepare(self):
         """Utför förberedelser för en ny cykel."""
@@ -53,33 +54,38 @@ class Simulation:
 
     def step(self):
         """Utför en cykel i simuleringen."""
+        if self.max_cycles and self.cycle_count >= self.max_cycles:
+            print("Simulation stopped: reached maximum cycle count.")
+            return
         self.prepare()
         self.decide()
         self.execute()
         self.cycle_count += 1
+        if self.max_cycles and self.cycle_count >= self.max_cycles:
+            print("Simulation stopped due to reaching max cycles.")
 
-    # def run(self, max_cycles=None, display=True):
-    #     """Kör hela simuleringen."""
-    #     os.system("cls" if os.name == "nt" else "clear")
-    #     self.map.update_map()
-    #     if display:
-    #         self.map.print_map()
-    #         print("<------------------->")
+    def run(self, display=True):
+        """Kör hela simuleringen."""
+        os.system("cls" if os.name == "nt" else "clear")
+        self.map.update_map()
+        if display:
+            self.map.print_map()
+            print("<------------------->")
 
-    #     while len(self.cleared) < len(self.fleet):
-    #         if max_cycles and self.cycle_count >= max_cycles:
-    #             print("Simulation stopped: reached maximum cycle count.")
-    #             break
+        while len(self.cleared) < len(self.fleet):
+            if self.max_cycles and self.cycle_count >= self.max_cycles:
+                print("Simulation stopped: reached maximum cycle count.")
+                break
 
-    #         self.step()
-    #         time.sleep(1)
-    #         if display:
-    #             os.system("cls" if os.name == "nt" else "clear")
-    #             self.map.print_map()
-    #             print("<------------------->")
+            self.step()
+            time.sleep(1)
+            if display:
+                os.system("cls" if os.name == "nt" else "clear")
+                self.map.print_map()
+                print("<------------------->")
 
-    #     if display:
-    #         print("Simulation complete!")
+        if display:
+            print("Simulation complete!")
 
     def translate_visual_coordinates(self, x, y):
         """Översätter interna koordinater (indexering) till visuella koordinater."""

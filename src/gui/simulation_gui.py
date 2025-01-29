@@ -14,43 +14,17 @@ class SimulationGUI(BaseGUI):
         map_width = len(self.simulation.get_map()[0])
         map_height = len(self.simulation.get_map())
 
-        # Använd hela fönstrets bredd och höjd
         available_width = self.width
         available_height = self.height
 
-        # Beräkna cellstorlek baserat på fönstrets storlek och kartans dimensioner
         cell_width = available_width // map_width
         cell_height = available_height // map_height
 
-        # Använd minsta cellstorlek så att kartan får plats
         self.cell_size = min(cell_width, cell_height)
 
-        # Centrera kartan om det finns extra utrymme
         self.map_offset_x = (available_width - (map_width * self.cell_size)) // 2
         self.map_offset_y = (available_height - (map_height * self.cell_size)) // 2
 
-    # def draw_cell(self, x, y, cell):
-    #     """Ritar en individuell cell."""
-    #     # Översätt interna koordinater till visuella koordinater
-    #     visual_x, visual_y = self.simulation.translate_visual_coordinates(x, y)
-    #     cell_x = self.map_offset_x + visual_x * self.cell_size
-    #     cell_y = self.map_offset_y + visual_y * self.cell_size
-
-    #     resource = self.graphics.get_resource("map", str(cell) if isinstance(cell, int) else cell)
-    #     color = resource["color"]
-    #     symbol = resource.get("symbol")
-
-    #     # Rita cellens bakgrund
-    #     pygame.draw.rect(self.screen, color, (cell_x, cell_y, self.cell_size, self.cell_size))
-
-    #     if symbol:
-    #         font = pygame.font.Font(None, int(self.cell_size * 0.7))
-    #         text_surface = font.render(str(symbol), True, (0, 0, 0))
-    #         text_rect = text_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
-    #         self.screen.blit(text_surface, text_rect)
-
-    #     # Rita cellens kant
-    #     pygame.draw.rect(self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1)
 
     def draw_cell(self, x, y, cell):
         """Ritar en individuell cell."""
@@ -58,8 +32,19 @@ class SimulationGUI(BaseGUI):
         cell_x = self.map_offset_x + visual_x * self.cell_size
         cell_y = self.map_offset_y + visual_y * self.cell_size
 
-        # Hantering av stenrösen (1-9)
-        if isinstance(cell, int) and cell > 0:
+        if cell == "B":
+            pygame.draw.rect(self.screen, (255, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size))
+
+            mine_image = self.graphics.get_image("mine")
+            if mine_image:
+                scaled_image = pygame.transform.scale(mine_image, (self.cell_size, self.cell_size))
+                self.screen.blit(scaled_image, (cell_x, cell_y))
+            else:
+                font = pygame.font.Font(None, int(self.cell_size * 0.7))
+                text_surface = font.render("B", True, (255, 255, 255)) 
+                text_rect = text_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
+                self.screen.blit(text_surface, text_rect)
+        elif isinstance(cell, int) and cell > 0:
             rubble_image = self.graphics.get_image("rubble")
             if rubble_image:
                 scaled_image = pygame.transform.scale(rubble_image, (self.cell_size, self.cell_size))
@@ -69,7 +54,7 @@ class SimulationGUI(BaseGUI):
                 pygame.draw.rect(self.screen, color, (cell_x, cell_y, self.cell_size, self.cell_size))
 
             font = pygame.font.Font(None, int(self.cell_size * 0.7))
-            text_surface = font.render(str(cell), True, (255,255,255))
+            text_surface = font.render(str(cell), True, (255, 255, 255))
             text_rect = text_surface.get_rect(
                 center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2)
             )
@@ -156,6 +141,6 @@ class SimulationGUI(BaseGUI):
             pygame.display.flip()
             pygame.time.delay(500)
 
-            if self.simulation.is_simulation_complete():
-                print("Simulation complete!")
+            if self.simulation.is_simulation_complete() or (self.simulation.max_cycles and self.simulation.cycle_count >= self.simulation.max_cycles):
+                print("Simulation complete or max cycles reached!")
                 self.change_page("main")

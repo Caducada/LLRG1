@@ -67,14 +67,76 @@ class MapEditor(BaseGUI):
         """Ställ in det valda värdet för redigering."""
         self.selected_value = value
 
-    # TODO: IMPLEMENTERA VAL AV FILNAMN
     def save_map(self):
         """Spara kartan till en fil."""
-        if self.map_obj:
-            self.map_obj.save_map_to_file("underground.txt")
-            print("Map saved to underground.txt.")
-        else:
+        if not self.map_obj:
             print("No map to save.")
+            return
+
+        file_name = self.get_file_name_input()
+        if file_name:
+            if not file_name.endswith(".txt"):
+                file_name += ".txt" 
+            self.map_obj.save_map_to_file(file_name)
+            print(f"Map saved to {file_name}.")
+        else:
+            print("Save canceled.")
+
+    def get_file_name_input(self):
+        """Visa en popup för att låta användaren mata in ett filnamn."""
+        running = True
+        input_box = pygame.Rect(self.width // 2 - 150, self.height // 2 - 20, 300, 40)
+        color_inactive = (150, 150, 150)
+        color_active = (0, 255, 0)
+        color = color_inactive
+        active = False
+        text = ""
+        font = pygame.font.Font(None, 32)
+
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if input_box.collidepoint(event.pos):
+                        active = not active
+                    else:
+                        active = False
+                    color = color_active if active else color_inactive
+                elif event.type == pygame.KEYDOWN:
+                    if active:
+                        if event.key == pygame.K_RETURN:
+                            return text.strip()  
+                        elif event.key == pygame.K_BACKSPACE:
+                            text = text[:-1]
+                        else:
+                            text += event.unicode
+
+                    if event.key == pygame.K_ESCAPE:
+                        return None  
+
+            self.screen.fill((30, 30, 30))  
+            pygame.draw.rect(self.screen, (50, 50, 50), (self.width // 2 - 160, self.height // 2 - 60, 320, 120))
+            pygame.draw.rect(self.screen, color, input_box, 2)
+
+            title_surface = font.render("Enter file name to save:", True, (255, 255, 255))
+            self.screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, self.height // 2 - 50))
+
+            text_surface = font.render(text, True, (255, 255, 255))
+            self.screen.blit(text_surface, (input_box.x + 5, input_box.y + 5))
+            input_box.w = max(300, text_surface.get_width() + 10)
+
+            cancel_button = pygame.Rect(self.width // 2 - 60, self.height // 2 + 40, 120, 30)
+            pygame.draw.rect(self.screen, (200, 0, 0), cancel_button)
+            cancel_text = font.render("Cancel", True, (255, 255, 255))
+            self.screen.blit(cancel_text, (cancel_button.x + (cancel_button.w - cancel_text.get_width()) // 2, cancel_button.y + 5))
+
+            pygame.display.flip()
+
+            mouse_pos = pygame.mouse.get_pos()
+            if pygame.mouse.get_pressed()[0] and cancel_button.collidepoint(mouse_pos):
+                return None  
 
     def handle_events(self):
         """Hantera events som mus- och tangentbordsinmatning."""
@@ -136,7 +198,6 @@ class MapEditor(BaseGUI):
         button_color = self.graphics.get_resource("gui", "button")["color"]
         border_color = self.graphics.get_resource("gui", "border")["color"]
 
-        # Rita sidopanelens bakgrund
         pygame.draw.rect(self.screen, sidebar_bg_color, (0, 0, 200, self.screen.get_height()))
 
         font = pygame.font.Font(None, 24)
@@ -146,11 +207,9 @@ class MapEditor(BaseGUI):
             is_hovered = button["rect"].collidepoint(mouse_pos)
             current_color = hover_color if is_hovered else button_color
 
-            # Rita knappens bakgrund och kant
             pygame.draw.rect(self.screen, current_color, button["rect"], border_radius=5)
             pygame.draw.rect(self.screen, border_color, button["rect"], 2, border_radius=5)
 
-            # Rita knappens text
             text = font.render(button["text"], True, (0, 0, 0))
             self.screen.blit(text, (button["rect"].x + 10, button["rect"].y + 10))
 
@@ -172,20 +231,25 @@ class MapEditor(BaseGUI):
         self.map_offset_y = (available_height - map_height * self.cell_size) // 2
 
     def draw_map(self):
-        """Rita kartan på skärmen."""
+        """Rita kartan så att den fyller hela tillgängligt utrymme."""
         font = pygame.font.Font(None, self.cell_size - 4)
+
         for y, row in enumerate(self.map_obj._map):
             for x, cell in enumerate(row):
                 cell_x = self.map_offset_x + x * self.cell_size
                 cell_y = self.map_offset_y + y * self.cell_size
+
                 resource = self.graphics.get_resource("map", cell)
                 color = resource["color"]
                 symbol = resource["symbol"]
 
                 if color:
                     pygame.draw.rect(self.screen, color, (cell_x, cell_y, self.cell_size, self.cell_size))
+
                 if symbol:
-                    text = font.render(symbol, True, (0, 0, 0))
+                    text = font.render(symbol, True, (0, 0, 0))  
                     text_rect = text.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
                     self.screen.blit(text, text_rect)
+
                 pygame.draw.rect(self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1)
+
