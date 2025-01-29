@@ -264,6 +264,7 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
+                # Kör in i en mina
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
                     sub.is_alive == False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
