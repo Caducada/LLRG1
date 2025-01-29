@@ -21,7 +21,6 @@ class SimulationMenu(BaseGUI):
         # Lägg till menyalternativ
         self.add_option("Run default sim", self.run_default_sim)
         self.add_option("List maps", self.show_map_list)
-        self.add_option("Choose file", self.choose_file)
         self.add_option("Back", lambda: self.change_page("main"))
 
         # Scroll-sektion (för list maps)
