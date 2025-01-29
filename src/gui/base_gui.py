@@ -119,10 +119,6 @@ class BaseGUI:
                     action = self.options[self.selected_index].get("action")
                     if action:
                         action()
-            elif event.type == pygame.MOUSEWHEEL:  
-                self.scroll_offset += event.y * self.scroll_speed
-                max_scroll = max(0, len(self.options) * (self.height // 4 + 10) - self.height // 2)
-                self.scroll_offset = max(-max_scroll, min(0, self.scroll_offset))
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 for option in self.options:

@@ -46,8 +46,13 @@ class MapEditorMenu(BaseGUI):
 
         scroll_content_height = y_offset
 
+        # 🛑 Gör "Close"-knappen större och lättare att klicka
+        close_button_rect = pygame.Rect(popup_rect.right - 90, popup_rect.top + 10, 80, 40)
+
         while running:
             self.screen.fill((0, 0, 0))
+
+            # Rita popup-fönstret
             pygame.draw.rect(self.screen, (50, 50, 50), popup_rect, border_radius=10)
             pygame.draw.rect(self.screen, (255, 255, 255), popup_rect, 3, border_radius=10)
 
@@ -56,6 +61,8 @@ class MapEditorMenu(BaseGUI):
             self.screen.set_clip(clip_rect)
 
             mouse_pos = pygame.mouse.get_pos()
+
+            # Rita listan med kartor
             for content in scroll_content:
                 rect = content["rect"].move(clip_rect.x, clip_rect.y - scroll_offset)
 
@@ -70,10 +77,16 @@ class MapEditorMenu(BaseGUI):
 
             self.screen.set_clip(original_clip)
 
-            close_button_rect = pygame.Rect(popup_rect.right - 60, popup_rect.top + 10, 50, 30)
-            pygame.draw.rect(self.screen, (200, 0, 0), close_button_rect, border_radius=5)
-            close_text = pygame.font.Font(None, 24).render("Close", True, (255, 255, 255))
-            self.screen.blit(close_text, close_button_rect.move(10, 5))
+            # 🛑 LÄGG TILL HOVER-EFFEKT PÅ "CLOSE"-KNAPPEN 🛑
+            if close_button_rect.collidepoint(mouse_pos):
+                close_color = (255, 50, 50)  # Ljusare röd vid hover
+            else:
+                close_color = (200, 0, 0)   # Standardfärg
+
+            # Rita "Close"-knappen **SIST** så att den hamnar överst
+            pygame.draw.rect(self.screen, close_color, close_button_rect, border_radius=5)
+            close_text = pygame.font.Font(None, 28).render("Close", True, (255, 255, 255))
+            self.screen.blit(close_text, (close_button_rect.x + 15, close_button_rect.y + 10))
 
             pygame.display.flip()
 
@@ -85,9 +98,14 @@ class MapEditorMenu(BaseGUI):
                     scroll_offset += event.y * scroll_speed
                     max_offset = max(0, scroll_content_height - scroll_area_rect.height)
                     scroll_offset = max(0, min(scroll_offset, max_offset))
+
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    # 🛑 Prioritera "Close"-knappen först 🛑
                     if close_button_rect.collidepoint(mouse_pos):
                         running = False
+                        break  # Avsluta loopen direkt
+
+                    # Hantera kartval om "Close" **inte** klickades
                     for content in scroll_content:
                         rect = content["rect"].move(clip_rect.x, clip_rect.y - scroll_offset)
                         if rect.collidepoint(mouse_pos):
@@ -97,7 +115,9 @@ class MapEditorMenu(BaseGUI):
     def custom_size_popup(self):
         """Popup för att ange egen kartstorlek."""
         running = True
-        input_box_width = pygame.Rect(self.width // 2 - 100, self.height // 2 - 60, 200, 40)
+        font = pygame.font.Font(None, 32)
+
+        input_box_width = pygame.Rect(self.width // 2 - 100, self.height // 2 - 50, 200, 40)
         input_box_height = pygame.Rect(self.width // 2 - 100, self.height // 2 + 10, 200, 40)
 
         color_inactive = (150, 150, 150)
@@ -109,22 +129,27 @@ class MapEditorMenu(BaseGUI):
         active_height = False
         width_text = ""
         height_text = ""
-
-        font = pygame.font.Font(None, 32)
-        error_message = "" 
+        error_message = ""
+        user_interacted = False 
 
         while running:
+            mouse_pos = pygame.mouse.get_pos()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    user_interacted = True  
                     if input_box_width.collidepoint(event.pos):
                         active_width = True
                         active_height = False
                     elif input_box_height.collidepoint(event.pos):
                         active_height = True
                         active_width = False
+                    elif back_button.collidepoint(event.pos):
+                        self.change_page('main')
+                        return
                     else:
                         active_width = False
                         active_height = False
@@ -133,6 +158,7 @@ class MapEditorMenu(BaseGUI):
                     color_height = color_active if active_height else color_inactive
 
                 elif event.type == pygame.KEYDOWN:
+                    user_interacted = True 
                     if active_width:
                         if event.key == pygame.K_BACKSPACE:
                             width_text = width_text[:-1]
@@ -146,31 +172,49 @@ class MapEditorMenu(BaseGUI):
                             height_text += event.unicode
 
             self.screen.fill((30, 30, 30))
-            pygame.draw.rect(self.screen, (50, 50, 50), (self.width // 2 - 150, self.height // 2 - 100, 300, 250))
+
+            popup_rect = pygame.Rect(self.width // 4, self.height // 4, self.width // 2, self.height // 2)
+            pygame.draw.rect(self.screen, (50, 50, 50), popup_rect, border_radius=10)
 
             title_surface = font.render("Ange storlek (max 200x200):", True, (255, 255, 255))
-            self.screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, self.height // 2 - 140))
+            self.screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, popup_rect.top + 20))
 
-            pygame.draw.rect(self.screen, color_width, input_box_width, 2)
-            pygame.draw.rect(self.screen, color_height, input_box_height, 2)
+            box_hover_color = (180, 180, 180)
+            current_color_width = color_width if not input_box_width.collidepoint(mouse_pos) else box_hover_color
+            current_color_height = color_height if not input_box_height.collidepoint(mouse_pos) else box_hover_color
 
-            width_surface = font.render(width_text, True, (255, 255, 255))
-            height_surface = font.render(height_text, True, (255, 255, 255))
-            self.screen.blit(width_surface, (input_box_width.x + 5, input_box_width.y + 5))
-            self.screen.blit(height_surface, (input_box_height.x + 5, input_box_height.y + 5))
+            pygame.draw.rect(self.screen, current_color_width, input_box_width, 2)
+            pygame.draw.rect(self.screen, current_color_height, input_box_height, 2)
 
-            save_button = pygame.Rect(self.width // 2 - 50, self.height // 2 + 80, 100, 40)
-            pygame.draw.rect(self.screen, (0, 200, 0), save_button)
+            width_display_text = width_text if width_text else "xxx"
+            height_display_text = height_text if height_text else "yyy"
+
+            width_surface = font.render(width_display_text, True, (255, 255, 255) if width_text else (100, 100, 100))
+            height_surface = font.render(height_display_text, True, (255, 255, 255) if height_text else (100, 100, 100))
+
+            self.screen.blit(width_surface, (input_box_width.x + 5, input_box_width.y + 10))
+            self.screen.blit(height_surface, (input_box_height.x + 5, input_box_height.y + 10))
+
+            save_button = pygame.Rect(self.width // 2 - 110, self.height // 2 + 80, 100, 40)
+            back_button = pygame.Rect(self.width // 2 + 10, self.height // 2 + 80, 100, 40)
+
+            save_color = (0, 200, 0) if not save_button.collidepoint(mouse_pos) else (0, 255, 0)
+            back_color = (200, 0, 0) if not back_button.collidepoint(mouse_pos) else (255, 50, 50)
+
+            pygame.draw.rect(self.screen, save_color, save_button, border_radius=5)
+            pygame.draw.rect(self.screen, back_color, back_button, border_radius=5)
+
             save_surface = font.render("Spara", True, (255, 255, 255))
-            self.screen.blit(save_surface, (save_button.x + 20, save_button.y + 5))
+            back_surface = font.render("Tillbaka", True, (255, 255, 255))
+            self.screen.blit(save_surface, (save_button.x + 20, save_button.y + 10))
+            self.screen.blit(back_surface, (back_button.x + 10, back_button.y + 10))
 
-            if error_message:
+            if user_interacted and error_message:
                 error_surface = font.render(error_message, True, (255, 0, 0))
                 self.screen.blit(error_surface, (self.width // 2 - error_surface.get_width() // 2, self.height // 2 + 130))
 
             pygame.display.flip()
 
-            mouse_pos = pygame.mouse.get_pos()
             if pygame.mouse.get_pressed()[0] and save_button.collidepoint(mouse_pos):
                 try:
                     width = int(width_text.strip())
@@ -182,3 +226,5 @@ class MapEditorMenu(BaseGUI):
                         error_message = "Storleken måste vara mellan 1 och 200!"
                 except ValueError:
                     error_message = "Ogiltiga värden! Ange siffror."
+
+

@@ -2,7 +2,6 @@ import pygame
 from gui.base_gui import BaseGUI
 from simulation.simulation import Simulation
 
-
 class SimulationGUI(BaseGUI):
     def __init__(self, screen, change_page_callback, map_file, fleet_file):
         super().__init__(screen, change_page_callback)
@@ -31,6 +30,34 @@ class SimulationGUI(BaseGUI):
         visual_x, visual_y = self.simulation.translate_visual_coordinates(x, y)
         cell_x = self.map_offset_x + visual_x * self.cell_size
         cell_y = self.map_offset_y + visual_y * self.cell_size
+
+    def draw_cell(self, x, y, cell):
+        """Ritar en individuell cell."""
+        visual_x, visual_y = self.simulation.translate_visual_coordinates(x, y)
+        cell_x = self.map_offset_x + visual_x * self.cell_size
+        cell_y = self.map_offset_y + visual_y * self.cell_size
+
+        dead_subs_at_pos = [sub_id for sub_id, pos in self.simulation.map.dead_sub_positions.items() if pos == (x, y)]
+
+        if dead_subs_at_pos:
+            pygame.draw.rect(self.screen, (100, 100, 100), (cell_x, cell_y, self.cell_size, self.cell_size))
+            skull_image = self.graphics.get_image("skull")
+            if skull_image:
+                scaled_image = pygame.transform.scale(skull_image, (self.cell_size, self.cell_size))
+                self.screen.blit(scaled_image, (cell_x, cell_y))
+            else:
+                font = pygame.font.Font(None, int(self.cell_size * 0.7))
+                text_surface = font.render("☠", True, (255, 255, 255))
+                text_rect = text_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
+                self.screen.blit(text_surface, text_rect)
+
+            # Visa ID:n på de ubåtar som dog här
+            font = pygame.font.Font(None, int(self.cell_size * 0.5))
+            id_surface = font.render(f"U{','.join(map(str, dead_subs_at_pos))}", True, (255, 255, 255))
+            id_rect = id_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size - 5))
+            self.screen.blit(id_surface, id_rect)
+
+            return
 
         if cell == "B":
             pygame.draw.rect(self.screen, (255, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size))
@@ -79,7 +106,10 @@ class SimulationGUI(BaseGUI):
         )
 
     def draw_submarine(self, sub):
-        """Ritar en ubåt med bild och ID, där ID visas längst ner i cellen."""
+        """Ritar en ubåt med bild och ID, men ignorerar de som är döda."""
+        if not sub.is_alive:
+            return  
+
         visual_x, visual_y = self.simulation.translate_visual_coordinates(sub.temp_x, sub.temp_y)
         cell_x = self.map_offset_x + visual_x * self.cell_size
         cell_y = self.map_offset_y + visual_y * self.cell_size
@@ -114,14 +144,15 @@ class SimulationGUI(BaseGUI):
 
     def draw_map(self):
         """Ritar hela kartan."""
-        self.resize_map()  
+        self.resize_map()
 
         for y, row in enumerate(self.simulation.get_map()):
             for x, cell in enumerate(row):
                 self.draw_cell(x, y, cell)
 
         for sub in self.simulation.get_fleet():
-            self.draw_destination(sub)
+            if sub.is_alive:
+                self.draw_destination(sub)
 
         for sub in self.simulation.get_active_fleet():
             self.draw_submarine(sub)

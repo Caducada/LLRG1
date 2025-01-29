@@ -12,6 +12,7 @@ class GraphicsLibrary:
                 "border": {"color": (0, 255, 0)},
             },
             "map": {
+                "D": {"color": (100, 100, 100), "symbol": "D"},
                 "E": {"color": (255, 255, 0), "symbol": "E"}, 
                 "0": {"color": (255, 255, 255), "symbol": ""}, 
                 "x": {"color": (100, 100, 100), "symbol": "X"}, 
@@ -31,6 +32,7 @@ class GraphicsLibrary:
             images["submarine"] = pygame.image.load(os.path.join(base_path, "assets/sub.png"))
             images["rubble"] = pygame.image.load(os.path.join(base_path, "assets/rubble.png"))
             images["mine"] = pygame.image.load(os.path.join(base_path, "assets/mine.png"))
+            images["skull"] = pygame.image.load(os.path.join(base_path, "assets/skull.png"))
         except FileNotFoundError as e:
             print(f"Några bilder saknas: {e}. Standardrepresentation används.")
         return images
