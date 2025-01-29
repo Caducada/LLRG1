@@ -264,9 +264,6 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
-                print(f'id : temp_x : temp_y = {sub.id} : {sub.temp_x} : {sub.temp_y}')
-                print(f'id : prev_x : prev_y = {sub.id} : {sub.prev_x} : {sub.prev_y} value={self.get_cell_value(sub.temp_x, sub.temp_y)}type={type(self.get_cell_value(sub.temp_x, sub.temp_y))}')
-                input()
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
                     sub.is_alive == False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
