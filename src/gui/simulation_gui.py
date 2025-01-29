@@ -8,28 +8,74 @@ class SimulationGUI(BaseGUI):
         self.simulation = Simulation(map_file, fleet_file)
         self.cell_size = 20  
 
+        self.button_width = 150
+        self.button_height = 40
+        self.button_spacing = 10  
+
+        self.buttons = self.create_buttons()
+        self.paused = False 
+
+    def create_buttons(self):
+        """Skapar knappar på vänstra sidan av skärmen."""
+        start_y = 50
+        buttons = []
+
+        button_data = [
+            ("Fog of War", self.toggle_fog_of_war),
+            ("Pause", self.toggle_pause),
+            ("Exit", self.exit_simulation)
+        ]
+
+        for index, (text, action) in enumerate(button_data):
+            button_rect = pygame.Rect(10, start_y + index * (self.button_height + self.button_spacing), self.button_width, self.button_height)
+            buttons.append({"rect": button_rect, "text": text, "action": action, "hover": False})
+
+        return buttons
+
+    def toggle_fog_of_war(self):
+        """Placeholder-funktion för att aktivera Fog of War."""
+        print("Fog of War toggled!")
+
+    def toggle_pause(self):
+        """Pausar eller återupptar simuleringen."""
+        self.paused = not self.paused
+        print("Paused:", self.paused)
+
+    def exit_simulation(self):
+        """Avslutar simuleringen och går tillbaka till huvudmenyn."""
+        self.running = False
+        self.change_page("main")
+
+    def draw_buttons(self):
+        """Ritar knapparna på vänstra sidan av skärmen."""
+        font = pygame.font.Font(None, 24)
+        mouse_pos = pygame.mouse.get_pos()
+
+        for button in self.buttons:
+            button["hover"] = button["rect"].collidepoint(mouse_pos)
+
+            button_color = (0, 180, 0) if button["hover"] else (0, 150, 0) 
+            text_color = (255, 255, 255)
+
+            pygame.draw.rect(self.screen, button_color, button["rect"], border_radius=5)
+            pygame.draw.rect(self.screen, (50, 50, 50), button["rect"], 2, border_radius=5)
+
+            text_surface = font.render(button["text"], True, text_color)
+            text_rect = text_surface.get_rect(center=button["rect"].center)
+            self.screen.blit(text_surface, text_rect)
+
     def resize_map(self):
-        """Beräknar dynamisk cellstorlek för att fylla hela fönstret."""
+        """Beräknar dynamisk cellstorlek för att fylla hela fönstret och centrera kartan."""
         map_width = len(self.simulation.get_map()[0])
         map_height = len(self.simulation.get_map())
 
-        available_width = self.width
-        available_height = self.height
-
-        cell_width = available_width // map_width
-        cell_height = available_height // map_height
+        cell_width = self.width // map_width
+        cell_height = self.height // map_height
 
         self.cell_size = min(cell_width, cell_height)
 
-        self.map_offset_x = (available_width - (map_width * self.cell_size)) // 2
-        self.map_offset_y = (available_height - (map_height * self.cell_size)) // 2
-
-
-    def draw_cell(self, x, y, cell):
-        """Ritar en individuell cell."""
-        visual_x, visual_y = self.simulation.translate_visual_coordinates(x, y)
-        cell_x = self.map_offset_x + visual_x * self.cell_size
-        cell_y = self.map_offset_y + visual_y * self.cell_size
+        self.map_offset_x = (self.width - (map_width * self.cell_size)) // 2
+        self.map_offset_y = (self.height - (map_height * self.cell_size)) // 2
 
     def draw_cell(self, x, y, cell):
         """Ritar en individuell cell."""
@@ -143,7 +189,7 @@ class SimulationGUI(BaseGUI):
         self.screen.blit(id_surface, id_rect)
 
     def draw_map(self):
-        """Ritar hela kartan."""
+        """Ritar hela kartan och dess innehåll."""
         self.resize_map()
 
         for y, row in enumerate(self.simulation.get_map()):
@@ -156,6 +202,19 @@ class SimulationGUI(BaseGUI):
 
         for sub in self.simulation.get_active_fleet():
             self.draw_submarine(sub)
+    
+    def handle_events(self):
+        """Hanterar användarinmatningar."""
+        mouse_pos = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for button in self.buttons:
+                    if button["rect"].collidepoint(mouse_pos):
+                        button["action"]()
+            elif event.type == pygame.VIDEORESIZE:
+                self.handle_resize(event.size)
 
     def simulate_step(self):
         """Utför ett steg i simuleringen."""
@@ -166,11 +225,15 @@ class SimulationGUI(BaseGUI):
         self.running = True
         while self.running:
             self.handle_events()
-            self.simulate_step()
+            if not self.paused:
+                self.simulate_step()
+
             self.screen.fill(self.graphics.get_resource("gui", "background")["color"])
+            self.draw_buttons()
             self.draw_map()
+
             pygame.display.flip()
-            pygame.time.delay(500)
+            pygame.time.delay(200)
 
             if self.simulation.is_simulation_complete() or (self.simulation.max_cycles and self.simulation.cycle_count >= self.simulation.max_cycles):
                 print("Simulation complete or max cycles reached!")
