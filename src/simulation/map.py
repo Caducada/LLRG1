@@ -120,7 +120,7 @@ class Map:
             return None
 
     def reduce_rubble(self, x, y):
-        print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
+        # print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
         if int(self._map[y][x]) in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
             sten_ros = int(self._map[y][x]) - 1
             self.modify_cell(x, y, sten_ros)
@@ -215,7 +215,6 @@ class Map:
                     collision = self._map[y][x_step]
                     x = x_step
                     break
-        print(f'collision: {collision}')
         if (x, y) not in self.missile_hits_dict.keys():
             self.missile_hits_dict.setdefault((x,y), 0)
         else:

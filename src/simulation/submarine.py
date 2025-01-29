@@ -1,6 +1,7 @@
 import copy
 import math
 import random
+from collections import deque
 from simulation.point import Point
 
 
@@ -43,7 +44,10 @@ class Submarine:
         self.vision = None
         self.endpoint_reached = endpoint_reached
         self.m_count = m_count
-        self.planned_route = []
+        self.planned_route = deque()
+        self.position_changed = False
+        self.missile_count_changed = False
+        self.endpoint_changed = False
         self.secret_key = None
         self.sub_list = []
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
@@ -157,6 +161,8 @@ class Submarine:
                 else:
                     self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                 self.vision[self.temp_y][self.temp_x] = "S"
+        if (self.prev_x, self.prev_y) != (self.temp_x, self.temp_y):
+            self.position_changed = True
 
     @status_control
     def display_vision(self):
@@ -308,7 +314,7 @@ class Submarine:
 
     def __check_ally_path(self, direction:str) -> bool:
         for sub in self.sub_list:
-            if sub.planned_route != []:
+            if sub.planned_route != deque():
                 if direction == "up":
                     if sub.temp_x == self.temp_x and sub.temp_y == self.temp_y + 1 and sub.planned_route[0] == "Move down":
                         return True
@@ -425,10 +431,10 @@ class Submarine:
 
     def __get_endpoint_route(self) -> None:
         if self.temp_x == self.xe and self.temp_y == self.ye:
-            self.planned_route = ["Scan advanced"]
+            self.planned_route = deque(["Scan advanced"])
             return
-        new_route = []
-        banned_squares = []
+        new_route = deque()
+        banned_squares = set()
         missiles_required = 0
         temp_x = self.temp_x
         temp_y = self.temp_y
@@ -524,8 +530,8 @@ class Submarine:
                 if self.xe == temp_x and self.ye == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
-                            banned_squares.append(square)
-                        new_route = []
+                            banned_squares.add(square)
+                        new_route = deque()
                         missiles_required = 0
                         loop_counter = 0
                         temp_x = self.temp_x
@@ -533,7 +539,7 @@ class Submarine:
                     else:
                         break
                 elif self.__breaker(loop_counter):
-                    self.planned_route = ["Scan advanced"]
+                    self.planned_route = deque(["Scan advanced"])
                     return
                 visited_squares_counter_copy[(new_points[0].y, new_points[0].x)] = 0
             elif len(new_points_visited):
@@ -577,8 +583,8 @@ class Submarine:
                 if self.xe == temp_x and self.ye == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
-                            banned_squares.append(square)
-                        new_route = []
+                            banned_squares.add(square)
+                        new_route = deque()
                         missiles_required = 0
                         loop_counter = 0
                         temp_x = self.temp_x
@@ -586,18 +592,18 @@ class Submarine:
                     else:
                         break
                 elif self.__breaker(loop_counter):
-                    self.planned_route = ["Scan advanced"]
+                    self.planned_route = deque(["Scan advanced"])
                     return
             elif self.__breaker(loop_counter):
-                self.planned_route = ["Scan advanced"]
+                self.planned_route = deque(["Scan advanced"])
                 return
             else:
                 visited_squares_counter_copy = {(self.temp_y, self.temp_x): 0}
                 temp_x = self.temp_x
                 temp_y = self.temp_y
                 missiles_required = 0
-                new_route = []
-        self.planned_route = new_route
+                new_route = deque()
+        self.planned_route = deque(new_route)
 
     def __get_client_route(self, y_goal: int, x_goal: int) -> bool:
         if self.m_count - self.endpoint_missiles_required == 0:
@@ -622,7 +628,7 @@ class Submarine:
                 return True
             else:
                 return False
-        new_route = []
+        new_route = deque()
         banned_squares = []
         missiles_required = 0
         temp_x = self.temp_x
@@ -716,7 +722,7 @@ class Submarine:
                 if x_goal == temp_x and y_goal == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
-                            banned_squares.append(square)
+                            banned_squares.add(square)
                         new_route = []
                         missiles_required = 0
                         loop_counter = 0
@@ -768,7 +774,7 @@ class Submarine:
                 if x_goal == temp_x and y_goal == temp_y:
                     if missiles_required > self.m_count:
                         for square in self.__get_gravel_squares():
-                            banned_squares.append(square)
+                            banned_squares.add(square)
                         new_route = []
                         missiles_required = 0
                         loop_counter = 0
@@ -802,7 +808,7 @@ class Submarine:
             new_route.append("Share missiles")
         elif self.m_count - self.endpoint_missiles_required > 0:
             new_route.append("Share missiles")
-        self.planned_route = new_route
+        self.planned_route = deque(new_route)
         return True
     
     def __breaker(self, loop_counter:int) -> bool:
@@ -870,6 +876,26 @@ class Submarine:
                         ) or self.__is_adjacent(sub):
                             return sub.id
         return None
+    
+    def get_next_position(self, direction):
+        """Beräknar nästa position om ubåten skulle flytta."""
+        x, y = self.temp_x, self.temp_y
+        if direction == "up":
+            y += 1
+        elif direction == "down":
+            y -= 1
+        elif direction == "right":
+            x += 1
+        elif direction == "left":
+            x -= 1
+        return x, y
+    
+    def find_sub_at(self, x, y):
+        """Returnerar ubåten vid (x, y) om det finns en där."""
+        for sub in self.sub_list:
+            if sub.temp_x == x and sub.temp_y == y and sub.is_alive:
+                return sub
+        return None
 
     @status_control
     def update_vision(self):
@@ -896,17 +922,61 @@ class Submarine:
 
     @status_control
     def update_path(self):
+        """Ubåten planerar om sin väg, hanterar blockeringar och markeras som statisk om den fastnar."""
+        if self.endpoint_reached or not self.is_alive:
+            self.planned_route.clear()
+            return
+
+        previous_route_length = len(self.planned_route)
+
+        # 🛠️ Bestäm om ubåten ska försöka hjälpa en annan
         self.client_id = self.__get_client_id()
-        if self.client_id == None:
+        if self.client_id is None:
             self.__get_endpoint_route()
         else:
-            client = None
-            for sub in self.sub_list:
-                if sub.id == self.client_id:
-                    client = sub
-                    break
-            square = self.__get_adjacent_square(client.temp_x, client.temp_y)
-            if square != False:
-                self.__get_client_route(int(square[0]), int(square[1]))
+            client = next((sub for sub in self.sub_list if sub.id == self.client_id), None)
+            if client:
+                square = self.__get_adjacent_square(client.temp_x, client.temp_y)
+                if square:
+                    self.__get_client_route(int(square[0]), int(square[1]))
+                else:
+                    self.__get_endpoint_route()
+
+        # 🚧 Blockeringshantering: Finns det en ubåt i vägen?
+        if len(self.planned_route) > 0 and "Move" in self.planned_route[0]:
+            direction = self.planned_route[0].split()[1]
+            block_x, block_y = self.get_next_position(direction)
+            
+            blocking_sub = self.find_sub_at(block_x, block_y)
+
+            if blocking_sub:
+                if blocking_sub.is_alive:
+                    print(f"⚠️ Sub {self.id} is blocked by Sub {blocking_sub.id} at ({block_x}, {block_y})")
+                    
+                    # 🏳️ Försök få den att flytta sig med Share Position
+                    if blocking_sub.endpoint_reached or blocking_sub.static:
+                        print(f"🔄 Asking Sub {blocking_sub.id} to move")
+                        self.planned_route.appendleft(f"Share position with U{blocking_sub.id}")
+                    
+                    # 💥 Om den vägrar flytta, skjut eller ramma
+                    elif self.m_count > 0:
+                        print(f"💥 Sub {self.id} shoots at Sub {blocking_sub.id}")
+                        self.planned_route.appendleft(f"Shoot {direction}")
+                    else:
+                        print(f"⚠️ Sub {self.id} considers ramming Sub {blocking_sub.id}")
+                        self.planned_route.appendleft(f"Move {direction}")
+
+        # 🔄 **Statisk tracking**: Räknar endast "Scan advanced" upprepningar
+        if previous_route_length == len(self.planned_route) and len(self.planned_route) > 0:
+            if "Scan advanced" in self.planned_route[0]:  
+                self.stuck_counter = getattr(self, "stuck_counter", 0) + 1
             else:
-                self.__get_endpoint_route()
+                self.stuck_counter = 0  # Om den gör något annat, nollställ
+
+            if self.stuck_counter >= 5:
+                self.static = True
+                print(f"🚨 Sub {self.id} is now static after {self.stuck_counter} cycles of scanning.")
+        else:
+            self.stuck_counter = 0
+            self.static = False
+
