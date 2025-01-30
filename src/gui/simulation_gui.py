@@ -95,8 +95,8 @@ class SimulationGUI(BaseGUI):
                 pygame.draw.rect(self.screen, (50, 50, 50), (cell_x, cell_y, self.cell_size, self.cell_size))
                 return  
 
-        dead_subs_at_pos = [sub_id for sub_id, pos in self.simulation.map.dead_sub_positions.items() if pos == (x, y)]
-        is_endpoint = any(sub.xe == x and sub.ye == y for sub in self.simulation.get_fleet())
+        # dead_subs_at_pos = [sub_id for sub_id, pos in self.simulation.map.dead_sub_positions.items() if pos == (x, y)]
+        # is_endpoint = any(sub.xe == x and sub.ye == y for sub in self.simulation.get_fleet())
 
         if cell == "B":
             pygame.draw.rect(self.screen, (255, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size))
@@ -178,12 +178,12 @@ class SimulationGUI(BaseGUI):
             id_rect = id_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size - 5))
             self.screen.blit(id_surface, id_rect)
 
-        elif is_endpoint:
-            pygame.draw.rect(self.screen, (200, 200, 0), (cell_x, cell_y, self.cell_size, self.cell_size))
-            font = pygame.font.Font(None, int(self.cell_size * 0.6))
-            id_surface = font.render("E", True, (0, 0, 0))
-            id_rect = id_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
-            self.screen.blit(id_surface, id_rect)
+        # elif is_endpoint:
+        #     pygame.draw.rect(self.screen, (200, 200, 0), (cell_x, cell_y, self.cell_size, self.cell_size))
+        #     font = pygame.font.Font(None, int(self.cell_size * 0.6))
+        #     id_surface = font.render("E", True, (0, 0, 0))
+        #     id_rect = id_surface.get_rect(center=(cell_x + self.cell_size // 2, cell_y + self.cell_size // 2))
+        #     self.screen.blit(id_surface, id_rect)
 
         pygame.draw.rect(self.screen, (0, 0, 0), (cell_x, cell_y, self.cell_size, self.cell_size), 1)
 

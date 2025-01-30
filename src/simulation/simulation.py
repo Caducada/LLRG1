@@ -1,5 +1,4 @@
 from simulation.map import Map
-from simulation.get_fleet import get_fleet
 from simulation.communication import general_share
 import time
 import os
@@ -13,80 +12,44 @@ class Simulation:
         self.cleared = set()
         self.cycle_count = 0
         self.max_cycles = max_cycles
-        
+
     def prepare(self):
-        """Utför förberedelser för en ny cykel och optimerar datadelning."""
+        """Förbereder alla ubåtar genom att uppdatera deras syn och dela data."""
         for sub in self.active_fleet:
             if sub.is_alive:
                 sub.basic_scan()
-                
-                if sub.position_changed:
-                    general_share("position", sub, self.map)
-                    sub.position_changed = False 
-
-                if sub.missile_count_changed:
-                    general_share("missile_info", sub, self.map)
-                    sub.missile_count_changed = False 
-
-                if sub.endpoint_changed:
-                    general_share("endpoint", sub, self.map)
-                    sub.endpoint_changed = False  
+                general_share("position", sub, self.map)
+                general_share("missile_info", sub, self.map)
+                general_share("endpoint", sub, self.map)
+                general_share("paths", sub, self.map)
+        
         self.map.update_paths()
 
     def decide(self):
-        """Ubåtar fattar beslut om sina handlingar och hanterar blockeringar."""
+        """Ubåtar fattar beslut om sin nästa handling och genomför den."""
         for sub in self.active_fleet:
-            if not sub.is_alive:
-                sub.planned_route.clear() 
+            if not sub.is_alive or not sub.planned_route:
                 continue
 
-            if sub.endpoint_reached:
-                if sub.planned_route:  
-                    action = sub.planned_route[0]
-                    action_type = action.split()[0]
-                    if action_type == "Scan":
-                        sub.general_scan(action.split()[1])
-                    elif action_type == "Share":
-                        general_share(action.split()[1], sub, self.map)
-                continue 
+            action = sub.planned_route.pop(0)
+            action_type = action.split()[0]
 
-            if sub.planned_route:
-                action = sub.planned_route[0]
-                action_type = action.split()[0]
-
-                if action_type == "Move":
-                    next_x, next_y = sub.get_next_position(action.split()[1])
-                    blocking_sub = sub.find_sub_at(next_x, next_y)
-
-                    if blocking_sub:
-                        if blocking_sub.is_alive:
-
-                            general_share("position", blocking_sub, self.map)
-                            
-                            if sub.m_count > 0:
-                                sub.planned_route.appendleft(f"Shoot {action.split()[1]}")
-                            else:
-                                sub.planned_route.appendleft(f"Move {action.split()[1]}")
-                        continue  
-
-                    sub.move_sub(action.split()[1])
-
-                elif action_type == "Shoot":
-                    sub.missile_shoot()
-                    self.map.missile_hits(sub.id, sub.temp_x, sub.temp_y, action.split()[1])
-
-                elif action_type == "Scan":
-                    sub.general_scan(action.split()[1])
-
-                elif action_type == "Share":
-                    general_share(action.split()[1], sub, self.map)
+            if action_type == "Move":
+                sub.move_sub(action.split()[1])
+            elif action_type == "Shoot":
+                sub.missile_shoot()
+                self.map.missile_hits(sub.id, sub.temp_x, sub.temp_y, action.split()[1])
+            elif action_type == "Scan":
+                sub.general_scan(action.split()[1])
+            elif action_type == "Share":
+                general_share(action.split()[1], sub, self.map)
 
     def execute(self):
-        """Utför förändringar efter alla handlingar och uppdaterar status."""
+        """Uppdaterar kartan, hanterar döda ubåtar och tar bort endpoints."""
         self.map.update_map()
 
         for sub in self.fleet:
-            sub.map = self.map._map  
+            sub.map = self.map._map  # Uppdatera kartan för alla ubåtar
 
             if sub not in self.cleared:
                 if sub.endpoint_reached or not sub.is_alive:
@@ -106,23 +69,24 @@ class Simulation:
                     if (sub.xe, sub.ye) in self.map.endpoint_positions:
                         self.map.endpoint_positions.remove((sub.xe, sub.ye))
                         self.map.modify_cell(sub.xe, sub.ye, "0")
+
     def step(self):
         """Utför en cykel i simuleringen."""
         if self.max_cycles and self.cycle_count >= self.max_cycles:
             print("Simulation stopped: reached maximum cycle count.")
             return
-        
-        
+
         self.prepare()
         self.decide()
         self.execute()
         
         self.cycle_count += 1
-        
+
         if self.max_cycles and self.cycle_count >= self.max_cycles:
             print("Simulation stopped due to reaching max cycles.")
 
     def run(self, display=True):
+        """Kör simuleringen tills alla ubåtar är klara eller döda."""
         os.system("cls" if os.name == "nt" else "clear")
         self.map.update_map()
         if display:
@@ -135,7 +99,7 @@ class Simulation:
                 break
 
             self.step()
-            time.sleep(0.1)  # SNABBARE SIMULERING
+            time.sleep(0.1)  # För snabbare simulering
             if display:
                 os.system("cls" if os.name == "nt" else "clear")
                 self.map.print_map()
