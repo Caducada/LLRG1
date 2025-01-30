@@ -264,9 +264,22 @@ class Map:
         
         for sub in self.fleet:
             if sub.is_alive:
+                # Kör in i en mina
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
                     sub.is_alive == False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
+
+                # Kör in i en vägg
+                if self.get_cell_value(sub.temp_x, sub.temp_y) == "x":
+                    sub.is_alive == False
+
+                # Kör in i ett stenrös
+                if isinstance(self.get_cell_value(sub.temp_x, sub.temp_y), int) \
+                    and self.get_cell_value(sub.temp_x, sub.temp_y) > 0:
+                    sub.is_alive == False
+                    self.reduce_rubble(sub.temp_y, sub.temp_x)
+
+
                 for i in range(len(sub.vision)):
                     for j in range(len(sub.vision[i])):
                         if sub.vision[i][j] == "S":
