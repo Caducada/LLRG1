@@ -46,6 +46,7 @@ def share_position(giver_sub: Submarine, map: Map) -> None:
                             temp_sub.prev_y = temp_sub.prev_y
                             temp_sub.temp_x = giver_sub.temp_x
                             temp_sub.temp_y = giver_sub.temp_y
+                            temp_sub.is_alive = giver_sub.is_alive
                 else:
                     sub.sub_list.append(
                         Submarine(
