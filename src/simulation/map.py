@@ -298,7 +298,6 @@ class Map:
             if repeated[key] >= 1:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
-                        print(f"{key}: {repeated[key]}")
                         sub.is_alive = False
                         self._map[int(key.split()[0])][int(key.split()[1])] = 0
 
