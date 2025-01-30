@@ -53,7 +53,6 @@ def share_position(giver_sub: Submarine, map: Map) -> None:
                             id=giver_sub.id,
                             temp_x=giver_sub.temp_x,
                             temp_y=giver_sub.temp_y,
-                            is_alive = giver_sub.is_alive
                         )
                     )
         sub.update_vision()
