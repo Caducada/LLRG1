@@ -176,17 +176,19 @@ class Map:
     def subs_swap(self):
         """Hanterar kollisioner mellan ubåtar och markerar dödsplatser."""
         for sub in self.fleet:
-            for sub1 in self.fleet:
-                if sub.temp_x == sub1.prev_x and sub.temp_y == sub1.prev_y \
-                    and sub.prev_x == sub1.temp_x and sub.prev_y == sub1.temp_y \
-                    and sub.id != sub1.id:
+            if sub.is_alive:
+                for sub1 in self.fleet:
+                    if sub1.is_alive:
+                        if sub.temp_x == sub1.prev_x and sub.temp_y == sub1.prev_y \
+                            and sub.prev_x == sub1.temp_x and sub.prev_y == sub1.temp_y \
+                            and sub.id != sub1.id:
 
-                    pos = (sub.temp_x, sub.temp_y)
-                    self.dead_sub_positions[sub.id] = pos
-                    self.dead_sub_positions[sub1.id] = pos
+                            pos = (sub.temp_x, sub.temp_y)
+                            self.dead_sub_positions[sub.id] = pos
+                            self.dead_sub_positions[sub1.id] = pos
 
-                    sub.is_alive = False
-                    sub1.is_alive = False
+                            sub.is_alive = False
+                            sub1.is_alive = False
 
     def missile_hits(self, sub_id, x, y, direction):
         collision = ""
@@ -292,11 +294,11 @@ class Map:
                                 repeated.setdefault(str(i) + " " + str(j), 0)
                             else:
                                 repeated[str(i) + " " + str(j)] += 1
-
         for key in repeated.keys():
             if repeated[key] >= 1:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
+                        print(f"{key}: {repeated[key]}")
                         sub.is_alive = False
                         self._map[int(key.split()[0])][int(key.split()[1])] = 0
 
