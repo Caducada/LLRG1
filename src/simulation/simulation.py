@@ -42,7 +42,7 @@ class Simulation:
 
             if sub.endpoint_reached:
                 if sub.planned_route:  
-                    action = sub.planned_route.popleft()
+                    action = sub.planned_route[0]
                     action_type = action.split()[0]
                     if action_type == "Scan":
                         sub.general_scan(action.split()[1])
@@ -51,7 +51,7 @@ class Simulation:
                 continue 
 
             if sub.planned_route:
-                action = sub.planned_route.popleft()
+                action = sub.planned_route[0]
                 action_type = action.split()[0]
 
                 if action_type == "Move":
