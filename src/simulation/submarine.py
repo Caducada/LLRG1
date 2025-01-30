@@ -2,6 +2,7 @@ import copy
 import math
 import random
 from simulation.point import Point
+from collections import deque
 
 
 def status_control(method):
@@ -922,15 +923,21 @@ class Submarine:
                     # 🏳️ Försök få den att flytta sig med Share Position
                     if blocking_sub.endpoint_reached or blocking_sub.static:
                         print(f"🔄 Asking Sub {blocking_sub.id} to move")
+                        self.planned_route = deque(self.planned_route)
                         self.planned_route.appendleft(f"Share position with U{blocking_sub.id}")
+                        self.planned_route = list(self.planned_route)
                     
                     # 💥 Om den vägrar flytta, skjut eller ramma
                     elif self.m_count > 0:
                         print(f"💥 Sub {self.id} shoots at Sub {blocking_sub.id}")
+                        self.planned_route = deque(self.planned_route)
                         self.planned_route.appendleft(f"Shoot {direction}")
+                        self.planned_route = list(self.planned_route)
                     else:
                         print(f"⚠️ Sub {self.id} considers ramming Sub {blocking_sub.id}")
-                        self.planned_route.appendleft(f"Move {direction}")
+                        self.planned_route = deque(self.planned_route)
+                        self.planned_route.append(f"Move {direction}")
+                        self.planned_route = list(self.planned_route)
 
     def get_next_position(self, direction):
         """Beräknar nästa position om ubåten skulle flytta."""
