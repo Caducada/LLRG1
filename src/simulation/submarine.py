@@ -51,6 +51,9 @@ class Submarine:
         self.client_missiles_required = 0
         self.static = False
         self.client_id = None
+        self.position_changed = False
+        self.missile_count_changed = False
+        self.endpoint_changed = False
         if self.x0 != None:
             self.temp_x = self.x0
         if self.y0 != None:
