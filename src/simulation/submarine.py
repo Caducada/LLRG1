@@ -170,6 +170,13 @@ class Submarine:
     @status_control
     def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
+        dead_subs = []
+        for sub in self.sub_list:
+            if not sub.is_alive:
+                dead_subs.append(sub)
+        for sub in dead_subs:
+            if sub in self.sub_list:
+                self.sub_list.remove(sub)
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
@@ -739,6 +746,7 @@ class Submarine:
                         == least_visited
                         and str(self.vision[point.y][point.x])[0] != "U"
                         and self.__is_safe(point)
+                        and not self.__is_scared(point)
                     ):
                         final_point = point
                         break
