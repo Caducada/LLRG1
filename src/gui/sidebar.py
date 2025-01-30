@@ -20,31 +20,27 @@ class Sidebar(BaseGUI):
         font = pygame.font.Font(None, 24)
 
         for button in self.buttons:
-            # Highlight the hovered button
             if button == self.hovered_button:
                 button_color = (255, 255, 150) 
             else:
                 button_color = button["color"]
 
-            # Draw button background
             pygame.draw.rect(self.screen, button_color, button["rect"], border_radius=5)
 
-            # Draw button border
             pygame.draw.rect(self.screen, (0, 0, 0), button["rect"], 2, border_radius=5)
 
-            # Draw button text
             text = font.render(button["text"], True, (0, 0, 0))
             self.screen.blit(text, (button["rect"].x + 5, button["rect"].y + 5))
 
     def handle_hover(self, mouse_pos):
         """Handle hover effects for the buttons."""
-        self.hovered_button = None  # Reset hovered button
+        self.hovered_button = None  
         for button in self.buttons:
             if button["rect"].collidepoint(mouse_pos):
                 self.hovered_button = button
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)  # Change cursor to hand
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND) 
                 return
-        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)  # Default cursor
+        pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW) 
 
     def handle_click(self, mouse_pos):
         """Handle button clicks."""

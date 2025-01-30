@@ -3,13 +3,15 @@ import os
 from gui.base_gui import BaseGUI
 from gui.graphics import GraphicsLibrary
 from simulation.map import Map
-from simulation.map import MAP_DIR
+from simulation.map import MAP_DIR, SUB_DIR
+import random
 
 class SimulationMenu(BaseGUI):
     def __init__(self, screen, change_page_callback):
         super().__init__(screen, change_page_callback)
         self.set_title("Välj en karta för simulering")
         self.map_dir = MAP_DIR
+        self.sub_dir = SUB_DIR
         self.graphics = GraphicsLibrary()
         self.map_files = self.load_map_files()
         self.map_thumbnails = {}
@@ -19,7 +21,6 @@ class SimulationMenu(BaseGUI):
         # Lägg till menyalternativ
         self.add_option("Run default sim", self.run_default_sim)
         self.add_option("List maps", self.show_map_list)
-        self.add_option("Choose file", self.choose_file)
         self.add_option("Back", lambda: self.change_page("main"))
 
         # Scroll-sektion (för list maps)
@@ -142,31 +143,32 @@ class SimulationMenu(BaseGUI):
 
     def handle_scroll_events(self, event):
         """Hantera scrollhändelser."""
+        if self.scroll_area_rect is None:  
+            return 
+
         if event.type == pygame.MOUSEWHEEL:
             self.scroll_offset += event.y * self.scroll_speed
             max_offset = max(0, self.scroll_content_height - self.scroll_area_rect.height)
             self.scroll_offset = max(0, min(self.scroll_offset, max_offset))
 
     def run_scroll_popup(self):
-        """Kör popup-loopen med kartlistan."""
+        """Kör popup-loopen med kartlistan och låt användaren välja ubåtsdata."""
         running = True
 
-        # Definiera popupens område
         popup_width = self.width - 100
         popup_height = self.height - 150
         popup_rect = pygame.Rect(50, 75, popup_width, popup_height)
 
-        # Sätt scroll_area_rect för att hantera scroll
         self.scroll_area_rect = popup_rect.inflate(-10, -10)
 
-        # Sätt korrekt bredd på rektanglarna
         for content in self.scroll_content:
             content["rect"].width = self.scroll_area_rect.width
 
-        while running:
-            self.screen.fill((0, 0, 0))  # Svart bakgrund
+        close_button_rect = pygame.Rect(popup_rect.right - 90, popup_rect.top + 10, 80, 40)
 
-            # Rendera popup-bakgrund
+        while running:
+            self.screen.fill((0, 0, 0)) 
+
             pygame.draw.rect(self.screen, (50, 50, 50), popup_rect, border_radius=10)
             pygame.draw.rect(self.screen, (255, 255, 255), popup_rect, 3, border_radius=10)
 
@@ -175,17 +177,17 @@ class SimulationMenu(BaseGUI):
             self.screen.set_clip(clip_rect)
 
             mouse_pos = pygame.mouse.get_pos()
+
             for content in self.scroll_content:
                 rect = content["rect"].move(clip_rect.x, clip_rect.y - self.scroll_offset)
                 rect.width = clip_rect.width
 
                 if rect.collidepoint(mouse_pos):
-                    row_color = (80, 80, 80)  
+                    row_color = (80, 80, 80)
                 else:
-                    row_color = (30, 30, 30)  #
+                    row_color = (30, 30, 30)
 
                 pygame.draw.rect(self.screen, row_color, rect)
-
                 self.screen.blit(content["thumbnail"], (rect.x + 20, rect.y + 20))
 
                 font = pygame.font.Font(None, 36)
@@ -196,11 +198,9 @@ class SimulationMenu(BaseGUI):
 
             self.screen.set_clip(original_clip)
 
-            # Rendera "Stäng"-knappen
-            close_button_rect = pygame.Rect(popup_rect.right - 60, popup_rect.top + 10, 50, 30)
             pygame.draw.rect(self.screen, (200, 0, 0), close_button_rect, border_radius=5)
-            close_text = pygame.font.Font(None, 24).render("Close", True, (255, 255, 255))
-            self.screen.blit(close_text, close_button_rect.move(10, 5))
+            close_text = pygame.font.Font(None, 28).render("Close", True, (255, 255, 255))
+            self.screen.blit(close_text, (close_button_rect.x + 15, close_button_rect.y + 10))
 
             pygame.display.flip()
 
@@ -208,22 +208,23 @@ class SimulationMenu(BaseGUI):
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
+
                 elif event.type == pygame.MOUSEWHEEL:
                     self.handle_scroll_events(event)
+
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    mouse_pos = pygame.mouse.get_pos()  
+                    mouse_pos = pygame.mouse.get_pos()
+
+                    if close_button_rect.collidepoint(mouse_pos):
+                        running = False
+                        break  
 
                     for content in self.scroll_content:
                         rect = content["rect"].move(clip_rect.x, clip_rect.y - self.scroll_offset)
                         rect.width = clip_rect.width
                         if rect.collidepoint(mouse_pos):
-                            print(f"Selected map: {content['file']}")
-                            self.start_simulation(content["file"])  # Kör simulering för vald karta
-                            running = False
-
-                    # Klick på stäng-knappen
-                    if close_button_rect.collidepoint(mouse_pos):
-                        running = False
+                            self.change_page("submarine_selection", map_file=content["file"])
+                            return
 
     def handle_events(self):
         """Hanterar event i menyn."""
@@ -234,9 +235,9 @@ class SimulationMenu(BaseGUI):
                 pygame.quit()
                 exit()
             elif event.type == pygame.MOUSEWHEEL:
-                self.handle_scroll_events(event)
+                if self.scroll_area_rect is not None: 
+                    self.handle_scroll_events(event)
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                # Klick på alternativ
                 for option in self.options:
                     rect = option["rect"]
                     if rect and rect.collidepoint(mouse_pos):
@@ -246,6 +247,8 @@ class SimulationMenu(BaseGUI):
             elif event.type == pygame.VIDEORESIZE:
                 self.handle_resize(event.size)
 
+
     def start_simulation(self, map_file):
         """Starta simuleringen med vald karta."""
-        self.change_page("simulation", map_file=map_file, fleet_file="uboat.txt")
+        fleet_file = "uboat.txt" 
+        self.change_page("simulation", map_file=map_file, fleet_file=fleet_file)

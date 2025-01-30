@@ -14,6 +14,8 @@ class Map:
         Skapar en karta efter kartfil och lägger till ubåtar,
         om ingen kartfil anges skapas en tom karta.
         """
+        self.endpoint_positions = set()
+        self.dead_sub_positions = {}
         if file_name == '':
             self.create_empty_map(x, y)
         else:
@@ -24,6 +26,8 @@ class Map:
             self.missile_hits_dict = {}
         
         self.fleet = get_fleet(sub_file_name, self._map) if sub_file_name else []
+        for sub in self.fleet:
+            self.endpoint_positions.add((sub.xe, sub.ye))
 
     def print_map(self):
         temp_map = self._map[::-1]
@@ -116,14 +120,17 @@ class Map:
             return None
 
     def reduce_rubble(self, x, y):
-        print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
+        # print(f'Stenrös [{y}][{x}]: {self._map[y][x]}')
         if int(self._map[y][x]) in [1, 2, 3, 4, 5, 6, 7, 8, 9]:
             sten_ros = int(self._map[y][x]) - 1
             self.modify_cell(x, y, sten_ros)
 
 
     def modify_cell(self, x, y, value):
-        """Modifierar en cell på kartan."""
+        """Modifierar en cell på kartan, men dödsplatser påverkar inte."""
+        if (x, y) in self.dead_sub_positions.values():
+            return  
+
         if 0 <= y < len(self._map) and 0 <= x < len(self._map[0]):
             self._map[y][x] = value
         else:
@@ -167,19 +174,19 @@ class Map:
             csvwriter.writerows(self._map)
 
     def subs_swap(self):
-        '''Kollar om ubåtar kör igenom varandra'''
+        """Hanterar kollisioner mellan ubåtar och markerar dödsplatser."""
         for sub in self.fleet:
-            # print(f'{sub.id}')
             for sub1 in self.fleet:
-                # print(f'Loop2: {sub1.id}')
                 if sub.temp_x == sub1.prev_x and sub.temp_y == sub1.prev_y \
                     and sub.prev_x == sub1.temp_x and sub.prev_y == sub1.temp_y \
                     and sub.id != sub1.id:
-                    self.modify_cell(sub.temp_x, sub.temp_y, 0)
-                    self.modify_cell(sub1.temp_x, sub1.temp_y, 0)
+
+                    pos = (sub.temp_x, sub.temp_y)
+                    self.dead_sub_positions[sub.id] = pos
+                    self.dead_sub_positions[sub1.id] = pos
+
                     sub.is_alive = False
                     sub1.is_alive = False
-        
 
     def missile_hits(self, sub_id, x, y, direction):
         collision = ""
@@ -208,7 +215,6 @@ class Map:
                     collision = self._map[y][x_step]
                     x = x_step
                     break
-        print(f'collision: {collision}')
         if (x, y) not in self.missile_hits_dict.keys():
             self.missile_hits_dict.setdefault((x,y), 0)
         else:
@@ -227,46 +233,44 @@ class Map:
             sub.update_path()
     
     def __kill(self, sub_id):
+        """Dödar en ubåt och sparar dess dödsplats."""
         for sub in self.fleet:
             if sub.id == sub_id:
                 sub.is_alive = False
+                pos = (sub.temp_x, sub.temp_y)
+                self.dead_sub_positions[sub.id] = pos
                 return
     
     def update_map(self):
-        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något"""
+        """Hanterar eventuella konflikter som uppstår efter att alla ubåtar gjort något."""
         if not self.fleet:
-
             return
-        
-        self.subs_swap()
 
-    
+        self.subs_swap()
 
         for key in self.missile_hits_dict:
             for i in range(len(self._map)):
                 for j in range(len(self._map[i])):
                     if i == key[1] and j == key[0]:
-                        for k in range(self.missile_hits_dict[key] +1):
+                        for _ in range(self.missile_hits_dict[key] + 1):
                             if isinstance(self._map[i][j], int):
                                 self.reduce_rubble(j, i)
                             elif str(self._map[i][j])[0] == "U":
                                 self.__kill(int(self._map[i][j][1]))
-                                
 
         self.clear_missile_hits()
-                            
+
         for i in range(len(self._map)):
             for j in range(len(self._map[i])):
                 if str(self._map[i][j])[0] == "U":
                     self._map[i][j] = 0
 
         repeated = {}
-        
         for sub in self.fleet:
             if sub.is_alive:
                 # Kör in i en mina
                 if self.get_cell_value(sub.temp_x, sub.temp_y) == "B":
-                    sub.is_alive == False
+                    sub.is_alive = False
                     self.modify_cell(sub.temp_x, sub.temp_y, 0)
 
                 # Kör in i en vägg
