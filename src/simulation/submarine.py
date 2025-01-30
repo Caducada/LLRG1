@@ -8,7 +8,6 @@ from simulation.point import Point
 def status_control(method):
     def wrapper(self, *args, **kwargs):
         if not self.is_alive:
-            self.print_death_message(method.__name__)
             return
         return method(self, *args, **kwargs)
 
@@ -73,6 +72,7 @@ class Submarine:
         if not self.death_message_printed:
             print(f"Submarine {self.id} is dead and can't {name}")
             self.death_message_printed = True
+
 
     def __get_starting_vision(self) -> list:
         wrapper_list = []
@@ -312,7 +312,7 @@ class Submarine:
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
 
-    def __check_ally_path(self, direction:str) -> bool:
+    def __is_safe(self, point:Point) -> bool:
         for sub in self.sub_list:
             if sub.planned_route != deque():
                 if direction == "up":
@@ -330,6 +330,7 @@ class Submarine:
                 return False
                                         
 
+
     def __is_scared(
         self,
         point: Point,
@@ -340,92 +341,83 @@ class Submarine:
                 point.y < len(self.vision) - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
+                if random.randint(0, 4) != 0:
                     return True
             if (
                 point.y < len(self.vision)
                 and point.x < self.map_width - 1
                 and str(self.vision[point.y][point.x + 1])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             if (
                 point.y < len(self.vision)
                 and point.x - 1 >= 0
                 and str(self.vision[point.y][point.x - 1])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
 
         elif point.direction == "down":
             if point.y > 1 and str(self.vision[point.y - 1][point.x])[0] == "U":
-                if random.randint(0, 2) != 0:
+                if random.randint(0, 4) != 0:
                     return True
             if (
                 point.y > 0
                 and point.x < self.map_width - 1
                 and str(self.vision[point.y][point.x + 1])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             if (
                 point.y > 0
                 and point.x - 1 >= 0
                 and str(self.vision[point.y][point.x - 1])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
 
         elif point.direction == "right":
             if (
                 point.x < len(self.vision[0]) - 1
                 and str(self.vision[point.y][point.x + 1])[0] == "U"
             ):
-                if random.randint(0, 2) != 0:
+                if random.randint(0, 4) != 0:
                     return True
             if (
                 point.x < len(self.vision[0])
                 and point.y < self.map_height - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             if (
                 point.x < len(self.vision[0])
                 and point.y - 1 >= 0
                 and str(self.vision[point.y - 1][point.x])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             return False
 
         elif point.direction == "left":
             if point.x > 1 and str(self.vision[point.y][point.x - 1])[0] == "U":
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             if (
                 point.x > 0
                 and point.y < self.map_height - 1
                 and str(self.vision[point.y + 1][point.x])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
             if (
                 point.x > 0
                 and point.y - 1 >= 0
                 and str(self.vision[point.y - 1][point.x])[0] == "U"
             ):
-                if not self.__check_ally_path(point.direction):
-                    if random.randint(0, 2) != 0:
-                        return True
+                if random.randint(0, 4) != 0:
+                    return True
 
         return False
 
@@ -503,6 +495,8 @@ class Submarine:
                         temp_banned_points.append(point)
                 elif self.__is_scared(point):
                     temp_banned_points.append(point)
+                elif not self.__is_safe(point):
+                    temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -551,15 +545,19 @@ class Submarine:
                         and str(self.vision[point.y][point.x])[0] != "U"
                     ):
                         least_visited = visited_squares_counter_copy[(point.y, point.x)]
-                final_point = new_points_visited[0]
+                final_point = None
                 for point in new_points_visited:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         == least_visited
                         and str(self.vision[point.y][point.x])[0] != "U"
+                        and self.__is_safe(point)
                     ):
                         final_point = point
                         break
+                if final_point == None:
+                    self.planned_route =["Scan advanced"]
+                    return
                 visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
                 if (
                     isinstance(self.vision[final_point.y][final_point.x], int)
@@ -696,6 +694,8 @@ class Submarine:
                         < 0
                     ):
                         temp_banned_points.append(point)
+                elif not self.__is_safe(point):
+                    temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -740,17 +740,21 @@ class Submarine:
                         visited_squares_counter_copy[(point.y, point.x)]
                         <= least_visited
                         and str(self.vision[point.y][point.x])[0] != "U"
+                        and self.__is_safe(point)
                     ):
                         least_visited = visited_squares_counter_copy[(point.y, point.x)]
-                final_point = new_points_visited[0]
+                final_point = None
                 for point in new_points_visited:
                     if (
                         visited_squares_counter_copy[(point.y, point.x)]
                         == least_visited
                         and str(self.vision[point.y][point.x])[0] != "U"
+                        and self.__is_safe(point)
                     ):
                         final_point = point
                         break
+                if final_point == None:
+                    return False
                 visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
                 if (
                     isinstance(self.vision[final_point.y][final_point.x], int)
