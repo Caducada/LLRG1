@@ -5,115 +5,54 @@ from .submarine import Submarine
 
 
 def general_share(share_type, giver_sub: Submarine, map: Map):
-    if share_type == "position":
-        share_position(giver_sub, map)
-    elif share_type == "missile_info":
-        share_missile_info(giver_sub, map)
-    elif share_type == "endpoint":
-        share_endpoint(giver_sub, map)
-    elif share_type == "missiles":
+    if share_type == "missiles":
         share_missiles(giver_sub, map)
     elif share_type == "vision":
         share_vision(giver_sub, map)
     elif share_type == "secret":
         share_secret(giver_sub, map)
-    elif share_type == "paths":
-        share_paths(giver_sub, map)
 
 
-def share_position(giver_sub: Submarine, map: Map) -> None:
-    """Delar sin position med de övriga ubåtarna"""
+def normal_share(map: Map, cycle_count:int) -> None:
+    """Tryckte ihop all 'gratis' kommunikation mellan ubåtar till en funktion för att förbättra prestandan"""
     for sub in map.fleet:
-        if sub.is_alive:
-            if sub.id != giver_sub.id:
-                create_sub = True
-                for temp_sub in sub.sub_list:
-                    if temp_sub:
-                        if temp_sub.id == giver_sub.id:
-                            create_sub = False
-                if not create_sub:
-                    for temp_sub in sub.sub_list:
-                        if temp_sub.id == giver_sub.id:
-                            if (
-                                temp_sub.temp_x == giver_sub.temp_x
-                                and temp_sub.temp_y == giver_sub.temp_y
-                                and not temp_sub.endpoint_reached
-                            ):
-                                temp_sub.static += 1
-                            else:
-                                temp_sub.static = 0
-                            temp_sub.prev_x = temp_sub.temp_x
-                            temp_sub.prev_y = temp_sub.prev_y
-                            temp_sub.temp_x = giver_sub.temp_x
-                            temp_sub.temp_y = giver_sub.temp_y
-                            temp_sub.is_alive = giver_sub.is_alive
-                else:
-                    sub.sub_list.append(
-                        Submarine(
-                            id=giver_sub.id,
-                            temp_x=giver_sub.temp_x,
-                            temp_y=giver_sub.temp_y,
-                        )
+        for temp_sub in sub.sub_list:
+            if cycle_count != 0:
+                if sub.id != temp_sub.id:
+                    if (
+                        temp_sub.temp_x == sub.temp_x
+                        and temp_sub.temp_y == sub.temp_y
+                        and not temp_sub.endpoint_reached
+                    ):
+                        temp_sub.static += 1
+                    else:
+                        temp_sub.static = 0
+                    temp_sub.prev_x = temp_sub.temp_x
+                    temp_sub.prev_y = temp_sub.prev_y
+                    temp_sub.temp_x = sub.temp_x
+                    temp_sub.temp_y = sub.temp_y
+                    temp_sub.is_alive = sub.is_alive
+                    temp_sub.m_count = sub.m_count
+                    temp_sub.xe = sub.xe
+                    temp_sub.ye = sub.ye
+                    temp_sub.endpoint_reached = sub.endpoint_reached
+                if temp_sub.secret_key != None:
+                    for real_sub in map.fleet:
+                        if real_sub.id == temp_sub.id:
+                            temp_sub.planned_route = sub.planned_route
+            else:
+                sub.sub_list.append(
+                    Submarine(
+                        id=sub.id,
+                        temp_x=sub.temp_x,
+                        temp_y=sub.temp_y,
+                        m_count=sub.m_count,
+                        xe = sub.xe,
+                        ye = sub.ye,
+                        endpoint_reached=sub.endpoint_reached
                     )
-        sub.update_vision()
+                )
 
-
-def share_missile_info(giver_sub: Submarine, map: Map) -> None:
-    """Delar antalet missiler med de övriga ubåtarna"""
-    for sub in map.fleet:
-        if sub.is_alive:
-            if sub.id != giver_sub.id:
-                create_sub = True
-                for temp_sub in sub.sub_list:
-                    if temp_sub:
-                        if temp_sub.id == giver_sub.id:
-                            create_sub = False
-                if not create_sub:
-                    for temp_sub in sub.sub_list:
-                        if temp_sub.id == giver_sub.id:
-                            temp_sub.m_count = giver_sub.m_count
-                else:
-                    sub.sub_list.append(
-                        Submarine(id=giver_sub.id, m_count=giver_sub.m_count)
-                    )
-
-
-def share_paths(giver_sub:Submarine, map: Map) -> None:
-    """Ubåt delar med sig av sin planerade rutt till alla som har access"""
-    for sub in map.fleet:
-        if sub.is_alive:
-            if sub.id == giver_sub.id:
-                for fake_sub in sub.sub_list:
-                    if fake_sub.secret_key != None:
-                        for real_sub in map.fleet:
-                            if real_sub.id == fake_sub.id:
-                                fake_sub.planned_route = real_sub.planned_route
-
-def share_endpoint(giver_sub: Submarine, map: Map) -> None:
-    """Delar info om slutpositionen med de övriga ubåtarna"""
-    for sub in map.fleet:
-        if sub.is_alive:
-            if sub.id != giver_sub.id:
-                create_sub = True
-                for temp_sub in sub.sub_list:
-                    if temp_sub:
-                        if temp_sub.id == giver_sub.id:
-                            create_sub = False
-                if not create_sub:
-                    for temp_sub in sub.sub_list:
-                        if temp_sub.id == giver_sub.id:
-                            temp_sub.xe = giver_sub.xe
-                            temp_sub.ye = giver_sub.ye
-                            temp_sub.endpoint_reached = giver_sub.endpoint_reached
-                else:
-                    sub.sub_list.append(
-                        Submarine(
-                            id=giver_sub.id,
-                            xe=giver_sub.xe,
-                            ye=giver_sub.ye,
-                            endpoint_reached=giver_sub.endpoint_reached,
-                        )
-                    )
 
 
 def share_missiles(giver_sub: Submarine, map: Map) -> None:

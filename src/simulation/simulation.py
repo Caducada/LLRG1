@@ -1,6 +1,6 @@
 from simulation.map import Map
 from simulation.get_fleet import get_fleet
-from simulation.communication import general_share
+from simulation.communication import general_share, normal_share
 import time
 import os
 
@@ -14,61 +14,23 @@ class Simulation:
         self.cycle_count = 0
         self.max_cycles = max_cycles
         
-    def prepare(self):
-        """Utför förberedelser för en ny cykel och optimerar datadelning."""
-        for sub in self.active_fleet:
-            if sub.is_alive:
-                sub.basic_scan()
-                
-                if sub.position_changed:
-                    general_share("position", sub, self.map)
-                    sub.position_changed = False 
-
-                if sub.missile_count_changed:
-                    general_share("missile_info", sub, self.map)
-                    sub.missile_count_changed = False 
-
-                if sub.endpoint_changed:
-                    general_share("endpoint", sub, self.map)
-                    sub.endpoint_changed = False  
-        self.map.update_paths()
 
     def decide(self):
         """Ubåtar fattar beslut om sina handlingar och hanterar blockeringar."""
+        normal_share(self.map, self.cycle_count)
         for sub in self.active_fleet:
+            sub.basic_scan()
+            sub.update_path()
             if not sub.is_alive:
                 sub.planned_route.clear() 
                 continue
 
-            if sub.endpoint_reached:
-                if sub.planned_route:  
-                    action = sub.planned_route[0]
-                    action_type = action.split()[0]
-                    if action_type == "Scan":
-                        sub.general_scan(action.split()[1])
-                    elif action_type == "Share":
-                        general_share(action.split()[1], sub, self.map)
-                continue 
 
             if sub.planned_route:
                 action = sub.planned_route[0]
                 action_type = action.split()[0]
 
                 if action_type == "Move":
-                    next_x, next_y = sub.get_next_position(action.split()[1])
-                    blocking_sub = sub.find_sub_at(next_x, next_y)
-
-                    if blocking_sub:
-                        if blocking_sub.is_alive:
-
-                            general_share("position", blocking_sub, self.map)
-                            
-                            if sub.m_count > 0:
-                                sub.planned_route.appendleft(f"Shoot {action.split()[1]}")
-                            else:
-                                sub.planned_route.appendleft(f"Move {action.split()[1]}")
-                        continue  
-
                     sub.move_sub(action.split()[1])
 
                 elif action_type == "Shoot":
@@ -112,8 +74,6 @@ class Simulation:
             print("Simulation stopped: reached maximum cycle count.")
             return
         
-        
-        self.prepare()
         self.decide()
         self.execute()
         
