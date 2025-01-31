@@ -478,9 +478,6 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
-                elif (point.y, point.x) in visited_squares_counter_copy.keys():
-                    temp_banned_points.append(point)
-                    new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
                 elif isinstance(self.vision[point.y][point.x], int):
@@ -493,6 +490,9 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif not self.__is_safe(point):
                     temp_banned_points.append(point)
+                elif (point.y, point.x) in visited_squares_counter_copy.keys():
+                    temp_banned_points.append(point)
+                    new_points_visited.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -679,9 +679,6 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
-                elif (point.y, point.x) in visited_squares_counter_copy.keys():
-                    temp_banned_points.append(point)
-                    new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
                 elif isinstance(self.vision[point.y][point.x], int):
@@ -692,6 +689,9 @@ class Submarine:
                         temp_banned_points.append(point)
                 elif not self.__is_safe(point):
                     temp_banned_points.append(point)
+                elif (point.y, point.x) in visited_squares_counter_copy.keys():
+                    temp_banned_points.append(point)
+                    new_points_visited.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -813,7 +813,7 @@ class Submarine:
         return True
     
     def __breaker(self, loop_counter:int) -> bool:
-        if loop_counter > 599* self.map_height * self.map_width:
+        if loop_counter > self.map_height * self.map_width:
             return True
         return False
 
