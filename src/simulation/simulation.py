@@ -17,31 +17,22 @@ class Simulation:
 
     def decide(self):
         """Ubåtar fattar beslut om sina handlingar och hanterar blockeringar."""
-        normal_share(self.map, self.cycle_count)
+        normal_share(self.map)
         for sub in self.active_fleet:
             sub.basic_scan()
             sub.update_path()
-            if not sub.is_alive:
-                sub.planned_route.clear() 
-                continue
 
-
-            if sub.planned_route:
-                action = sub.planned_route[0]
-                action_type = action.split()[0]
-
-                if action_type == "Move":
-                    sub.move_sub(action.split()[1])
-
-                elif action_type == "Shoot":
-                    sub.missile_shoot()
-                    self.map.missile_hits(sub.id, sub.temp_x, sub.temp_y, action.split()[1])
-
-                elif action_type == "Scan":
-                    sub.general_scan(action.split()[1])
-
-                elif action_type == "Share":
-                    general_share(action.split()[1], sub, self.map)
+        if sub.planned_route[0].split()[0] == "Move":
+            sub.move_sub(sub.planned_route[0].split()[1])
+        elif sub.planned_route[0].split()[0] == "Shoot":
+            sub.missile_shoot()
+            self.map.missile_hits(
+                sub.id, sub.temp_x, sub.temp_y, sub.planned_route[0].split()[1]
+            )
+        elif sub.planned_route[0].split()[0] == "Scan":
+            sub.general_scan(sub.planned_route[0].split()[1])
+        elif sub.planned_route[0].split()[0] == "Share":
+            general_share(sub.planned_route[0].split()[1], sub, self.map)
 
     def execute(self):
         """Utför förändringar efter alla handlingar och uppdaterar status."""
