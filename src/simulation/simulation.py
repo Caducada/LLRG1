@@ -41,24 +41,7 @@ class Simulation:
         for sub in self.fleet:
             sub.map = self.map._map  
 
-            if sub not in self.cleared:
-                if sub.endpoint_reached or not sub.is_alive:
-                    if not sub.is_alive:  # 🚨 UBÅTEN DÖR
-                        pos = (sub.temp_x, sub.temp_y)
 
-                        if pos not in self.map.dead_sub_positions.values():
-                            self.map.dead_sub_positions[sub.id] = pos
-                        else:
-                            self.map.dead_sub_positions[sub.id] = pos 
-
-                        if (sub.xe, sub.ye) in self.map.endpoint_positions:
-                            self.map.endpoint_positions.remove((sub.xe, sub.ye))
-
-                    self.cleared.add(sub)
-
-                    if (sub.xe, sub.ye) in self.map.endpoint_positions:
-                        self.map.endpoint_positions.remove((sub.xe, sub.ye))
-                        self.map.modify_cell(sub.xe, sub.ye, "0")
     def step(self):
         """Utför en cykel i simuleringen."""
         if self.max_cycles and self.cycle_count >= self.max_cycles:

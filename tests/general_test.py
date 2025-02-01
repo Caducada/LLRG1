@@ -13,17 +13,18 @@ def decide(sim_map: Map) -> None:
     for sub in sim_map.fleet:
         sub.basic_scan()
         sub.update_path()
-        if sub.planned_route[0].split()[0] == "Move":
-            sub.move_sub(sub.planned_route[0].split()[1])
-        elif sub.planned_route[0].split()[0] == "Shoot":
-            sub.missile_shoot()
-            sim_map.missile_hits(
-                sub.id, sub.temp_x, sub.temp_y, sub.planned_route[0].split()[1]
-            )
-        elif sub.planned_route[0].split()[0] == "Scan":
-            sub.general_scan(sub.planned_route[0].split()[1])
-        elif sub.planned_route[0].split()[0] == "Share":
-            general_share(sub.planned_route[0].split()[1], sub, sim_map)
+        if sub.is_alive:
+            if sub.planned_route[0].split()[0] == "Move":
+                sub.move_sub(sub.planned_route[0].split()[1])
+            elif sub.planned_route[0].split()[0] == "Shoot":
+                sub.missile_shoot()
+                sim_map.missile_hits(
+                    sub.id, sub.temp_x, sub.temp_y, sub.planned_route[0].split()[1]
+                )
+            elif sub.planned_route[0].split()[0] == "Scan":
+                sub.general_scan(sub.planned_route[0].split()[1])
+            elif sub.planned_route[0].split()[0] == "Share":
+                general_share(sub.planned_route[0].split()[1], sub, sim_map)
 
 
 def execute(sim_map: Map, cleared: set) -> set:
@@ -58,7 +59,7 @@ def run_test(sim_map: Map) -> None:
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
-    # run_test(Map(file_name="help.txt", sub_file_name="uboat2.txt"))
-    run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
+    run_test(Map(file_name="underground.txt", sub_file_name="help.txt"))
+    # run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
     # run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="uboat.txt"))
