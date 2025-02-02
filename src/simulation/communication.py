@@ -4,13 +4,10 @@ from .map import Map
 from .submarine import Submarine
 
 
-def general_share(share_type, giver_sub: Submarine, map: Map):
-    if share_type == "missiles":
-        share_missiles(giver_sub, map)
-    elif share_type == "vision":
-        share_vision(giver_sub, map)
-    elif share_type == "secret":
-        share_secret(giver_sub, map)
+def special_share(giver_sub: Submarine, map: Map):
+    share_missiles(giver_sub, map)
+    share_vision(giver_sub, map)
+    share_secret(giver_sub, map)
 
 
 def normal_share(map: Map) -> None:
@@ -68,7 +65,10 @@ def share_missiles(giver_sub: Submarine, map: Map) -> None:
 
     missiles_shared = giver_sub.m_count
     giver_sub.m_count = 0
-
+    
+    if not len(adjacent_subs):
+        return
+    
     for adjacent_id in adjacent_subs:
         for sub in giver_sub.sub_list:
             if sub.id == int(adjacent_id):
@@ -104,6 +104,9 @@ def share_vision(giver_sub: Submarine, map: Map) -> None:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
                 if i == giver_sub.temp_y and j == giver_sub.temp_x + 1:
                     adjacent_subs.append(giver_sub.vision[i][j][1])
+                    
+    if not len(adjacent_subs):
+        return
 
     for adjacent_id in adjacent_subs:
         for sub in map.fleet:
@@ -143,6 +146,9 @@ def share_secret(giver_sub: Submarine, map: Map) -> None:
         for sub in map.fleet:
             if sub.id == int(adjacent_id):
                 client = sub
+                
+    if not len(adjacent_subs):
+        return
                 
     client.secret_keys.setdefault(giver_sub.id, secret_key)
     giver_sub.secret_keys.setdefault(client.id, secret_key)

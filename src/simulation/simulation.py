@@ -1,6 +1,6 @@
 from simulation.map import Map
 from simulation.get_fleet import get_fleet
-from simulation.communication import general_share, normal_share
+from simulation.communication import special_share, normal_share
 import time
 import os
 
@@ -31,7 +31,7 @@ class Simulation:
             elif sub.planned_route[0].split()[0] == "Scan":
                 sub.general_scan(sub.planned_route[0].split()[1])
             elif sub.planned_route[0].split()[0] == "Share":
-                general_share(sub.planned_route[0].split()[1], sub, self.map)
+                special_share(sub, self.map)
 
     def execute(self):
         """Utför förändringar efter alla handlingar och uppdaterar status."""
@@ -83,6 +83,10 @@ class Simulation:
             print("<------------------->")
 
         while len(self.cleared) < len(self.fleet):
+            if self.map.is_static:
+                print("Simulation stopped: no map-changes detected.")
+                break
+            
             if self.max_cycles and self.cycle_count >= self.max_cycles:
                 print("Simulation stopped: reached maximum cycle count.")
                 break

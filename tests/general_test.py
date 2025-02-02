@@ -4,7 +4,7 @@ import time
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 from simulation.map import Map
-from simulation.communication import general_share, normal_share
+from simulation.communication import special_share, normal_share
 
 
 
@@ -24,7 +24,7 @@ def decide(sim_map: Map) -> None:
             elif sub.planned_route[0].split()[0] == "Scan":
                 sub.general_scan(sub.planned_route[0].split()[1])
             elif sub.planned_route[0].split()[0] == "Share":
-                general_share(sub.planned_route[0].split()[1], sub, sim_map)
+                special_share(sub, sim_map)
 
 
 def execute(sim_map: Map, cleared: set) -> set:
@@ -59,7 +59,7 @@ def run_test(sim_map: Map) -> None:
 
 if __name__ == "__main__":
     os.system("cls" if os.name == "nt" else "clear")
-    run_test(Map(file_name="underground.txt", sub_file_name="help.txt"))
-    # run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
+    # run_test(Map(file_name="underground.txt", sub_file_name="uboat.txt"))
+    run_test(Map(file_name="help.txt", sub_file_name="help.txt"))
     # run_test(Map(file_name="help.txt", sub_file_name="simple.txt"))
     # run_test(Map(file_name="underground.txt", sub_file_name="uboat.txt"))
