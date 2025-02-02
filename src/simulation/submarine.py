@@ -883,10 +883,10 @@ class Submarine:
     def __get_client_id(self) -> int | None:
         """Retunerar ett ID på en ubåt som behöver hjälp"""
         for sub in self.sub_list:
-            if sub.static and not sub.endpoint_reached and sub.client_id == None:
+            if sub.static > 1 and not sub.endpoint_reached and sub.client_id == None:
                 square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
                 if self.m_count != 0:
-                    if square and self.__get_client_route(int(square[1]), int(square[0])):
+                    if square and self.__get_client_route():
                             return sub.id
                     elif self.__is_adjacent(sub):
                         return sub.id
@@ -928,7 +928,7 @@ class Submarine:
                     client = sub
                     break
             square = self.__get_adjacent_square(client.temp_x, client.temp_y)
-            if square != False:
+            if square != False and self.__get_client_route():
                 self.__get_client_route(int(square[0]), int(square[1]))
             else:
                 self.__get_endpoint_route()

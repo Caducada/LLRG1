@@ -21,25 +21,44 @@ class Simulation:
         for sub in self.active_fleet:
             sub.basic_scan()
             sub.update_path()
-
-        if sub.planned_route[0].split()[0] == "Move":
-            sub.move_sub(sub.planned_route[0].split()[1])
-        elif sub.planned_route[0].split()[0] == "Shoot":
-            sub.missile_shoot()
-            self.map.missile_hits(
-                sub.id, sub.temp_x, sub.temp_y, sub.planned_route[0].split()[1]
-            )
-        elif sub.planned_route[0].split()[0] == "Scan":
-            sub.general_scan(sub.planned_route[0].split()[1])
-        elif sub.planned_route[0].split()[0] == "Share":
-            general_share(sub.planned_route[0].split()[1], sub, self.map)
+            if sub.planned_route[0].split()[0] == "Move":
+                sub.move_sub(sub.planned_route[0].split()[1])
+            elif sub.planned_route[0].split()[0] == "Shoot":
+                sub.missile_shoot()
+                self.map.missile_hits(
+                    sub.id, sub.temp_x, sub.temp_y, sub.planned_route[0].split()[1]
+                )
+            elif sub.planned_route[0].split()[0] == "Scan":
+                sub.general_scan(sub.planned_route[0].split()[1])
+            elif sub.planned_route[0].split()[0] == "Share":
+                general_share(sub.planned_route[0].split()[1], sub, self.map)
 
     def execute(self):
         """Utför förändringar efter alla handlingar och uppdaterar status."""
         self.map.update_map()
 
         for sub in self.fleet:
-            sub.map = self.map._map  
+            if sub in self.cleared and not sub.endpoint_reached and sub.is_alive:
+                self.cleared.remove(sub)
+            if sub.endpoint_reached:
+                self.cleared.add(sub)
+            elif not sub.is_alive:
+                self.cleared.add(sub)
+            if sub not in self.cleared:
+                if not sub.is_alive:  # 🚨 UBÅTEN DÖR
+                    pos = (sub.temp_x, sub.temp_y)
+
+                    if pos not in self.map.dead_sub_positions.values():
+                        self.map.dead_sub_positions[sub.id] = pos
+                    else:
+                        self.map.dead_sub_positions[sub.id] = pos 
+
+                    if (sub.xe, sub.ye) in self.map.endpoint_positions:
+                        self.map.endpoint_positions.remove((sub.xe, sub.ye))
+                        
+                    if (sub.xe, sub.ye) in self.map.endpoint_positions:
+                        self.map.endpoint_positions.remove((sub.xe, sub.ye))
+                        self.map.modify_cell(sub.xe, sub.ye, "0")
 
 
     def step(self):

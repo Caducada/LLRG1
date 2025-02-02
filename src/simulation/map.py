@@ -184,8 +184,9 @@ class Map:
                             and sub.id != sub1.id:
 
                             pos = (sub.temp_x, sub.temp_y)
+                            pos1 = (sub1.temp_x, sub1.temp_y)
                             self.dead_sub_positions[sub.id] = pos
-                            self.dead_sub_positions[sub1.id] = pos
+                            self.dead_sub_positions[sub1.id] = pos1
 
                             sub.is_alive = False
                             sub1.is_alive = False
@@ -299,6 +300,8 @@ class Map:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
+                        pos = (sub.temp_x, sub.temp_y)
+                        self.dead_sub_positions[sub.id] = pos
                         self._map[int(key.split()[0])][int(key.split()[1])] = 0
 
   
