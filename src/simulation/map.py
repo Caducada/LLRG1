@@ -16,6 +16,7 @@ class Map:
         """
         self.endpoint_positions = set()
         self.dead_sub_positions = {}
+        self.is_static = False
         if file_name == '':
             self.create_empty_map(x, y)
         else:
@@ -184,8 +185,9 @@ class Map:
                             and sub.id != sub1.id:
 
                             pos = (sub.temp_x, sub.temp_y)
+                            pos1 = (sub1.temp_x, sub1.temp_y)
                             self.dead_sub_positions[sub.id] = pos
-                            self.dead_sub_positions[sub1.id] = pos
+                            self.dead_sub_positions[sub1.id] = pos1
 
                             sub.is_alive = False
                             sub1.is_alive = False
@@ -248,6 +250,8 @@ class Map:
         if not self.fleet:
             return
 
+        frozen = self._map
+        
         self.subs_swap()
 
         for key in self.missile_hits_dict:
@@ -299,6 +303,11 @@ class Map:
                 for sub in self.fleet:
                     if sub.vision[int(key.split()[0])][int(key.split()[1])] == "S":
                         sub.is_alive = False
+                        pos = (sub.temp_x, sub.temp_y)
+                        self.dead_sub_positions[sub.id] = pos
                         self._map[int(key.split()[0])][int(key.split()[1])] = 0
+                        
+        if frozen == self._map:
+            self.is_static = True
 
   

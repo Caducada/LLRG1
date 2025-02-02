@@ -23,10 +23,15 @@ class Submarine:
         y0=None,
         xe=None,
         ye=None,
+        secret_keys={},
+        external_visions=[],
+        prev_x=None,
+        prev_y=None,
         m_count=0,
         endpoint_reached=False,
         temp_x=None,
         temp_y=None,
+        static=0,
     ) -> None:
         """Map attribute needs to be updated each cycle"""
         self.is_alive = True
@@ -38,22 +43,20 @@ class Submarine:
         self.temp_x = temp_x
         self.temp_y = temp_y
         self.map = map
-        self.prev_x = None
-        self.prev_y = None
+        self.prev_x = prev_x
+        self.prev_y = prev_y
         self.vision = None
         self.endpoint_reached = endpoint_reached
         self.m_count = m_count
         self.planned_route = []
-        self.secret_key = None
+        self.secret_keys = secret_keys
+        self.external_visions = external_visions
         self.sub_list = []
         self.visited_squares_counter = {(self.temp_y, self.temp_x): 0}
         self.endpoint_missiles_required = 0
         self.client_missiles_required = 0
-        self.static = False
+        self.static = static
         self.client_id = None
-        self.position_changed = False
-        self.missile_count_changed = False
-        self.endpoint_changed = False
         if self.x0 != None:
             self.temp_x = self.x0
         if self.y0 != None:
@@ -154,6 +157,7 @@ class Submarine:
                 else:
                     self.visited_squares_counter[(self.temp_y, self.temp_x)] = 0
                 self.vision[self.temp_y][self.temp_x] = "S"
+        self.static = 0
 
     @status_control
     def display_vision(self):
@@ -223,6 +227,7 @@ class Submarine:
     @status_control
     def advanced_scan(self):
         self.basic_scan()
+        self.static += 1
         if self.temp_y + 2 < self.map_height:
             self.vision[self.temp_y + 2][self.temp_x] = self.map[self.temp_y + 2][
                 self.temp_x
@@ -310,22 +315,38 @@ class Submarine:
                 if int(safe_point[0]) == i and int(safe_point[1]) == j:
                     self.vision[i][j] = "U" + str(sub_index)
 
-    def __is_safe(self, point:Point) -> bool:
+    def __is_safe(self, point: Point) -> bool:
         for sub in self.sub_list:
             if sub.is_alive and sub.planned_route != None:
                 if len(sub.planned_route) > 1:
-                    if sub.planned_route[1] == "Move up" and sub.prev_x == point.x and sub.prev_y + 1 == point.y:
-                        return False 
-                elif len(sub.planned_route)> 1:
-                    if sub.planned_route[1] == "Move down" and sub.prev_x == point.x and sub.prev_y - 1 == point.y:
-                        return False 
-                elif len(sub.planned_route)> 1:
-                    if sub.planned_route[1] == "Move right" and sub.prev_x == point.x and sub.prev_y + 1 == point.y:
-                        return False 
-                elif len(sub.planned_route)> 1:
-                    if sub.planned_route[1] == "Move left" and sub.prev_x == point.x and sub.prev_y - 1 == point.y:
-                        return False 
-        return True    
+                    if (
+                        sub.planned_route[1] == "Move up"
+                        and sub.prev_x == point.x
+                        and sub.prev_y + 1 == point.y
+                    ):
+                        return False
+                elif len(sub.planned_route) > 1:
+                    if (
+                        sub.planned_route[1] == "Move down"
+                        and sub.prev_x == point.x
+                        and sub.prev_y - 1 == point.y
+                    ):
+                        return False
+                elif len(sub.planned_route) > 1:
+                    if (
+                        sub.planned_route[1] == "Move right"
+                        and sub.prev_x == point.x
+                        and sub.prev_y + 1 == point.y
+                    ):
+                        return False
+                elif len(sub.planned_route) > 1:
+                    if (
+                        sub.planned_route[1] == "Move left"
+                        and sub.prev_x == point.x
+                        and sub.prev_y - 1 == point.y
+                    ):
+                        return False
+        return True
 
     def __is_scared(
         self,
@@ -478,21 +499,20 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
-                elif (point.y, point.x) in visited_squares_counter_copy.keys():
-                    temp_banned_points.append(point)
-                    new_points_visited.append(point)
                 elif str(self.vision[point.y][point.x])[0] == "U":
                     temp_banned_points.append(point)
-                elif isinstance(self.vision[point.y][point.x], int):
-                    if (
-                        self.m_count - missiles_required - self.vision[point.y][point.x]
-                        < 0
-                    ):
-                        temp_banned_points.append(point)
+                elif (
+                    self.vision[point.y][point.x] in [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                    and self.m_count < self.vision[point.y][point.x]
+                ):
+                    temp_banned_points.append(point)
                 elif self.__is_scared(point):
                     temp_banned_points.append(point)
                 elif not self.__is_safe(point):
                     temp_banned_points.append(point)
+                elif (point.y, point.x) in visited_squares_counter_copy.keys():
+                    temp_banned_points.append(point)
+                    new_points_visited.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -552,7 +572,7 @@ class Submarine:
                         final_point = point
                         break
                 if final_point == None:
-                    self.planned_route =["Scan advanced"]
+                    self.planned_route = ["Scan advanced"]
                     return
                 visited_squares_counter_copy[(final_point.y, final_point.x)] += 1
                 if (
@@ -604,24 +624,9 @@ class Submarine:
             return False
         if self.temp_x == x_goal and self.temp_y == y_goal:
             self.__reset_visited_counter()
-            client = None
-            secret_key = None
-            for sub in self.sub_list:
-                if sub.id == self.client_id:
-                    client = sub
-                    secret_key = sub.secret_key
-                    break
-            if secret_key == None:
-                self.planned_route = ["Share secret", "Share vision", "Share missiles"]
-                return True
-            elif client.vision == None:
-                self.planned_route = ["Share vision", "Share missiles"]
-                return True
-            elif self.m_count - self.endpoint_missiles_required > 0:
-                self.planned_route = ["Share missiles"]
-                return True
-            else:
-                return False
+            self.planned_route = ["Share special"]
+            return True
+
         new_route = []
         banned_squares = []
         missiles_required = 0
@@ -679,19 +684,18 @@ class Submarine:
                     temp_banned_points.append(point)
                 elif (point.y, point.x) in banned_squares:
                     temp_banned_points.append(point)
+                elif str(self.vision[point.y][point.x])[0] == "U":
+                    temp_banned_points.append(point)
+                elif (
+                    self.vision[point.y][point.x] in [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                    and self.m_count < self.vision[point.y][point.x]
+                ):
+                    temp_banned_points.append(point)
+                elif not self.__is_safe(point):
+                    temp_banned_points.append(point)
                 elif (point.y, point.x) in visited_squares_counter_copy.keys():
                     temp_banned_points.append(point)
                     new_points_visited.append(point)
-                elif str(self.vision[point.y][point.x])[0] == "U":
-                    temp_banned_points.append(point)
-                elif isinstance(self.vision[point.y][point.x], int):
-                    if (
-                        self.m_count - missiles_required - self.vision[point.y][point.x]
-                        < 0
-                    ):
-                        temp_banned_points.append(point)
-                elif not self.__is_safe(point):
-                    temp_banned_points.append(point)
             for point in temp_banned_points:
                 new_points.remove(point)
             if len(new_points):
@@ -794,26 +798,18 @@ class Submarine:
                 missiles_required = 0
                 new_route = []
         self.client_missiles_required = missiles_required
-        secret_key = None
+        client = None
         for sub in self.sub_list:
             if sub.id == self.client_id:
                 client = sub
-                secret_key = sub.secret_key
                 break
-        if secret_key == None:
-            new_route.append("Share secret")
-            new_route.append("Share vision")
-            new_route.append("Share missiles")
-        elif client.vision == None:
-            new_route.append("Share vision")
-            new_route.append("Share missiles")
-        elif self.m_count - self.endpoint_missiles_required > 0:
-            new_route.append("Share missiles")
-        self.planned_route = new_route
+        if client != None:
+            new_route.append("Share special")
+            self.planned_route = new_route
         return True
-    
-    def __breaker(self, loop_counter:int) -> bool:
-        if loop_counter > 599* self.map_height * self.map_width:
+
+    def __breaker(self, loop_counter: int) -> bool:
+        if loop_counter > 100 * self.map_height * self.map_width:
             return True
         return False
 
@@ -823,24 +819,28 @@ class Submarine:
             if (
                 self.vision[point_y + 1][point_x] == 0
                 or self.vision[point_y + 1][point_x] == "S"
+                or self.vision[point_y + 1][point_x] == "?"
             ):
                 return str(point_y + 1) + str(point_x)
         if self.temp_y != 0:
             if (
                 self.vision[point_y - 1][point_x] == 0
                 or self.vision[point_y - 1][point_x] == "S"
+                or self.vision[point_y + 1][point_x] == "?"
             ):
                 return str(point_y - 1) + str(point_x)
         if point_x != self.map_width - 1:
             if (
                 self.vision[point_y][point_x] == 0
                 or self.vision[point_y][point_x] == "S"
+                or self.vision[point_y + 1][point_x] == "?"
             ):
                 return str(point_y) + str(point_x)
         if self.temp_x != 0:
             if (
                 self.vision[point_y][point_x] == 0
                 or self.vision[point_y][point_x] == "S"
+                or self.vision[point_y + 1][point_x] == "?"
             ):
                 return str(point_y) + str(point_x)
         return False
@@ -865,17 +865,14 @@ class Submarine:
     def __get_client_id(self) -> int | None:
         """Retunerar ett ID på en ubåt som behöver hjälp"""
         for sub in self.sub_list:
-            if sub.static:
+            if sub.static > 1 and not sub.endpoint_reached and sub.client_id == None:
                 square = self.__get_adjacent_square(sub.temp_x, sub.temp_y)
-                if square:
-                    if self.__get_client_route(int(square[1]), int(square[0])):
-                        if (
-                            self.m_count
-                            - self.endpoint_missiles_required
-                            - self.client_missiles_required
-                            > 0
-                        ) or self.__is_adjacent(sub):
+                if square != False and self.m_count != 0:
+                    if self.__get_client_route(int(square[0]), int(square[1])):
                             return sub.id
+                    elif self.__is_adjacent(sub):
+                        return sub.id
+
         return None
 
     @status_control
@@ -917,35 +914,7 @@ class Submarine:
                 self.__get_client_route(int(square[0]), int(square[1]))
             else:
                 self.__get_endpoint_route()
-        # 🚧 Blockeringshantering: Finns det en ubåt i vägen?
-        if len(self.planned_route) > 0 and "Move" in self.planned_route[0]:
-            direction = self.planned_route[0].split()[1]
-            block_x, block_y = self.get_next_position(direction)
-            
-            blocking_sub = self.find_sub_at(block_x, block_y)
 
-            if blocking_sub:
-                if blocking_sub.is_alive:
-                    print(f"⚠️ Sub {self.id} is blocked by Sub {blocking_sub.id} at ({block_x}, {block_y})")
-                    
-                    # 🏳️ Försök få den att flytta sig med Share Position
-                    if blocking_sub.endpoint_reached or blocking_sub.static:
-                        print(f"🔄 Asking Sub {blocking_sub.id} to move")
-                        self.planned_route = deque(self.planned_route)
-                        self.planned_route.appendleft(f"Share position with U{blocking_sub.id}")
-                        self.planned_route = list(self.planned_route)
-                    
-                    # 💥 Om den vägrar flytta, skjut eller ramma
-                    elif self.m_count > 0:
-                        print(f"💥 Sub {self.id} shoots at Sub {blocking_sub.id}")
-                        self.planned_route = deque(self.planned_route)
-                        self.planned_route.appendleft(f"Shoot {direction}")
-                        self.planned_route = list(self.planned_route)
-                    else:
-                        print(f"⚠️ Sub {self.id} considers ramming Sub {blocking_sub.id}")
-                        self.planned_route = deque(self.planned_route)
-                        self.planned_route.append(f"Move {direction}")
-                        self.planned_route = list(self.planned_route)
 
     def get_next_position(self, direction):
         """Beräknar nästa position om ubåten skulle flytta."""
@@ -959,7 +928,7 @@ class Submarine:
         elif direction == "left":
             x -= 1
         return x, y
-    
+
     def find_sub_at(self, x, y):
         """Returnerar ubåten vid (x, y) om det finns en där."""
         for sub in self.sub_list:
