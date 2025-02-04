@@ -174,13 +174,7 @@ class Submarine:
     @status_control
     def basic_scan(self) -> None:
         """Den här metoden ska köras på varje u-båt i början av varje cykel"""
-        dead_subs = []
-        for sub in self.sub_list:
-            if not sub.is_alive:
-                dead_subs.append(sub)
-        for sub in dead_subs:
-            if sub in self.sub_list:
-                self.sub_list.remove(sub)
+        self.update_vision()
         if self.temp_y != self.map_height - 1:
             self.vision[self.temp_y + 1][self.temp_x] = self.map[self.temp_y + 1][
                 self.temp_x
@@ -815,34 +809,34 @@ class Submarine:
 
     def __get_adjacent_square(self, point_x: int, point_y: int) -> str | bool:
         """Hittar en säker ruta bredvid en given ruta"""
-        if point_y != self.map_height - 1:
+        if point_y <= self.map_height - 1:
             if (
                 self.vision[point_y + 1][point_x] == 0
                 or self.vision[point_y + 1][point_x] == "S"
                 or self.vision[point_y + 1][point_x] == "?"
             ):
                 return str(point_y + 1) + str(point_x)
-        if self.temp_y != 0:
+        if self.temp_y > 0:
             if (
                 self.vision[point_y - 1][point_x] == 0
                 or self.vision[point_y - 1][point_x] == "S"
-                or self.vision[point_y + 1][point_x] == "?"
+                or self.vision[point_y - 1][point_x] == "?"
             ):
                 return str(point_y - 1) + str(point_x)
-        if point_x != self.map_width - 1:
+        if point_x <= self.map_width - 1:
             if (
-                self.vision[point_y][point_x] == 0
-                or self.vision[point_y][point_x] == "S"
-                or self.vision[point_y + 1][point_x] == "?"
+                self.vision[point_y][point_x+1] == 0
+                or self.vision[point_y][point_x+1] == "S"
+                or self.vision[point_y][point_x+1] == "?"
             ):
-                return str(point_y) + str(point_x)
-        if self.temp_x != 0:
+                return str(point_y) + str(point_x+1)
+        if self.temp_x > 0:
             if (
-                self.vision[point_y][point_x] == 0
-                or self.vision[point_y][point_x] == "S"
-                or self.vision[point_y + 1][point_x] == "?"
+                self.vision[point_y][point_x-1] == 0
+                or self.vision[point_y][point_x-1] == "S"
+                or self.vision[point_y][point_x-1] == "?"
             ):
-                return str(point_y) + str(point_x)
+                return str(point_y) + str(point_x-1)
         return False
 
     def __reset_visited_counter(self):
